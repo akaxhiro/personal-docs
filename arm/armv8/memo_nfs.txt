@@ -1,0 +1,5 @@
+If you see
+	... (errno 111)
+Use the following option.
+	# mount ... -o nolock ...
+In case of rootfs, you don't need it either.

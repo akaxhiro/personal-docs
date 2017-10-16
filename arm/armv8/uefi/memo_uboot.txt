@@ -1,0 +1,4 @@
+Required binaries are:
+  Image
+  devtree.dtb
+  ramdisk.img

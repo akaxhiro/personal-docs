@@ -1,0 +1,2 @@
+- enable big endian kernel in config
+- disable virtio block in config

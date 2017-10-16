@@ -1,0 +1,12 @@
+./configure --host=aarch64-linux-gnu --with-kernel-dir=/home/akashi/arm/armv8/linaro/build/kernel_kexec_v7 --enable-psci
+
+
+=== for big endian ===
+1) model.lds.S
+   littleaarch64 -> bigaarch64
+2) configure
+   rtsm_aemv8.dtb -> arm/rtsm_aemv8.dtb
+   xaarch64 -> xaarch64_be
+3) configure --host=aarch64_be-linux-gnu
+4) make
+5) run3.sh -br

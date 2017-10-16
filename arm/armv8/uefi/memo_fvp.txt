@@ -1,0 +1,2 @@
+v4.8 or later,
+modify armv8-timer's interrupts property to the one from the latest kernel.

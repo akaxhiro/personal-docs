@@ -1,0 +1,4 @@
+$ sudo ln -s bin/busybox init
+$ sudo mknod 204 64 c dev/ttyAMA0
+$ sudo find . | cpio -o -H newc > ../rootfs.cpio
+$ bzip2 rootfs.cpio

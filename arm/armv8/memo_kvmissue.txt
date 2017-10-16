@@ -1,0 +1,11 @@
+kvm_arch_init() =>
+  init_hyp_mode() =>
+    cpu_init_hyp_mode() for each cpu =>
+      __cpu_init_hyp_mode()
+
+cpu_init_hyp_mode() in arch/arm/kvm/arm.c
+    +--- kernel/hyp-stub.S
+    |
+    +--- kvm/hyp-init.S
+    |
+    +--- kvm/hyp.S

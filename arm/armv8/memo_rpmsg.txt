@@ -1,0 +1,17 @@
+vhost:
+make -C ../../../../build/kernel_v4.1/ M=`pwd` modules
+
+vhost_test --no-indirect --no-virtio-1
+
+rpmsg:
+
+sample_client:
+$ make O=../build/kernel_rpmsg2 -j8 samples/rpmsg/rpmsg_client_sample.ko
+
+tools/rpmsg:
+$  make O=`pwd`/../build/kernel_rpmsg2 -C tools/rpmsg all
+
+tools/virtio:
+- enable CONFIG_CAIF CONFIG_CAIF_VIRTIO CONFIG_VHOST_NET
+  (so CONFIG_VHOST)
+$  make O=`pwd`/../build/kernel_rpmsg2 -C tools/virtio all

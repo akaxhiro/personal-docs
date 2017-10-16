@@ -1,0 +1,1 @@
+$ make vexpress_defconfig

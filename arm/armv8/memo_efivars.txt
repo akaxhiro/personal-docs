@@ -1,0 +1,11 @@
+<arch/platform-specific>
+drivers/firmware/efi/runtime-wrappers.c
+    <-- arch/x86/platform/efi/efi.c efi_64.c
+
+<abstracted if, "efi" variable>
+drivers/firmware/efi/efi.c
+
+<accessors>
+drivers/firmware/efi/vars.c(native), efivars.c(sysfs)
+    efivar_init()
+    efivar_entry_set/get()

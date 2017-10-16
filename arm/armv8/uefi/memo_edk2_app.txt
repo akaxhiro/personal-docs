@@ -1,0 +1,36 @@
+https://github.com/tianocore/tianocore.github.io/wiki/Getting-Started-Writing-Simple-Application
+https://github.com/tianocore/tianocore.github.io/wiki/Build-Description-Files
+
+
+*.dec:
+    package definitions for a collection of libraries?
+
+*.dsc:
+    a kinda makefile for building apps
+    [Defines]
+       app definitions
+    [BuildOptions]
+       compiler options
+    [LibraryClasses]
+       libraries to be linked
+    [Pcds*]
+       definitions/parameters
+    [Components]
+       target sources
+
+*.inf:
+    listing source files for libraries
+    [Sources]
+    [Packages]
+    [LibraryClasses]
+    [Guids]
+    [Protocols]
+    [Pcd*]
+
+*.fdf:
+    flash device defitions
+    [FD*]
+       define a single flash device image (location and size)
+       and a layout of FVs within it
+    [FV*]
+       what components and modules are placed

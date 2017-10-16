@@ -1,0 +1,2 @@
+For encrypting a password with gpg
+http://xmodulo.com/mutt-email-client-encrypted-passwords.html

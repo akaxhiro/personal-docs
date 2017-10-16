@@ -1,0 +1,2 @@
+To build perf,
+  $ make O=/home/akashi/...(abs path) -C tools perf

@@ -1,0 +1,50 @@
+RSA: one of asymmetric encryption algorithm
+
+message or any type of content: data to be signed
+
+signature: the digest of the data encrypted by a _private_ key
+
+certificate: contains the _public_ key, plus its signature
+
+certificate's signature: the digest of the public key encrypted
+		by a _private_ key of another CA,
+		so creating a certifcate chain of CAs
+
+		In other words,
+		a certificate will be added to the list only if
+		its _public_ key is certified, using the digest,
+		by one of already-certified certificates.
+
+root certificate: self-signed, that means its contained signature is
+		encrypted by its own _private_ key
+		In other words,
+		if the signature can be decrypted by its _public_ key,
+		it means a _root_ certificate.
+
+pkcs#7: defines a format of signature
+
+x.509: defines a format of certificate
+	encodings for x.509: PEM(printable), DER(binary?)
+
+
+Steps
+-----
+* <root CA> create my own root certificate
+  * create a seed of key pair
+  * create a private/public key
+  * self-sign a public key
+    * calculate a digest of a public key
+    * encrypt the digest with a private key
+  * combine a public key and a digest into a root certificate
+
+* <I> create a test certificate
+  * create a seed of key pair
+  * create a private/public key
+  * <root CA> sign a public key
+    * calculate a digest of a public key
+    * encrypt the digest with root certificate's private key
+  * combine a public key and a digest into a test certificate
+
+* <I> sign a firmware by a test certificate
+  * calculate(sha-1) a digest of a firmware
+  * encrypt the digest with test certificate's private key

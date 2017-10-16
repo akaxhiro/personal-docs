@@ -1,0 +1,5 @@
+# https://sites.google.com/site/tetsuroweb/home/software/ubuntu/tips/mouse-pointer-speed
+# make the speed faster
+
+$ xinput set-prop 12 "Device Accel Constant Decelation" 1.4
+$ xinput set-prop 12 "Device Accel Adaptive Decelation" 20

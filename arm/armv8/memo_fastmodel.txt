@@ -1,0 +1,11 @@
+Setup network on host:
+# NetworkManager restart
+# /etc/init.d/z-fastmodel-network start
+# ifconfig armbr0 192.168.10.1
+
+# route add 192.168.10.0 netmask 255.255.255.0 gw 192.168.10.1
+
+# linaro-flexlm
+> (enter proxy password)
+
+$ xrdb -merge ~/.Xdefaults

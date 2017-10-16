@@ -1,0 +1,11 @@
+Add it for debugging:
+  earlycon=pl011,0xf7113000
+Don't remove:
+  efi=noruntime
+Remove an entry from grub menu
+  initrd ...
+
+Install modules
+  sudo -E make INSTALL_MOD_PATH=(full path) modules_install
+
+  find . | cpio -o -H newc > (dir)/ramdisk.img

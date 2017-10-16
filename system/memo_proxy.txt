@@ -1,0 +1,11 @@
+<proxy>
+- /etc/apt/apt.conf
+- /etc/profile.d/proxy.sh
+- ~/.gitconfig
+- ~/bin/git-proxy
+
+<socks>
+- /etc/socks.conf
+	setting socks server
+- ~/.bash.d/socks
+	for authentication info

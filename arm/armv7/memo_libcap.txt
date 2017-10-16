@@ -1,0 +1,4 @@
+To build the library:
+ $ make LIBATTR=no BUILD_CC=gcc CC=/home/akashi/arm/armv7/android/build/br-13.11_32soft/host/usr/bin/arm-none-linux-gnueabi-gcc
+
+Please note that we don't include libattr in the make above.

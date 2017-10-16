@@ -1,0 +1,2 @@
+See to fix a compile error:
+https://sourceforge.net/p/msmtp/mailman/message/33094733/

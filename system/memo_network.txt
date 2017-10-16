@@ -1,0 +1,26 @@
+# disable local dns
+https://forums.ubuntulinux.jp/viewtopic.php?id=13791
+$ vi /etc/NetworkManager/NetworkManager.conf
+$ vi /etc/resolvconf/resolv.conf.d/base
+$ sudo resolvconf -u
+
+# proxy
+$ vi /etc/profile.d/proxy.sh
+
+# NAT for local net
+# https://wiki.archlinuxjp.org/index.php/%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%BC%E3%83%8D%E3%83%83%E3%83%88%E5%85%B1%E6%9C%89#NAT_.E3.81.AE.E6.9C.89.E5.8A.B9.E5.8C.96
+# http://saoshi.gooside.com/
+# iptables -t nat -A POSTROUTING -o internet0 -j MASQUERADE
+    or
+  iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
+# iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i net0 -o eth0 -j ACCEPT
+
+#ssh/socks - slow down
+# http://d.hatena.ne.jp/yuyarin/20090410/1239298235
+
+DNS in question
+$ vi /etc/ssh/sshd_config
+  UseDNS=no
+  GSSAPIAuthentication no
+  AddressFamily inet

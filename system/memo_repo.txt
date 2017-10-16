@@ -1,0 +1,4 @@
+1) Need workaround for repo
+   Modify ~/.gitconfig to use http instead of https.
+
+2) For accelaration, repo sync -j8

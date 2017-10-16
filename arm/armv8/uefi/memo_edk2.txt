@@ -1,0 +1,114 @@
+In general, build edk2 first, then atf
+
+prerequisite:
+    $ git clone https://git.linaro.org/uefi/OpenPlatformPkg.git
+
+    $ cd CryptoPkg/Library/OpensslLib/
+    $ git clone -b OpenSSL_1_1_0e https://github.com/openssl/openssl openssl
+
+************************************
+=== Normal steps from older memo ===
+************************************
+See https://wiki.linaro.org/LEG/UEFIforQEMU
+
+    $ . setup_gcc.sh -v 4.9 64
+    $ export ARCH=AARCH64
+    $ make -C BaseTools ; only one time
+
+    $ source edksetup.sh
+    $ GCC49_AARCH64_PREFIX=aarch64-linux-gnu-
+    $ GCC49_ARM_PREFIX=arm-linux-genueabihf-
+    $ build -a <arch> -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc \
+		-D SECURE_BOOT_ENABLE (if you wan)
+
+        where arch is ARM or AARCH64
+
+    For FVP,
+	OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
+	Optionally, you may specify
+		-D EDK2_OUT_DIR=Build/ArmVExpress-FVP-AArch64-Full \
+		-D EDK2_ENABLE_SMSC_91X=1 -D EDK2_ENABLE_PL111=1
+    For Hikey,
+	OpenPlatformPkg/Platforms/Hisilicon/HiKey/HiKey.dsc
+    For Qemu,
+	ArmVirtPkg/ArmVirtQemu.dsc
+	but temporarily commented out MnpDxe in ArmVirt.dsc.inc &
+		ArmVirtQemuFvMain.fdf.inc to avoid server time out.
+
+For example,
+    $ GCC49_AARCH64_PREFIX=/opt/linaro/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
+    $ GCC49_AARCH64_PREFIX=/opt/linaro/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc
+
+
+************************
+=== Using uefi-tools ===
+************************
+
+See:
+  https://wiki.linaro.org/LEG/Engineering/Kernel/UEFI/build
+
+$ . ~/bin/setup_gcc.sh -v 5.1(4.9) 64
+
+$ git clone http://git.linaro.org/uefi/uefi-tools.git
+$ git clone https://github.com/ARM-software/arm-trusted-firmware.git
+$ export UEFI_TOOLS_DIR="$PWD"/uefi-tools
+$ export PATH=$PATH:"$UEFI_TOOLS_DIR"
+$ export ARMTF_DIR="PWD"/arm-trusted-firmware
+
+$ cd edk2_new
+
+// no more needed
+//* edit platforms.config
+//
+//  DSC=OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
+//   =>
+//  DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc
+
+$ uefi-build.sh ../uefi-tools/platforms.config
+
+
+=== old ===
+See ATF's docs/user-guild.md:
+
+* edit ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc
+  modify
+   gArmPlatformTokenSpaceGuid.PcdDefaultBootArgument
+  to
+   "console=ttyAMA0 earlyprintk=pl011,0x1c090000 debug user_debug=31 loglevel=9 ip=dhcp root=/dev/nfs nfsroot=192.168.10.1:/opt/nfsroot rw"
+ 
+* then build as follows,
+  *NOTE* use 4.9-2014.07 or early to avoid some link errors
+   https://github.com/ARM-software/tf-issues/issues/250
+
+. edksetup.sh
+ARCH=AARCH64 make -C BaseTools
+GCC49_AARCH64_PREFIX=/opt/linaro/gcc-linaro-aarch64-linux-gnu-4.9-2014.07_linux/bin/aarch64-linux-gnu- \
+  make -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
+  EDK2_DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc \
+  EDK2_TOOLCHAIN=GCC49 \
+  EDK2_MACROS="-n 6 -D ARM_FOUNDATION_FVP=1" clean
+
+#
+#  EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=RELEASE \
+
+
+
+
+=== old2 ===
+* edit ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc
+  modify
+   gArmPlatformTokenSpaceGuid.PcdDefaultBootArgument
+  to
+   "console=ttyAMA0 earlyprintk=pl011,0x1c090000 debug user_debug=31 loglevel=9 ip=dhcp root=/dev/nfs nfsroot=192.168.10.1:/opt/nfsroot rw"
+ 
+ARCH=X64 make -C BaseTools
+edit <makefile>
+export GCC48_AARCH64_PREFIX=/opt/linaro/gcc-4.8-aarch64/bin/aarch64-linux-gnu-
+make -f <makefile>
+
+=== trial ===
+GCC48_AARCH64_PREFIX=/opt/linaro/gcc-4.8-aarch64/bin/aarch64-linux-gnu- \
+  make -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
+  EDK2_DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc \
+  EDK2_TOOLCHAIN=GCC48 \
+  EDK2_MACROS="-n 6 -D ARM_FOUNDATION_FVP=1"

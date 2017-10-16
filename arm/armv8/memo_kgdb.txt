@@ -1,0 +1,65 @@
+Points of testing kgdb
+----------------------
+
+1. build/kernel configuration
+- CONFIG_KGDB
+- CONFIG_KGDB_KDB
+x CONFIG_KGDB_LOW_LEVEL_TRAP (only on x86 & mips)
+- CONFIG_KGDB_SERIAL_CONSOLE
+? CONFIG_SERIAL_KGDB_NMI
+- CONFIG_KGDB_TESTS
+- CONFIG_KGDB_TESTS_BOOT_STRING
+- CONFIG_KGDB_TESTS_ON_BOOT
+
+  Build and boot the kernel.
+  Functions are to be tested later in section 4).
+
+2. kernel parameters
+(cmdline)
+- kgdboc
+- kgdbwait
+- ekgdboc (only on x86?)
+- kgdbcon
+? nokgdbroundup
+x kgdbdbgp (only over EHCI usb port)
+(sysfs)
+
+  Functions are to be tested later in section 4).
+
+2.1 On hikey
+   $echo ttyAMA0 > /sys/module/kgdboc/parameters/kgdboc
+
+
+3. in-kernel test
+- run at boot time with default setting(V1F100)
+- run manually
+	? N100
+	- F100
+	? S100
+	? I100
+- run concurrency tests as stated in drivers/misc/kgdbts.c
+
+
+4. basic functions
+- entering kgdb at early boot time
+- entering kgdb via sysrq
+- entering kgdb via kdb via sysrq
+
+- operating with kgdb over tty
+- operating with kgdb over ethernet
+- sharing serial between console and kgdb
+? entering kgdb via NMI
+
+- setting breakpoints
+- setting hw breakpoints
+- setting data watchpoints (if supported?)
+- single stepping
+- showing/modifying registers
+- backtracing (show call frames)
+- dumping memory
+
+- debugging the kernel
+- debugging a module
+
+- working sane in big endian
+x working sane along with kprobes

@@ -1,0 +1,6 @@
+FOR bash
+./configure --enable-static-link --without-bash-malloc --host=arm-linux-gnueabihf
+FOR uImage
+mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n PandaBoard -d boot.txt boot.scr
+
+mkimage -A arm -O linux -C none -T kernel  -a 80008000 -e 80008000 -n Linux -d FOO/Image uImage

@@ -1,0 +1,34 @@
+For audit-tools,
+	- swig
+	# bitbake swig
+	# copy swig
+	# opkg install siwg*.ipk
+	- copy python-compile
+	# opkg install python-compile*.ipk
+	# This operation is very slow on fast model.
+
+	# configure --prefix= with-arm -with-aarch64 --without-python
+	# make
+	# make install
+
+	# date xxxx
+	# passwd root
+	# mkdir /var/log/audit
+	# vim /etc/fstab
+		/tmp, /var, /var/log
+	# auditd
+	# vim audit-test/utils/functions.sh
+		start_auditd, stop_auditd
+	# vim audit-test/utils/run.bash
+		rm "-G wheel"
+		comment out "faillock ..."
+		comment out the following lines
+			echo "$TEST_USER_PASSWD" | passwd --stdin $TEST_USER >/dev/null
+
+
+For audit-test-code,
+	- pod2text
+	# copy it from host PC
+
+	$ make
+	# copy it to anywhere you want

@@ -1,0 +1,6 @@
+# Qemu network
+# See
+#    https://blog.christophersmart.com/2016/08/31/configuring-qemu-bridge-helper-after-access-denied-by-acl-file-error/
+# vi /etc/qemu/brdige.conf
+# chown root:${user} /etc/qemu/bridge.conf
+# chmod 640 /etc/qemu/bridge.conf

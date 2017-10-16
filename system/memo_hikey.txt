@@ -1,0 +1,10 @@
+setparams 'Boot test (SD card)'                                             � 
+	insmod fat
+	insmod exfat
+	insmod part_msdos
+	insmod part_gpt
+	set root=(hd1,1)
+	linux /Image ignore_loglevel console=ttyAMA3,115200 ip=dhcp root=/dev/m
+mcblk1p2 rootwait rw quiet efi=noruntime
+	initrd /initrd.img-4.4.0-104-arm64
+	devicetree /hi6220-hikey.d

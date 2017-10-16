@@ -1,0 +1,116 @@
+# configure hypervisor/include/jailhouse/config.h
+     * see Documentation/hypervisor-configuration.md
+
+== x86
+# build the kernel
+$ make O=~/x86/build/kernel_413
+     * revert commit:3277953de2f3
+
+# build jailhouse
+$ make KDIR=~/x86/build/kernel_413
+$ make KDIR=~/x86/build/kernel_413 DESTDIR=/opt/buildroot/16.11_x86_64 install
+
+== arm64
+
+$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KDIR=../kernel_413
+
+$ sudo -E make PATH=$PATH ARCH=arm64 KDIR=../kernel_413 DESTDIR=/media/akashi/root install
+
+for hikey, add mem=896M.
+On hikey,
+$ jailhouse enable hikey_rev1.cell
+$ jailhouse cell create gic-demo hikey-gic-demo_rev1.cell
+$ jailhouse cell load gic-demo gic-demo.bin
+$ jailhouse cell start gic-demo
+  ...
+$ jialhouse cell shutdown gic-demo
+
+
+====
+Hikey memory layout:
+
+256M
+00000000-05dfffff : System RAM
+  00080000-00d6ffff : Kernel code
+  00e80000-01003fff : Kernel data
+05f00000-05f00fff : System RAM
+05f02000-06dfefff : System RAM
+06dff800-06dfffff : /soc/mailbox@f7510000
+06e00000-0740efff : System RAM
+07410000-10102fff : System RAM
+384f0000-3879ffff : reserved
+3d770000-3d7affff : reserved
+3d7c0000-3d80ffff : reserved
+f7010000-f701027b : pinctrl-single
+f7010800-f7010a8b : pinctrl-single
+
+512M
+root@ubuntu:~# cat /proc/iomem
+00000000-05dfffff : System RAM
+  00080000-00d6ffff : Kernel code
+  00e80000-01003fff : Kernel data
+05f00000-05f00fff : System RAM
+05f02000-06dfefff : System RAM
+06dff800-06dfffff : /soc/mailbox@f7510000
+06e00000-0740efff : System RAM
+07410000-20102fff : System RAM
+384f0000-3879ffff : reserved
+3d770000-3d7affff : reserved
+3d7c0000-3d80ffff : reserved
+f7010000-f701027b : pinctrl-single
+f7010800-f7010a8b : pinctrl-single
+
+768M
+00000000-05dfffff : System RAM
+  00080000-00d6ffff : Kernel code
+  00e80000-01003fff : Kernel data
+05f00000-05f00fff : System RAM
+05f02000-06dfefff : System RAM
+06dff800-06dfffff : /soc/mailbox@f7510000
+06e00000-0740efff : System RAM
+07410000-21efffff : System RAM
+22000000-30202fff : System RAM
+384f0000-3879ffff : reserved
+3d770000-3d7affff : reserved
+3d7c0000-3d80ffff : reserved
+f7010000-f701027b : pinctrl-single
+f7010800-f7010a8b : pinctrl-single
+
+896M
+00000000-05dfffff : System RAM
+  00080000-00d6ffff : Kernel code
+  00e80000-01003fff : Kernel data
+05f00000-05f00fff : System RAM
+05f02000-06dfefff : System RAM
+06dff800-06dfffff : /soc/mailbox@f7510000
+06e00000-0740efff : System RAM
+07410000-21efffff : System RAM
+22000000-34ffffff : System RAM
+350f0000-382f2fff : System RAM
+384f0000-3879ffff : reserved
+3d770000-3d7affff : reserved
+3d7c0000-3d80ffff : reserved
+f7010000-f701027b : pinctrl-single
+f7010800-f7010a8b : pinctrl-single
+
+
+1G
+00000000-05dfffff : System RAM
+  00080000-00d6ffff : Kernel code
+  00e80000-01003fff : Kernel data
+05f00000-05f00fff : System RAM
+05f02000-06dfefff : System RAM
+06dff800-06dfffff : /soc/mailbox@f7510000
+06e00000-0740efff : System RAM
+07410000-21efffff : System RAM
+22000000-34ffffff : System RAM
+350f0000-384effff : System RAM
+384f0000-3879ffff : reserved
+387a0000-3d76ffff : System RAM
+3d770000-3d7affff : reserved
+3d7b0000-3d7bffff : System RAM
+3d7c0000-3d80ffff : reserved
+3d810000-3dffffff : System RAM
+f7010000-f701027b : pinctrl-single
+f7010800-f7010a8b : pinctrl-single
+

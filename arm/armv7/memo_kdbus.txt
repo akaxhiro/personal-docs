@@ -1,0 +1,3 @@
+* copy libcap, libattr to lib32/
+
+$make KERNELDIR=/home/akashi/arm/armv7/android/build/kernel_v3.19_vexp/ test

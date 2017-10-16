@@ -1,0 +1,3 @@
+http://desktop-linux.namakemono345.com/mozc-ubuntu-gnome-15-04/
+
+sudo dpkg-reconfigure keyboard-configuration

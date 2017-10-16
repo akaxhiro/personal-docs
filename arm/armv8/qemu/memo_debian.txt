@@ -1,0 +1,9 @@
+# https://wiki.debian.org/Arm64Qemu
+
+$ sudo qemu-debootstrap --arch=arm64 --keyring /usr/share/keyrings/debian-archive-keyring.gpg --variant=buildd --exclude=debfoster jessie /opt/debian-arm64 http://ftp.debian.org/debian
+
+
+# added packages
+libncurses5-dev vim libz-dev bison
+(maybe)
+binutils

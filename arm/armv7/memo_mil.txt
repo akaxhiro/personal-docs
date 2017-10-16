@@ -1,0 +1,7 @@
+missing in v4.13:
+  - mmc
+  - usb
+  - pci
+  - gic
+  - nand
+  - ipcu

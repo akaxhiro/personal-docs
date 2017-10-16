@@ -1,0 +1,121 @@
+always you can use "-in * -out *" notation
+
+Create a certificate
+====================
+
+create a key
+------------
+      A key means a private key here.
+
+ $ openssl dgst * > rand.dat
+ $ openssl genrsa -rand rand.dat 2048 > my.key
+          (genpkey -<cipher>)
+	enter a pass phrase
+
+   or simply,
+ $ openssl genrsa 2048 > my.key
+ $ vi my.key 
+
+ If you want to have a public key (PEM),
+ $ openssl rsa -pubout < my.key > my_public.key
+
+create a certificate request
+----------------------------
+      A request contains a public key and other authentication info.
+
+ $ openssl req -new -key my.key > my.csr
+ $ vi my.csr
+ $ openssl req -text < my.csr
+
+   or you may want self-siging by skipping a request step:
+ $ openssl req -new -x509 -key my.key > my.crt
+
+create a self-signed certifciate
+--------------------------------
+ $ openssl x509 -req -signkey my.key < my.csr > my.crt
+
+ $ openssl x509 -text < my.crt
+   or,
+   openssl asn1parse -i < my.crt
+
+create a CA-signed certificate
+------------------------------
+      Another CA may sign here using his own key instead of 'server.key'
+
+ $ echo 0 > ca.csl (needed only once)
+ $ openssl x509 -req -CAkey ca.key -CA ca.pem -exfile v3_ca < my.csr > my.crt
+
+   or
+
+ $ echo 0 > signing_key.csl
+ $ openssl x509 -req -CA signing_key.pem -CAserial ./signing_key.csl -exfile v3_ca < my.csr > my.crt
+
+ Here v3_ca file contains:
+    subjectKeyIdentifier=hash
+    authorityKeyIdentifier=keyid:always,issuer
+
+ * See /etc/ssl/openssl.cnf, and man x509v3_config
+
+extract a public key
+--------------------
+ $ openssl x509 -pubkey -noout < cert.pem > pubkey.pem
+
+convert a certificate from PEM to DER
+-------------------------------------
+      DER is a format consisting of binary data.
+
+ $ openssl x509 -inform PEM -outform DER < server.crt > server.der
+
+
+sign a firmware
+===============
+ * If using a normal certificate,
+
+ $ openssl smime -sign -inkey server.key -signer server.crt -outform DER \
+	-nosmimecap -nocerts -binary < firmware.bin > firmware.bin.p7s
+
+ * If using kernel's signing_key.pem,
+
+ $ openssl smime -sign -signer signing_key.pem -outform DER \
+	-nosmimecap -nocerts -binary < firmware.bin > firmware.bin.p7s
+
+   because this file also contains a private key
+
+
+verify a firmware with signature
+================================
+# * If you have only a public key (PEM),
+#
+# assuming
+# $ openssl dgst --sign my.key -binary firmware.bin > firmware.bin.dgst
+# then,
+# $ openssl dgst --verify my_public.key -signature firmware.bin.dgst firmware.bin
+
+ * If you have a certificate,
+ $ openssl smime -verify -noverify -certfile server.crt \
+	-inform DER -content firmware.bin < firmware.bin.p7s
+
+ * New way,
+ $ scripts/sign-file -a -d sha256 my.key server.crt firmware.bin
+
+
+add a certicate to the kernel
+=============================
+* Use PEM format, not DER for certicates list (or keyrings)
+
+
+use sign-file command
+=====================
+* Please note that sign-file generates DER format only.
+
+ $ scripts/sign-file -d sha256 <private key> <certificate> <file to sign>
+
+ $ scripts/sign-file -d sha256 ../ca/ca_root.key ../ca/ca_root.crt  ./firmware.bin
+
+* To verify it, add -inform -DER to "openssl smime -verify"
+
+
+System keyctl
+=============
+  $ keyctl list %:.builtin_trusted_keys
+  $ keyctl list %:.secondary_trusted_keys

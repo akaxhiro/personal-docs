@@ -1,0 +1,16 @@
+* EL2->EL1 transition
+  stext -> el2_setup -> install_el2_stub (eret)
+                           -> stext in EL1
+
+* MMU on
+  stext(create mapping) -> __primary_switch -> __enable_mmu
+					       __relocate_kernel
+
+	* In __enable_mmu
+	     idmap & swapper pg_dir will be installed
+
+  (under 1:1 mapping in EL1)
+  -> __primary_switched
+        * create a stack for init thread
+        * kasan_early_init
+	* kaslr_early_init

@@ -1,0 +1,7 @@
+cd /home/akashi/Downloads/linaro
+sudo dd if=android-13.12/panda/android.img of=/dev/sdd bs=4096
+
+change:
+   board.dtb
+   boot_xx.scr
+   uImage

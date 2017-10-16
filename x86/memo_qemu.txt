@@ -1,0 +1,23 @@
+For new libfdt (1.4.2),
+$ socksify git submodule update --init dtc
+
+
+
+For users,
+$ ./configure --target-list=aarch64-linux-user,arm-linux-user --static
+$ make
+
+For systems,
+$ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir
+
+
+For binfmts,
+$ create a /usr/share/binfmts/qemu-aarch64
+$ update-binfmts --importdir /usr/share/binfmts/ --import
+
+$ cp aarch64-linux-user/qemu-aarch64 ${target root}/usr/bin/
+$ cp /usr/share/binfmts/qemu-aarch64 ${target root}/usr/share/binfmts/
+
+Copy-on-Write
+qemu-img create -f qcow2 debian.qcow2 2G
+$ qemu-img create -f qcow2 -o backing_file=debian.qcow2 actual.qcow2

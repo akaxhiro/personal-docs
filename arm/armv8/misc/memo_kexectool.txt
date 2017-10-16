@@ -1,0 +1,9 @@
+$ ./bootstrap
+  # $ autoconf
+  # $ autoheader
+
+$ ./configure --host=aarch64-linux-gnu
+$ make
+
+For x86 build on buildroot,
+$ ./configure --with-zlib --without-lzma

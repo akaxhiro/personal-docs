@@ -1,0 +1,7 @@
+- mm/slab_common.c
+   pax_sanitize_slab is not __read_only
+- arch/x86/kernel/dumpstack_64.c
+   pax_check_alloca() is not used 
+   (inserted by gcc-plugin)
+- mm/slab_common.c
+   PAX_SANITIZE_SLAB_FLAST is not implemented

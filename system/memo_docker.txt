@@ -1,0 +1,18 @@
+For proxy, edit 
+	/etc/systemd/system/docker.service.d/proxy.conf
+and add
+	[Service]
+	Environment="HTTP_PROXY=..."
+
+ $ systemctl service daemon-reload
+ $ systemctl show --property=Environment docker
+ $ systemctl restart docker
+
+
+
+
+ # usermod -aG docker
+ $ newgrp docker
+
+For each instance,
+   add /etc/profile.d/proxy.sh

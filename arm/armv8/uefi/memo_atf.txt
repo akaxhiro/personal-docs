@@ -1,0 +1,29 @@
+See docs/user-guild.md
+
+    $ make fiptool
+
+    $ CROSS_COMPILE=<path-to-aarch64-gcc>/bin/aarch64-none-elf- \
+    make PLAT=<platform> BL33=<path-to>/<bl33_image> FIP_NAME=<fip name> DEBUG=1 V=1 all fip
+
+The default of PLAT is fvp.
+BL33 may be
+    $(edk2dir)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
+Or can omitt BL33= and fip if we don't want to build fip.bin now.
+
+For clean
+    $ make PLAT=... DEBUG=... clean, or
+    $ make realclean
+
+possible PLATs:
+    fvp
+    qemu
+
+Other useful optons are:
+    FIP_NAME=
+    ARCH=aarch32 (for arm)
+
+
+For example,
+    $ make PLAT=fvp BL33=../edk2/Build/ArmVExpress-FVP-AArch64/DEBUG_GCC49/FV/FVP_AARCH64_EFI.fd DEBUG=1 all fip
+For example,
+    $ make PLAT=qemu BL33=../edk2/Build/ArmVirtQemu-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd DEBUG=1 all fip

@@ -1,0 +1,7 @@
+To clean,
+- make sure that you don't have gdb-7.6/config.status
+- rm -rf gdb-7.6/
+
+To build,
+- modify gdb-7.6.patch to include elf64-aarch64.c fix (408 -> 392)
+$ make target=ARM64

@@ -1,0 +1,7 @@
+For big-endian rootfs,
+
+- gcc 5.1
+- buildroot 2015.11
+
+# cd /lib
+# ln -s ld-linux-aarch64.so.1 ld-linux-aarch64_be.so.1

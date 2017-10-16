@@ -1,0 +1,11 @@
+For cross-compiling,
+# https://lists.01.org/pipermail/edk2-devel/2016-September/001722.html
+# https://llvm.org/bugs/show_bug.cgi?id=26531
+
+clang --target=aarch64-linux-gnu -B /opt/linaro/gcc-5.3-aarch64/aarch64-linux-gnu/bin --sysroot=/opt/linaro/gcc-5.3-aarch64/aarch64-linux-gnu/libc/ print.c
+
+
+#
+# Tips and Hints
+--save-temps: leaving intermediate files
+-v: show all the commands with args executed by clang

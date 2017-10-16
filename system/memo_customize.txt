@@ -1,0 +1,21 @@
+LANG=C xdg-user-dirs-gtk-update
+
+sudo dpkg-reconfigure dash
+
+install lv instead of less
+
+mozc: ibus-mozc mozc-server mozc-utils-gui
+
+java(JDK1.6)
+
+Andoroid SDK
+
+add /etc/profile.d/proxy.sh
+
+set up git environment , including git-proxy
+
+install gitk2-engine-pixbuf
+
+setup svn proxy setup
+
+install gettxt

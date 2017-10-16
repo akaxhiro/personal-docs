@@ -1,0 +1,4 @@
+Some merge conflicts:
+	Disable AES crypto on HiKey (workaround for clang bug)
+	Disable the function tracer for now
+	Kbuild: LLVMLinux: Disable the use of the Integrated Assembler when compiling...

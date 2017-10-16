@@ -1,0 +1,2 @@
+initcall_run_list
+serial_init/pl01_...init_baud

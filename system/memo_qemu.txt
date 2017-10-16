@@ -1,0 +1,22 @@
+# remove virbr0
+# -------------
+# http://www.postcard.st/nosuz/tech/2011/09/17-23
+
+% virsh net-list
+...
+
+# bridge-based network
+# tap in user mode
+# ----------------
+# https://www.nexia.jp/server/1612/
+% sudo vi /etc/udev/rules.d/90-tap
+
+# nat-based network
+# -----------------
+# http://archlinux-blogger.blogspot.jp/2016/02/qemukvm-libvirt.html
+# http://www.atmarkit.co.jp/ait/articles/0904/15/news122_2.html
+
+% iptables --list
+
+# cp qemu-static
+% cp /usr/bin/qemu-aarch64-static ${ROOT}/usr/bin/

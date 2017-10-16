@@ -1,0 +1,3 @@
+# edit /etc/inittab
+# sudo find . | sudo cpio -o -H newc > ../rootfs.cpio
+$ gzip ../rootfs.cpio

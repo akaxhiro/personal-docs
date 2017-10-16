@@ -1,0 +1,35 @@
+4/3 crosstool-ng
+	autoconf
+	bison
+	flex
+	gperf
+	texinfo(makeinfo)
+	curl
+	libtool
+	libncurses5-dev
+	g++
+	gawk
+	expat
+	libexpat1-dev
+	python-dev
+
+
+
+4/4 Android form Sola's website
+	build-essential
+	zlib1g-dev
+	libc6-dev
+	lib32ncurses5-dev
+	ia32-libs
+	lib32readline-gplv2-dev
+	lib32z1-dev
+	libgl1-mesa-dev
+	gcc-multilib
+	g++-multilib
+	python-markdown
+	libxml2-utils
+	xsltproc
+
+4/6 Yocto
+	fop
+	diffstat,texi2html,cvs,chrpath

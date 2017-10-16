@@ -1,0 +1,10 @@
+Build boot image:
+- Be careful to use "_x2" version of dtb if you use kvm
+- /dev/mmcblk1p2 for my SD card
+- /dev/sda2 for my usb HD
+
+Install RAM:
+/home/akashi/x86/android/sdk/platform-tools/fastboot boot boot.img
+
+Connect to EVB:
+cu -s 921600 -l /dev/ttyUSB0

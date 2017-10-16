@@ -1,0 +1,12 @@
+Only do the following:
+
+# # aclocal
+# # autoconf
+# # autoheader
+# # automake --add-missing --copy
+# # mkdir build-aux
+
+# ./autogen.sh
+# ./configure
+# make
+# make check 

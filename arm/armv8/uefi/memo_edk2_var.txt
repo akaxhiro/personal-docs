@@ -1,0 +1,8 @@
+For persistent memory of UEFI (plash),
+
+ $ cat /home/akashi/arm/armv8/linaro/uefi/edk2/Build/ArmVirtQemu-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd /dev/zero | dd iflag=fullblock bs=1M count=64 of=flash_uefi.img
+ $ dd if=/dev/zero of=flash_var.img bs=1M count=64
+
+
+ * use the following qemu parameter:
+    -pflash flash_uefi.img -pflash flash_var.img

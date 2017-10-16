@@ -1,0 +1,4 @@
+mkdir aarch64-linux-gnu
+cp -a ./lib/* aarch64-linux-gnu/
+cp -a ./usr/lib/* aarch64-linux-gnu/
+ln -s /aarch64-linux-gnu ./lib/aarch64-linux-gnu

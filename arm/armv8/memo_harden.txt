@@ -1,0 +1,71 @@
+Possible hard:
+* GRKERNSEC_KSTACKOVERFLOW
+      -> ideintical VMAP_STACK
+	 but arm64 has no mechanism for double-faults (INT8 on x86_64)
+* per-build structure layout randomization (GRKERNSEC_RANDSTRUCT)
+      -> See May 5,10/21 by Michael Leibowitz
+* RAP (Return Address Protection) (PAX_RAP, currently X86_64)
+* software PAN for arm
+* PAX_CONSTIFY_PLUGIN (depends on KERNEXEC)
+	-> 8/28
+	   pax_open_kernel()/close_kernel()
+	   need some extra work? See 8/31
+
+Possible:
+* sanitize stack/struct/page
+    - PAX_MEMORY_STACKLEAK (currently X86 only)
+	  check for the size at each builtin_alloca?
+	  check for lowest sp after each builtin_alloca? (less than THREAD_SIZE/16)
+			&sp indicate a stack pointer!!
+    - PAX_MEMORY_STRUCTLEAK
+* int-size overflow (currently !ARM64)
+
+* convert remaining BPF JITs to eBPF JIT
+* Extend HARDEND_USERCOPY to ...
+	-> 11/2 by Vaishali
+	   refactoring uaccess primitives
+* harden and rename CONFIG_DEBUG_LIST better and default=y
+	-> CONFIG-version 8/17 by Kees
+* provide mechanism to check for ro_after_init memory areas
+
+Dubious:
+* RANDKSTACK
+	-> See stackjack
+        -> mitigated in lieu to MEMORY_STACKLEAK
+* stack-protector
+	-> basically done with CONFIG_CC_STACKPROTECTOR_REGULAR/STRONG
+        -> enhancing it to per-task?
+
+Possible easy:
+* add WARN path for page-spanning usercopy checks
+  (instead of the separate CONFIG)
+* add zeroing of copy_from_user on failure test to test_usercopy.c
+
+Done:
+* PAX_MEMORY_SANITIZE
+	-> by CONFIG_PAGE_POISONING by Laura (v4.6)
+	-> partly done with CONFIG_DEBUG_SLAB & CONFIG_SLUB_DEBUG_ON
+	-> SLAB_FAST means that doing nothing before SLAB_DESTROY_BY_RCU(anon_vma)
+* stack canaries (-fstack-protector -fstack-protector-strong)
+* expand use of __ro_after_init, especially in arch/arm64
+* SLUB freelist randomization
+	-> May 18 by Thomas Garnier
+* initify plug-in
+	-> July 26 by Emese
+* mmap randomization
+	-> july 26 by william.c.roberts
+* harden chroot
+	-> July 29 by Elena
+	   denied?
+* restrict perf event
+	-> July 27,10/17 by Jeff
+* Landlock
+	-> 8/25,9/14,10/26 by Michael
+	   Kees' comments exist
+* XPFO (ret2dir)
+	-> 9/14,11/4 by Juerg
+
+
+===
+Basic gcc-plugin porting by Emese
+http://www.openwall.com/lists/kernel-hardening/2016/05/12/17

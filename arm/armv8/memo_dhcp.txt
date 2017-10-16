@@ -1,0 +1,10 @@
+set armbr0's IP statically by editing /etc/network/interfaces
+# /etc/init.d/network-manager restart
+edit /etc/init.d/fastmode-network and comment out any dhclient commands
+# /etc/init.d/fastmode-network restart
+
+Press ^C to kill the job
+
+# touch /var/run/dhcpd.pid
+# chmod a+rw /var/run/dhcpd.pid
+# dhcpd armbr0

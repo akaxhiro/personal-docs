@@ -1,0 +1,8 @@
+See:
+  https://wiki.linaro.org/LEG/Engineering/Kernel/GRUB
+
+$ ./autogen.sh
+$ ./configure --prefix=/opt/nfsroot/boot --target=aarch64-linux-gnu
+$ make
+$ sudo make install
+$ ./grub-mkstandalone -o grub.img -O arm64-efi

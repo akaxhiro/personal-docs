@@ -1,0 +1,5 @@
+catalog files:
+C:\Windows\System32\catroot
+
+drivers(INF) files:
+C:\Windows\System32\DriverStore\FileRepository

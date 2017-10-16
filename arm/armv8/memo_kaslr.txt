@@ -1,0 +1,51 @@
+Randomness
+
+1. physcal address of kernel image loaded
+
+- efi_entry()
+     -> handle_kernel_image():
+           randomize offset of address,
+              * [0, MIN_KIMG_ALIGN) with 64KB align
+           relocate image
+
+
+2. UEFI runtime service map
+
+- efi_entry()
+     lastly, set virtmap_base
+     allocate_new_fdt_and_exit_boot()
+        -> exit_boot_func()
+              -> efi_get_virtmap(): create runtime map
+
+
+3. start address of linear mapping
+
+- efi_entry()
+     -> allocate_new_fdt_and_exit_boot()
+           -> update_fdt(): create /chosen/kaslr-seed
+- head.S before start_kernel()
+     -> kaslr_early_init(): set memstart_offset_seed
+                            * use top 16 bits of seed
+- arm64_memblock_init(): modify memstart_addr based on memstart_offset_seed
+
+
+4. VMAP kernel address
+- head.S
+     __primary_switched()
+        save kimage_voffset
+            (= )
+
+        kaslr_early_init(): return offset
+                            * use (VA_BITS - 2) bits of seed with 2MB align
+        calcurate <KASLR offset> by __PHYS_OFFSET + offset above
+                                   (= KERNEL_START - TEXT_OFFSET)
+                                      (= _text)
+     create initial mapping
+        starting __va(_text) + <KASLR offset>
+                (= KIMAGE_VADDR + TEXT_OFFSET)
+                   (= MODULE_END)
+- paging_init()
+     -> map_kernel()
+           map_kernel_segment(): map _text, __start_rodata, ...
+                 ex. __pa_symbol(va) -> va
+                    (= va - kimage_voffset)

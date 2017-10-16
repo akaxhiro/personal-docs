@@ -1,0 +1,18 @@
+References:
+ - various bug fixes for 4.0.x
+   https://groups.google.com/forum/#!topic/android-building/AgeruY7XIwQ
+
+0) Install JDK 1.6
+ - download package from here:
+   http://www.oracle.com/technetwork/java/javase/downloads/index.html
+ - Install it as followed:
+   $ cd <install dir>
+   $ chmod +x jdk-6u30-linux-i586.bin
+   $ ./jdk-6u30-linux-i586.bin -noregister
+
+1) Build an emulator version
+
+$ . ../env.sh
+$ . build/envsetup.sh
+$ lunch generic-eng
+$ time make -j8 >2&1 | tee make.log

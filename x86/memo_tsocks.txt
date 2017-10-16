@@ -1,0 +1,6 @@
+Build & install
+http://newspaint.wordpress.com/2012/11/05/skype-is-a-horrible-application/
+
+CFLAGS=-m32 LFLAGS=-m32 ./configure --prefix=/usr/local/tsocks32
+make && make install
+LD_PRELOAD=/lib/libtsocks.so.1.8 /usr/bin/skype
