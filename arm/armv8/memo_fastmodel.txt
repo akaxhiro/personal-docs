@@ -9,3 +9,6 @@ Setup network on host:
 > (enter proxy password)
 
 $ xrdb -merge ~/.Xdefaults
+
+# for listing available parameters,
+# --list-params

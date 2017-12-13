@@ -2,3 +2,12 @@ Some merge conflicts:
 	Disable AES crypto on HiKey (workaround for clang bug)
 	Disable the function tracer for now
 	Kbuild: LLVMLinux: Disable the use of the Integrated Assembler when compiling...
+
+
+
+For building the kernel,
+$ ln -s ~/aarch64-linux-gnu-as /usr/bin/
+
+* remove ARM64 accelarated cypher (including inline asm)
+
+$ make ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- O=../build/kernel_llvm2/ -j8 Image

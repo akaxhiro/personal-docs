@@ -1,0 +1,7 @@
+.system_keyring was renamed to .builtin_trusted_keys
+and
+.secondary_trusted_keys was added by: commit d3bfe84129f6
+	Author: David Howells <dhowells@redhat.com>
+	Date:   Wed Apr 6 16:14:27 2016 +0100
+	certs: Add a secondary system keyring that can be added to dynamically
+

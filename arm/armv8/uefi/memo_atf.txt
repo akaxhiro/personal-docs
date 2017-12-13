@@ -27,3 +27,6 @@ For example,
     $ make PLAT=fvp BL33=../edk2/Build/ArmVExpress-FVP-AArch64/DEBUG_GCC49/FV/FVP_AARCH64_EFI.fd DEBUG=1 all fip
 For example,
     $ make PLAT=qemu BL33=../edk2/Build/ArmVirtQemu-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd DEBUG=1 all fip
+
+For example,
+    $ make PLAT=fvp ARCH=aarch32 AARCH32_SP=sp_min BL33=foo FIP_NAME=fip_foo.bin DEBUG=1 all fip

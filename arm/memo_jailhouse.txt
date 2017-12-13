@@ -1,0 +1,74 @@
+=======
+Startup
+=======
+
+arch_entry:
+  *install bootstrap_vectors
+		|-hvc
+el2_entry: <----+
+  *init bootstrap pae tables
+  *enable mmu in el2
+  *install final hyp_vectors
+  *setup stack and save registers (19regs + reason)
+  * call entry
+
+entry:
+  |-init_early
+      |-paging_init
+          * allocate remap_pool
+          |-arch_paging_init
+              + set cell_paging
+          |
+          * create mapping of hypervisor
+          * create mapping of debug_console
+          * create mapping of debug_clock_reg
+          + create mapping of remap_pool
+      |
+      |-cell_init
+      |-arch_init_early
+          * create mapping of trampoline page
+          +-arm_init_early
+              * create mapping of parking_mm
+              +-arm_paging_cell_init(root)
+      |
+      + map hyp pages empty
+        (arch_map_memory_region)
+  |
+  |-cpu_init
+      +-arch_cpu_init
+          * enable permanent(?) page tables at el2
+          * set HCR
+          +-arm_cpu_init
+              |-arm_paging_vcpu_init(root)
+              |-irqchip_init
+              +-irqchip_cpu_init
+                  * map gic distributor
+                  +-gicv3(or 2)_init
+                      + map gicr(edistributor)
+  |
+  |
+  * wait for all cpus up
+  |-init_late
+      +-arm_init_late
+          |-irqchip_cell_init(root)
+              * init irq_bitmap in cell
+              |- gicv3_cell_init
+              * map gic distributor in cell
+              + init irq_bitmap in cell again?
+          |
+          +-map_root_memory_regions
+  |
+  +-arch_cpu_activate_vmm
+
+
+===========
+Create cell
+===========
+
+jailhouse_cmd_cell_create:
+  * copy config from user
+  |-cell_create
+  * off-line cpu belonging to root
+  |-jaihouse_pci_do_all_devices
+  |-jailhouse_call_arg1
+  +-cell_register

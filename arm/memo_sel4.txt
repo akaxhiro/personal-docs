@@ -1,0 +1,7 @@
+- change python 3.0 to avoid unicode-related issues
+
+- set LANG to en_US.UTF-8
+
+- temporarily, add the definition in /etc/hosts
+
+	151.101.12.133 raw.githubusercontent.com

@@ -1,0 +1,48 @@
+Sign an image:
+    $ sudo evmctl ima_sign -v -k ~/arm/armv8/linaro/build/kernel_kexec_file_ima/certs/signing_key.pem sectest.txt
+
+Add a policy:
+    $ echo "appraise func=KEXEC_KERNEL_CHECK appraise_type=imasig" \
+      > /sys/kernel/security/ima/policy
+
+Add a key:
+    $ keyctl padd asymmetric my_ima_key %:.ima < signing_key.der
+
+===
+
+kernel_read_file()			: fs/exec.c
+   kernel_security_(post_)read_file()	: security/security.c (SECURITY)
+      call_init_hook(kernel_post_read)
+      ima_post_read_file()		: security/integrity/ima/ima_main.c (IMA)
+         process_measurement(func)
+            ima_get_action(func)	: security/integrity/ima/ima_api.c
+               ima_match_policy()	: security/integrity/ima/ima_policy.c
+		FIRMWARE_CHECK ->
+		MODULE_CHECK ->
+            ima_collect_measurement()
+
+            Depending on actions,
+            ima_appraise_surement()	: security/integrity/ima/ima_appraise.c
+               ima_read_modsig()	: security/integrity/ima/ima_modsig.c
+               evm_verifyxattr()
+               appraise_modsig()	: security/integrity/ima/ima_appraise.c
+                  ima_modsig_verify()	: security/integrity/ima/ima_modsig.c
+                     verify_pkcs7_message_sig()
+            ima_store_measurement()
+            ima_audit_measurement()
+
+
+IMA rules:
+global ima_policy_flag
+
+func:
+	FIRMWARE_CHECK,
+	MODULE_CHECK,
+	KEXEC_KERNEL_CHECK,
+	KEXEC_INITRAMFS_CHECK,
+	POLICY_CHECK
+	FILE_CHECK
+
+indivisual rules: <path or label?, mask, flags>
+   mask: MAY_READ, MAY_WRITE, MAY_APPEND, MAY_EXEC
+   flags: IMA_MEASURE, IMA_APPRAISE, IMA_AUDIT

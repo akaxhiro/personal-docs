@@ -1,0 +1,2 @@
+$ make defconfig
+$ make CHECK="~/x86/smatch/smatch -p=kernel --file-output $*" C=1 arch/arm64 2>&1 | tee smatch_compile.warns
