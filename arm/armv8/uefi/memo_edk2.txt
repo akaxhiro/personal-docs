@@ -11,11 +11,10 @@ prerequisite:
 ************************************
 See https://wiki.linaro.org/LEG/UEFIforQEMU
 
-    $ . setup_gcc.sh -v 4.9 64
-    $ export ARCH=AARCH64
     $ make -C BaseTools ; only one time
-
     $ source edksetup.sh
+
+    $ . setup_gcc.sh -v 4.9 64
     $ GCC49_AARCH64_PREFIX=aarch64-linux-gnu-
     $ GCC49_ARM_PREFIX=arm-linux-genueabihf-
     $ build -a <arch> -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc \
@@ -35,10 +34,11 @@ See https://wiki.linaro.org/LEG/UEFIforQEMU
 	but temporarily commented out MnpDxe in ArmVirt.dsc.inc &
 		ArmVirtQemuFvMain.fdf.inc to avoid server time out.
 
-For example,
-    $ GCC49_AARCH64_PREFIX=/opt/linaro/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
-    $ GCC49_AARCH64_PREFIX=/opt/linaro/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc
+** You may use GCC5 instead of GCC49 here.
 
+For example,
+    $ GCC49_AARCH64_PREFIX=/opt/gcc/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
+    $ GCC49_AARCH64_PREFIX=/opt/gcc/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc
 
 ************************
 === Using uefi-tools ===

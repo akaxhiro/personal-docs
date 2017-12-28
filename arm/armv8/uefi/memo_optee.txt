@@ -1,0 +1,1 @@
+$ make CFG_ARM64_core=y PLATFORM=hikey-hikey960

@@ -1,0 +1,19 @@
+acpi_os_map_memory()
+  acpi_os_map_iomem()
+    if (before acpi_permanent_map)
+    acpi_map_table()
+      __acpi_map_table()
+        early_memremap()
+          __early_ioremap(FIXMAP_PAGE_NORMAL)
+            __early_set_fixmap() == __set_fixmap()
+              set_pte(fixmap_pte(addr)
+  
+    if (after acpi_permanent_map)
+    acpi_map()
+      kmap(), or
+      acpi_os_ioremap()
+        ioremap(), or
+        ioremap_cache()
+
+acpi_early_init()
+    acpi_permanent_map = true
