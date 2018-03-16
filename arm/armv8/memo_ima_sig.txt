@@ -1,0 +1,39 @@
+See ~/arm/armv8/linaro/ima_keys/genkey/
+
+	ima-evm-utils/ima-gen-local-ca.sh
+	ima-evm-utils/ima-genkey.sh
+
+
+-2) Generate private key and X509 public key certificate:
+
+ openssl req -new -x509 -utf8 -sha1 -days 3650 -batch -config $GENKEY \
+             -outform DER -out ima-local-ca.x509 -keyout ima-local-ca.priv
+
+-1) Produce X509 in DER format for using while building the kernel:
+
+ openssl x509 -inform DER -in ima-local-ca.x509 -out ima-local-ca.pem
+						     ^^^^^^^^^^^^^^^^
+
+0) embed self-signed local root ca, "ima-local-ca.pem", to the kernel
+
+1) Generate private key and X509 public key certificate signing request:
+
+ openssl req -new -nodes -utf8 -sha1 -days 365 -batch -config $GENKEY \
+             -out csr_ima.pem -keyout privkey_ima.pem
+				      ^^^^^^^^^^^^^^^
+
+2) Sign X509 public key certificate signing request with local IMA CA private key:
+
+ openssl x509 -req -in csr_ima.pem -days 365 -extfile $GENKEY -extensions v3_usr \
+              -CA ima-local-ca.pem -CAkey ima-local-ca.priv -CAcreateserial \
+              -outform DER -out x509_ima.der
+				^^^^^^^^^^^^
+
+3) add my certificate "x509_ima.der" to the kernel keyring: %:.ima
+
+ keyctl, or
+ evmctl import /etc/keys/x509_ima.der $ima_id
+
+4) sign a file with my key "privkey_ima.pem"
+
+ evmctl ima_sign Image

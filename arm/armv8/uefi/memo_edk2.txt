@@ -1,40 +1,53 @@
 In general, build edk2 first, then atf
 
 prerequisite:
-    $ git clone https://git.linaro.org/uefi/OpenPlatformPkg.git
+  1.See first:
+    https://github.com/tianocore/edk2-platforms
+   (https://wiki.linaro.org/LEG/UEFIforQEMU)
 
+//    $ git clone https://git.linaro.org/uefi/OpenPlatformPkg.git
+
+  2.Update edk2, edk2-platforms, edk2-non-osi
+  3.
     $ cd CryptoPkg/Library/OpensslLib/
     $ git clone -b OpenSSL_1_1_0e https://github.com/openssl/openssl openssl
 
 ************************************
 === Normal steps from older memo ===
 ************************************
-See https://wiki.linaro.org/LEG/UEFIforQEMU
 
-    $ make -C BaseTools ; only one time
-    $ source edksetup.sh
+    $ export WORKSPACE=~/arm/armv8/linaro/uefi
+    $ cd $WORKSPACE
+    $ export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
+    $ source edk2/edksetup.sh
+    $ make -C edk2/BaseTools; only one time
 
-    $ . setup_gcc.sh -v 4.9 64
-    $ GCC49_AARCH64_PREFIX=aarch64-linux-gnu-
-    $ GCC49_ARM_PREFIX=arm-linux-genueabihf-
-    $ build -a <arch> -t GCC49 -p ArmVirtPkg/ArmVirtQemu.dsc \
-		-D SECURE_BOOT_ENABLE (if you wan)
+    $ export GCC5_AARCH64_PREFIX=/opt/gcc/gcc-5.4-aarch64/bin/aarch64-linux-gnu- or
+      export GCC5_ARM_PREFIX=/opt/gcc/gcc-5.4-arm/bin/arm-linux-genueabihf-
+    $ build -a <arch> -t GCC5 -p ArmVirtPkg/ArmVirtQemu.dsc \
+		-D SECURE_BOOT_ENABLE (if you want)
 
         where arch is ARM or AARCH64
 
     For FVP,
-	OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
+	edk2-platforms/Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
 	Optionally, you may specify
 		-D EDK2_OUT_DIR=Build/ArmVExpress-FVP-AArch64-Full \
 		-D EDK2_ENABLE_SMSC_91X=1 -D EDK2_ENABLE_PL111=1
     For Hikey,
-	OpenPlatformPkg/Platforms/Hisilicon/HiKey/HiKey.dsc
+	OpenPlatformPkg.old/Platforms/Hisilicon/HiKey/HiKey.dsc
+	OpenPlatformPkg/Platforms/Hisilicon/HiKey960/HiKey960.dsc
     For Qemu,
-	ArmVirtPkg/ArmVirtQemu.dsc
+	edk2/ArmVirtPkg/ArmVirtQemu.dsc
 	but temporarily commented out MnpDxe in ArmVirt.dsc.inc &
 		ArmVirtQemuFvMain.fdf.inc to avoid server time out.
 
-** You may use GCC5 instead of GCC49 here.
+For example,
+    $ GCC5_AARCH64_PREFIX=/opt/linaro/gcc-5.4-aarch64/bin/aarch64-linux-gnu- build -n 8 -a AARCH64 -t GCC5 -p edk2-platforms/Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
+    $ GCC5_AARCH64_PREFIX=/opt/linaro/gcc-5.4-aarch64/bin/aarch64-linux-gnu- build -n 8 -a AARCH64 -t GCC5 -p edk2/ArmVirtPkg/ArmVirtQemu.dsc
+    $ GCC5_AARCH64_PREFIX=/opt/linaro/gcc-5.4-aarch64/bin/aarch64-linux-gnu- build -n 8 -a AARCH64 -t GCC5 -p OpenPlatformPkg/Platforms/Hisilicon/HiKey960/HiKey960.dsc
+
+    $  build -a X64 -t GCC5 -p OvmfPkg/OvmfPkgX64.dsc
 
 For example,
     $ GCC49_AARCH64_PREFIX=/opt/gcc/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc

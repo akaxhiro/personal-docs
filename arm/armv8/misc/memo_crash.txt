@@ -5,3 +5,8 @@ To clean,
 To build,
 - modify gdb-7.6.patch to include elf64-aarch64.c fix (408 -> 392)
 $ make target=ARM64
+
+To build on ar64
+1) boot with ubuntu rootfs
+2) apt install libncurses-dev
+3) make

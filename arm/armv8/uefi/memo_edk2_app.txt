@@ -34,3 +34,11 @@ https://github.com/tianocore/tianocore.github.io/wiki/Build-Description-Files
        and a layout of FVs within it
     [FV*]
        what components and modules are placed
+
+
+
+*.uni:
+    list of string definitions
+
+*.vfr:
+    menu-interface definition
