@@ -8,7 +8,8 @@ $ ./configure --target-list=aarch64-linux-user,arm-linux-user --static
 $ make
 
 For systems,
-$ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir
+$ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir --with-git='socksify git'
+# remove -enable-curses -enable-libusb -enable-usb-redir
 
 
 For binfmts,

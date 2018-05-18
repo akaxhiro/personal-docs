@@ -1,0 +1,16 @@
+Input VAR
+---------
+bootdevice
+bootfile
+loadaddr
+
+Internal
+--------
+(fs/fs.c)
+fs_dev_desc
+fs_partition
+
+Generated VAR
+-------------
+fileaddr
+filesize

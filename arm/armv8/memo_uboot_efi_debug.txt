@@ -1,0 +1,156 @@
+===================================
+Debugging efi application on u-boot
+===================================
+1. build u-boot with adding "#define DEBUG" to common/board_f.c
+
+Generated *u-boot.bin* is a  binary, while *u-boot* is an elf file
+containing debugging information.
+
+2. run u-boot once and check for a printed message:
+    --- at terminal#1 on PC ---
+
+::
+
+    $ qemu-system-aarch64 -bios <u-boot.bin> ...
+
+    U-Boot 2018.05-00006-g0d562884d35-dirty (May 15 2018 - 16:57:56 +0900)
+    ...
+    New Stack Pointer is: 5ee50de0
+    Relocation Offset is: 5ff62000	<== this value
+    Relocating to 5ff62000, new gd at 5ee61df0, sp at 5ee50de0
+    ...
+
+Since u-boot will be relocated from ROM to RAM, '*Relocation Offset*'
+alongside *u-boot* is used below in order to load correct symbol information.
+
+3. run u-boot again with enabling gdb server:
+    --- at terminal#1 on PC ---
+
+::
+
+    $ qemu-system-aarch64 -s -S -bios <u-boot.bin> ...
+
+'*-s*' means using a gdb stub, '*-S*' causes qemu to freeze CPUs on startup
+so that we can use gdb from the start.
+
+4. invoke gdb and connect qemu:
+    --- at terminal#2 on PC ---
+
+::
+
+    $ aarch64-linux-gnu-gdb <u-boot>
+    (gdb) target remote localhost:1234
+    Remote debugging using localhost:1234
+    _start () at (...)/u-boot/arch/arm/cpu/armv8/start.S:31
+    31		b	reset
+    (gdb) add-symbol-file <u-boot> 0x5ff62000
+    add symbol table from file "(...)/build/uboot_201805/u-boot" at
+	.text_addr = 0x5ff62000
+    (y or n) y
+    Reading symbols from (...)/build/uboot_201805/u-boot...done.
+    (gdb) b do_echo
+    Breakpoint 1 at 0x3d98: do_echo. (2 locations)
+    (gdb) c
+    Continuing.
+
+Now we are able to control and debug u-boot with remote gdb.
+By typing "echo foo," we will be able to enter gdb session any time.
+
+5. prepare for loading efi binary on gdb:
+    --- at gdb ---
+
+::
+
+    Thread 1 hit Breakpoint 1, do_echo (cmdtp=0x5ffc8028, flag=0, argc=2, 
+        argv=0x5ee69bc0) at (...)/u-boot/cmd/echo.c:11
+    11	{
+    (gdb) b do_efi_enter
+    Function "do_efi_enter" not defined.
+    Make breakpoint pending on future shared library load? (y or [n]) n
+    (gdb) b efi_do_enter
+    Breakpoint 2 at 0x2c78: efi_do_enter. (2 locations)
+    (gdb) c
+    Continuing.
+
+6. load efi binary (example only)
+    --- at u-boot ---
+
+In this example, we load Shell.efi binary using semihosting. I don't believe
+that we need dtb to start Shell.efi.
+
+::
+
+    => smh (...)/Shell.efi 0x40080000
+    loaded file (...)/Shell.efi from 40080000 to 401BDFFF, 0013E000 bytes
+    => bootefi 0x40080000
+    EFI: Initializing EFI driver framework
+    EFI: Adding driver 'EFI block driver'
+    Found 0 disks
+    WARNING: booting without device tree
+    ## Starting EFI application at 40080000 ...
+    WARNING: using memory device/image path, this may confuse some payloads!
+    do_bootefi_exec:490 Jumping to 0x5dd0e000
+
+7. start debugging session with gdb
+    --- at gdb ---
+
+The second argument, *entry* or register x2, indicates an entry point
+to efi application, Shell.efi in this example. The value is also used
+as an offset for '*add-symbol-file*'.
+
+Please note that '\*.efi' is a uefi PE binary and '\*.debug' is an elf file
+containing debugging information.
+
+::
+
+    Thread 1 hit Breakpoint 2, efi_do_enter (image_handle=0x5ee50a30, 
+        st=0x5ffca4f0, entry=0x5dd0e000, entry@entry=0x5ee50a30)
+        at (...)/u-boot/cmd/bootefi.c:320
+    320	{
+    (gdb) p/x entry
+    $1 = 0x5dd0e000
+    (gdb) b *$1     
+    Breakpoint 3 at 0x5dd0e000
+    (gdb) c
+    Continuing.
+
+    Thread 1 hit Breakpoint 3, 0x000000005dd0e000 in ?? ()
+    (gdb) add-symbol-file (...)/Shell.debug $1
+    add symbol table from file "(...)/Shell.debug" at
+    	.text_addr = 0x5dd0e000
+    (y or n) y
+    Reading symbols from (...)/Shell.debug...done.
+    (gdb) set listsize 30
+    (gdb) list *$pc
+    0x5dd0e008 is in _ModuleEntryPoint ((...)/edk2/MdePkg/Library/UefiApplicationEntryPoint/ApplicationEntryPoint.c:45).
+    30	
+    31	  @param  ImageHandle                The image handle of the UEFI Application.
+    32	  @param  SystemTable                A pointer to the EFI System Table.
+    33	
+    34	  @retval  EFI_SUCCESS               The UEFI Application exited normally.
+    35	  @retval  EFI_INCOMPATIBLE_VERSION  _gUefiDriverRevision is greater than SystemTable->Hdr.Revision.
+    36	  @retval  Other                     Return value from ProcessModuleEntryPointList().
+    37	
+    38	**/
+    39	EFI_STATUS
+    40	EFIAPI
+    41	_ModuleEntryPoint (
+    42	  IN EFI_HANDLE        ImageHandle,
+    43	  IN EFI_SYSTEM_TABLE  *SystemTable
+    44	  )
+    45	{
+    46	  EFI_STATUS                 Status;
+    47	
+    48	  if (_gUefiDriverRevision != 0) {
+    49	    //
+    50	    // Make sure that the EFI/UEFI spec revision of the platform is >= EFI/UEFI spec revision of the application.
+    51	    //
+    52	    if (SystemTable->Hdr.Revision < _gUefiDriverRevision) {
+    53	      return EFI_INCOMPATIBLE_VERSION;
+    54	    }
+    55	  }
+    56	
+    57	  //
+    58	  // Call constructor for all libraries.
+    59	  //
+    (gdb) 

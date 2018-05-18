@@ -1,0 +1,15 @@
+How to debug efi application on u-boot
+
+* calculate the offset for which u-boot is relocated
+  based on, say, do_echo symbol
+
+* at gdb, add-symbol-file u-boot <offset>
+
+* break at efi_do_enter
+  x2 register holds an entry to efi application
+
+* break at $x2
+
+* add_symbol-file <efi app> <offset>
+  Offset can be calculated by objdump'ing <efi app>.debug binary
+  and x2 above
