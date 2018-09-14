@@ -1,0 +1,25 @@
+# Assuming ubuntu 16.04
+
+- Download elfutils-0.142
+- Edit lib/Makefile, adding -fno-strict-aliasing to CC option
+- ./configure
+- Edit lib/Makefile, removing -Wunused (for libasm)
+- Edit src/readelf.c,
+	adding #include <sys/stat.h>
+	replacing 'sizeof name' with RGNAMESZ
+- Edit src/nm.c,
+	replacing 'sizeof name' with 28
+- Edit src/strip.c,
+	adding #include <sys/stat.h>
+- Edit src/Makefile, removing the line
+        $($(*F)_no_Werror),,-Werror) $(if \
+        $($(*F)_no_Wunused),,-Wunused -Wextra) $(if \
+  adding libelf depency to addr2line
+- Edit src/ar.c, adding #include <sys/stat.h>
+- Edit src/unstrip.c, adding #include <sys/stat.h>
+
+- make
+
+- Follow README of makedumpfile
+- add library path to Makefile
+	-L/lib/aarch64-linux-gnu

@@ -1,0 +1,26 @@
+Some tips:
+
+# setup_nat.sh on Host
+
+- Starting with Ubuntu Core
+
+$ export PATH
+$ set http_proxy=...
+$ apt-get install -y --no-install-recommends apt-utils
+
+- Installed packages
+wget
+gcc (7.3)
+binutils
+git
+device-tree-compiler
+qemu-system-arm
+vim
+net-tools
+iw
+python (2.7)
+python-pytest
+
+- temporarily refrained
+systemd-sysv
+consolekit

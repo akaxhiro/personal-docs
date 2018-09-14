@@ -1,0 +1,19 @@
+
+How to build SCT
+----------------
+
+$ copy SCT source package to <top-of-edk2>
+
+$ . setup_gcc.sh -v 4.9 64
+$ cd <top-of-edk2>
+$ . edksetup.sh
+$ SctPkg/build.sh AARCH64 GCC DEBUG
+
+Notes for x86
+
+# edit the following file and comment out InitializePartitonInfoBBTest()
+at line 74:
+/home/akashi/arm/armv8/linaro/uefi/edk2/Build/UefiSct/DEBUG_GCC49/X64/SctPkg/TestCase/UEFI/EFI/Protocol/PartitionInfo/BlackBoxTest/PartitionInfoBBTest/DEBUG/AutoGen.h
+
+$ SctPkg/build.sh X64 GCC DEBUG
+

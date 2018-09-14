@@ -35,11 +35,12 @@ prerequisite:
 		-D EDK2_OUT_DIR=Build/ArmVExpress-FVP-AArch64-Full \
 		-D EDK2_ENABLE_SMSC_91X=1 -D EDK2_ENABLE_PL111=1
     For Hikey,
-	OpenPlatformPkg.old/Platforms/Hisilicon/HiKey/HiKey.dsc
+	edk2-platforms/Platform/Hisilicon/HiKey/Hikey.dsc
 	OpenPlatformPkg/Platforms/Hisilicon/HiKey960/HiKey960.dsc
     For Qemu,
 	edk2/ArmVirtPkg/ArmVirtQemu.dsc
-	but temporarily commented out MnpDxe in ArmVirt.dsc.inc &
+	but temporarily commented out MnpDxe in ArmVirtQemu.dsc &
+		ArmVirtQemuKernel.dsc &
 		ArmVirtQemuFvMain.fdf.inc to avoid server time out.
 
 For example,
@@ -47,7 +48,12 @@ For example,
     $ GCC5_AARCH64_PREFIX=/opt/linaro/gcc-5.4-aarch64/bin/aarch64-linux-gnu- build -n 8 -a AARCH64 -t GCC5 -p edk2/ArmVirtPkg/ArmVirtQemu.dsc
     $ GCC5_AARCH64_PREFIX=/opt/linaro/gcc-5.4-aarch64/bin/aarch64-linux-gnu- build -n 8 -a AARCH64 -t GCC5 -p OpenPlatformPkg/Platforms/Hisilicon/HiKey960/HiKey960.dsc
 
-    $  build -a X64 -t GCC5 -p OvmfPkg/OvmfPkgX64.dsc
+    $ build -a X64 -t GCC5 -p OvmfPkg/OvmfPkgX64.dsc
+or
+    $ build -a X64 -t GCC5 -p ShellPkg/ShellPkg.dsc
+
+
+
 
 For example,
     $ GCC49_AARCH64_PREFIX=/opt/gcc/gcc-4.9-aarch64/bin/aarch64-linux-gnu- build -a AARCH64 -t GCC49 -p OpenPlatformPkg/Platforms/ARM/VExpress/ArmVExpress-FVP-AArch64.dsc
