@@ -1,0 +1,20 @@
+=== prepare flash images ===
+
+# Configure CONFIG_TEXT_BASE=0x60000000
+# Modify FLASH_BASE=0x4000000 & NUM_OF_BANKS=1
+
+$ make PLAT=qemu BL33=... FIP=...
+$ cd ~/arm/armv8/linaro/atf/qemu/debug
+$ ./create_fip64.sh efi_next_sec
+$ ./fill_flash64.sh bl1
+
+$ runqemu.sh -u -s
+
+
+=== how to boot linux ===
+
+smh /home/akashi/arm/armv8/linaro/build/kernel_kexec_file/arch/arm64/boot/Image 0x50000000
+fdt addr $fdtcontroladdr
+fdt resize 1000
+fdt set /chosen bootargs "ip=dhcp loglevel=9 consolelog=9 earlycon=pl011,0x1c090000 crashkernel=256M root=/dev/nfs nfsroot=192.168.10.1:/opt/buildroot/16.11_64,tcp rw efi=debug"
+bootefi 50000000 $fdtcontroladdr

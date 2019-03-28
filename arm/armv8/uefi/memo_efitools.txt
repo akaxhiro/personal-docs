@@ -1,0 +1,3 @@
+apt install libfile-slurp-perl
+apt install help2man
+sudo ln -s /usr/share/perl5/File/Slurp.pm /usr/lib/x86_64-linux-gnu/perl5/5.22/File/

@@ -1,1 +1,19 @@
 $ make CFG_ARM64_core=y PLATFORM=hikey-hikey960
+
+Other PLATFORMs are:
+    vexpress-fvp
+    vexpress-qemu_armv8a
+
+Under my 64-bit setup,
+$ make CFG_ARM64_core=y PLATFORM=vexpress-qemu_armv8a ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+
+Then,
+$ make PLAT=qemu QEMU_LOAD_BL32=yes NEED_BL32=yes BL32=/home/akashi/arm/armv8/linaro/uefi/optee/out/arm-plat-vexpress/core/tee.bin BL33=/home/akashi/arm/armv8/linaro/build/uboot_efi_next_sec/u-boot.bin FIP_NAME=fip_uboot.bin DEBUG=1 V=1 all fip
+
+
+To build examples,
+at optee_client,
+$ make CROSS_COMPILE=...
+
+at optee_examples,
+$ make HOST_CROSS_COMPILE=aarch64-linux-gnu- TA_DEV_KIT_DIR=/home/akashi/arm/armv8/linaro/uefi/optee/out/arm-plat-vexpress/export-ta_arm64 TEEC_EXPORT=/home/akashi/arm/armv8/linaro/uefi/optee_client/out/export examples
