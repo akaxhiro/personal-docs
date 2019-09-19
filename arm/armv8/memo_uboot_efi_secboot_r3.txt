@@ -1,0 +1,112 @@
+0. Summary of what is already supported
+   ====================================
+* basic image authentication with "db" database
+  - PE-formated image
+  - signature in image: cert_type=CERT_TYPE_PKCS_SIGNED_DATA
+  - hash algorithm: SHA256
+* variable authentication for "globally defined" authenticated variables
+    (ie. PK/KEK/db/dbx)
+  - support EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS
+  - "time" attribute is partially supported
+* support "db/dbx" database
+  - signatures only with CERT_X509_GUID
+  - (the current implmentation of "dbx" is wrong)
+* secure state transition
+  - "SecureBoot" variable
+  - "SetupMode/UserMode" variables
+  - inadequately "AuditMode/DeployedMode" variables
+
+
+1. Functionality
+   =============
+(HIGH priority)
+* provide "SignatureSupport" variable
+* provide "VendorKeys" variable
+* support "dbx"(revocation) database
+* support "dbt"(time) database with fully-compliant time-based
+  authentication
+  - in image authentication
+  - in variable authentication
+* support EFI_VARIABLE_APPEND_WRITE in efi_set_variable_common()
+* (U-boot commands or UEFI apps for authenticated variable management)
+
+(LOW priority)
+* support more certificate types in signature database
+    (See efi_sigstore_parse_siglist())
+* support more certificate types in image signature
+    in efi_sigstore_parse_authdata()
+    WIN_CERT_TYPE_EFI_PKCS115
+    WIN_CERT_TYPE_EFI_GUID
+    WIN_CERT_TYPE_PKCS_SIGNED_DATA
+    (See section 32.2.4, Table 11)
+* currently a signature owner is ignored in verification
+    (See efi_sigstore_parse_siglist())
+* confirm the condition for deleting an authenticated variable
+    in efi_set_variable_common()
+* support more hash algo's, other than SHA256, with flexible crypto framework
+  - in efi_signature_verify()
+  - in public_key_verify_signature()
+
+(Deferred until post-SAN19 cycle)
+* support EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS
+* authentication for private authenticated variables
+    (other than PK/KEK/db/dbx/dbt/...)
+* enable a blacklist check in x509_get_sig_params()
+* record results of image authentication in EFI_IMAGE_EXECUTION_INFO_TABLE
+    in efi_image_authenticate()
+* support "dbr"(recovery) and "OsRecoveryXXX" variables
+* support "XXXDefault" variables
+* support "AuditMode" with TPM
+* support "DeployedMode" transition
+* transition after deleting PK
+
+
+2. Implementation (non-functional)
+   ===============================
+(HIGH priority)
+* dependency on external library
+  - kernel code or other SSL libraries for asn1 parser
+* need dedicated pkcs7 parser for variable's "signed data"
+    in efi_sigstore_parse_variable_authdata()
+* fix error at verifying self-signed signature
+    in public_key_verify_signature()
+* move win_certificate and others to a more appropriate header
+* revisit/review efi_signature structure if needed
+
+(LOW priority)
+* dependency on external library
+  - BearSSL dependency in RSA decryption
+* efi_signature_store holds a fixed number of signature array
+* additionally check that a hash value of image data matches
+    a digest in a signature in efi_signature_verify()
+* how we should behave if any transition of secure state fails
+    in efi_transfer_secure_state()
+* recovery when saving non-volatile variables fails
+    in efi_set_nonvolatile_variable()
+* fix/recovery of specific error, "Processed size != SizeOfHeaders"
+    in efi_image_parse_authdata()
+* endianness of exponent value in rsa_gen_key_prop()
+
+(Out of my scope)
+* stub functions of [Get|Set]Variable interfaces to communicate with
+    secure-side storage (ie. StMM services or OP-TEE app)
+
+
+3. Tools/Management
+   ================
+(HIGH priority)
+* establish scinario for signature database management
+    (via either U-Boot command or capsule update with some host tools)
+* testing
+  - "basic" regression test using either U-Boot commands or efi-selftest
+
+(LOW priority)
+* platform-specific installation of platform key(PK)
+* testing
+  - comprehensive test cases
+
+
+4. others
+   ======
+* source code reviews before upstream
+* upstreaming

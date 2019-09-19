@@ -1,0 +1,60 @@
+Sources:
+  SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.c
+  CryptoPkg/Library/BaseCryptLib/Pk/CryptTs.c
+VariableConfig:
+  SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigImpl.c
+
+DxeImageVerificationHandler
+---------------------------
+* if not signed, use hash algo of sha256 for verification
+	TODO: which part should be digested?
+  - Signature in Dbx first
+	DENIED
+  - Signature in Db
+	SUCCESS
+  - if not found in both, should return FAILURE
+    (No inforamtion is recorded in executable information table.)
+
+* PE may have multiple signatures in every WindCert->dwLength
+  (wCertType should be PKCS7_SIGNED_DATA), so iterate
+
+  - hash PE (mImageDigest) based on digestAlgorithms of SignedData
+    of authenticode
+    (TODO: which is not decoded in the current pkcs7 parser.)
+    (TODO: Data to be hashed is more complicated. See HashPeImage())
+
+  - Is Forbidden By Dbx
+    - verify signature with x509 certificates in "dbx"
+      (CERT_X509 only)
+    - If not rejected,
+      - go through signer's certificates list, and
+        check if their hashes are in "dbx"
+        - retrieve TBSCertificate
+        - calculate a hash
+          (where hash algo is determined by signature type in "dbx")
+	  (Algo should be one of CERT_X509_SHA256/SHA384/SHA512)
+	- check if hash is in signature list
+        - If found, this give us a revocation time,
+      - If found,then check if sigining time in timestamp signature
+        passed revocation time
+      - If not found, continue
+
+  - Is Allowed By Db
+    - verify signature with x509 certificates in "db"
+      (CERT_X509 only)
+    - If verified, check if the used certificate is in "db"
+      as in "IsForbiddenByDbx"
+    - Then, check if signing time pass revocation time.
+
+  - Db may allow or not allow, then double-check against mImageDigest
+    (CertType should be one of CERT_SHA1/SHA256/SHA384/SHA512)
+    - Is Signature Found in Dbx
+        DENIED
+    - Is Signature Found in Db
+        SUCCESS
+
+  - make a copy of signature(mImageDigest)
+    (used for executable information table)
+
+* Finally, if the image is rejected,
+  add inforamtion in executable information table.

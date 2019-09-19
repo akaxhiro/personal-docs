@@ -1,0 +1,46 @@
+nettle:
+$ git clone http://git.lysator.liu.se/nettle/nettle
+$ ./.bootstrap
+$ ./configure --host=aarch64-linux-gnu --enable-mini-gmp
+$ make
+
+gmp:
+$ hg clone https://gmplib.org/repo/gmp/ gmp
+$ ./.bootstrap
+$ ./configure --host=aarch64-linux-gnu
+$ make
+
+gnutls:
+$ git clone
+$ ./bootstrap
+$ ./configure --host=aarch64-linux-gnu \
+	NETTLE_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/nettle -I/home/akashi/arm/armv8/linaro/misc" \
+	NETTLE_LIBS="-L/home/akashi/arm/armv8/linaro/misc/nettle -lnettle" \
+	HOGWEED_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/nettle" \
+	HOGWEED_LIBS="-L/home/akashi/arm/armv8/linaro/misc/nettle -lhogweed" \
+	GMP_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/gmp/.libs -I/home/akashi/arm/armv8/linaro/misc" \
+	GMP_LIBS="-L/home/akashi/arm/armv8/linaro/misc/gmp/.libs" \
+	--with-included-libtasn1 --with-included-unistring \
+	--without-p11-kit --enable-static --enable-local-libopts \
+	--with-nettle-mini
+
+At this point, the build failed, but
+continue to customise the build.
+
+$ ./configure --host=aarch64-linux-gnu \
+	NETTLE_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/nettle -I/home/akashi/arm/armv8/linaro/misc" \
+	NETTLE_LIBS="-L/home/akashi/arm/armv8/linaro/misc/nettle -lnettle" \
+	HOGWEED_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/nettle" \
+	HOGWEED_LIBS="-L/home/akashi/arm/armv8/linaro/misc/nettle -lhogweed" \
+	GMP_CFLAGS="-L/home/akashi/arm/armv8/linaro/misc/gmp/.libs -I/home/akashi/arm/armv8/linaro/misc" \
+	GMP_LIBS="-L/home/akashi/arm/armv8/linaro/misc/gmp/.libs" \
+	--with-included-libtasn1 --with-included-unistring \
+	--without-p11-kit --enable-static --enable-local-libopts \
+	--with-nettle-mini \
+--disable-threads --disable-maintainer-mode --disable-bash_tests \
+--disable-doc --disable-tools --disable-cxx --disable-tls13-interop \
+--enable-sha1-support --disable-dtls-srtp-support --disable-alpn-support \
+--disable-heartbeat-support --disable-srp-authentication \
+--disable-psk-authentication --disable-dhe --disable-ecdhe --disable-gost \
+--disable-ocsp -disable-tests --disable-nls --enable-valgrind-tests \
+--disable-full-test-suite --disable-libdane --disable-nls

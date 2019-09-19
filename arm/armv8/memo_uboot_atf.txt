@@ -1,7 +1,8 @@
 === prepare flash images ===
 
 # Configure CONFIG_TEXT_BASE=0x60000000
-# Modify FLASH_BASE=0x4000000 & NUM_OF_BANKS=1
+# obsolute:Modify FLASH_BASE=0x4000000 & NUM_OF_BANKS=1
+# Modify CONFIG_MAX_FLASH_BANKS=1
 
 $ make PLAT=qemu BL33=... FIP=...
 $ cd ~/arm/armv8/linaro/atf/qemu/debug

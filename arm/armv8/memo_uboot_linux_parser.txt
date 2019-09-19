@@ -1,0 +1,95 @@
+Any changes from Linux?
+
+=== as of secboot.0.11.3
+-cmd/Kconfig                       |    3 +
+*include/crypto/asymmetric-type.h		(__UBOOT__)
+yinclude/crypto/internal/rsa.h     |   65 ++ (u8 definition - TODO)
+yinclude/crypto/pkcs7.h            |   51 ++
++include/crypto/public_key.h       |   88 ++ (__UBOOT__)
+ninclude/linux/asn1.h              |   69 ++
+ninclude/linux/asn1_ber_bytecode.h |   93 +++
+ninclude/linux/asn1_decoder.h      |   24 +
+ninclude/linux/oid_registry.h      |  103 +++
+-include/u-boot/rsa-mod-exp.h      |    3 +
+-lib/Kconfig                       |   12 +
+-lib/Makefile                      |   18 +
++lib/asn1_decoder.c                |  518 ++++++++++++ (compat.h)
+*lib/crypto/asymmetric_type.c		(__UBOOT__)
+nlib/build_OID_registry            |  207 +++++
+-lib/crypto/Kconfig                |   16 +
+-lib/crypto/Makefile               |   38 +
+nlib/crypto/pkcs7.asn1             |  135 ++++
+Ylib/crypto/pkcs7_parser.c         |  701 ++++++++++++++++ (module, add, hdrs - TODO)
+					(Think of asymmetric_type.c)
+nlib/crypto/pkcs7_parser.h         |   69 ++
+*lib/crypto/public_key.c           |  340 ++++++++ (compat.h, add one)
+					(from signature.c)
+ylib/crypto/rsa_helper.c           |   81 ++ (remove some - TODO)
+nlib/crypto/rsapubkey.asn1         |    4 +
+nlib/crypto/x509.asn1              |   60 ++
+nlib/crypto/x509_akid.asn1         |   35 +
+Ylib/crypto/x509_cert_parser.c     |  681 ++++++++++++++++ (mod, malloc, add, hdrs - TODO)
+					(Think of asymmetric_type.c)
+					(Think of time/time.c)
+Ylib/crypto/x509_parser.h          |   72 ++ (add)
+Ylib/crypto/x509_public_key.c      |  277 +++++++ (mod, malloc, add , hdrs - TODO)
+					(Think of asymmetric_type.c)
+-lib/linux_compat.c
++lib/oid_registry.c                |  170 ++++ (compat.h)
+-lib/rsa/Kconfig                   |    7 +
+-lib/rsa/Makefile                  |    2 +-
+-lib/rsa/rsa-keyprop.c             |  631 +++++++++++++++
+-lib/rsa/rsa-verify.c              |   59 +-
+-scripts/Makefile                  |    3 +
+-scripts/Makefile.build            |    6 +-
+nscripts/asn1_compiler.c           | 1615 +++++++++++++++++++++++++++++++++++++
+-tools/Makefile                    |    2 +
+
+
+
+
+
+
+
+
+=== as of secboot.0.11.2
+-cmd/Kconfig                       |    3 +
+yinclude/crypto/internal/rsa.h     |   65 ++ (u8 definition - TODO)
+yinclude/crypto/pkcs7.h            |   51 ++
+yinclude/crypto/public_key.h       |   88 ++
+ninclude/linux/asn1.h              |   69 ++
+ninclude/linux/asn1_ber_bytecode.h |   93 +++
+ninclude/linux/asn1_decoder.h      |   24 +
+ninclude/linux/oid_registry.h      |  103 +++
+-include/u-boot/rsa-mod-exp.h      |    3 +
+-lib/Kconfig                       |   12 +
+-lib/Makefile                      |   18 +
+ylib/asn1_decoder.c                |  518 ++++++++++++ (module, headers - TODO)
+nlib/build_OID_registry            |  207 +++++
+-lib/crypto/Kconfig                |   16 +
+-lib/crypto/Makefile               |   38 +
+nlib/crypto/pkcs7.asn1             |  135 ++++
+Ylib/crypto/pkcs7_parser.c         |  701 ++++++++++++++++ (module, add, hdrs - TODO)
+					(Think of asymmetric_type.c)
+nlib/crypto/pkcs7_parser.h         |   69 ++
+Ylib/crypto/public_key.c           |  340 ++++++++ (module, add, hdrs - TODO)
+ylib/crypto/rsa_helper.c           |   81 ++ (remove some - TODO)
+nlib/crypto/rsapubkey.asn1         |    4 +
+nlib/crypto/x509.asn1              |   60 ++
+nlib/crypto/x509_akid.asn1         |   35 +
+Ylib/crypto/x509_cert_parser.c     |  681 ++++++++++++++++ (mod, malloc, add, hdrs - TODO)
+					(Think of asymmetric_type.c)
+					(Think of time/time.c)
+Ylib/crypto/x509_parser.h          |   72 ++ (add)
+Ylib/crypto/x509_public_key.c      |  277 +++++++ (mod, malloc, add , hdrs - TODO)
+					(Think of asymmetric_type.c)
+ylib/oid_registry.c                |  170 ++++ (module related - TODO)
+-lib/rsa/Kconfig                   |    7 +
+-lib/rsa/Makefile                  |    2 +-
+-lib/rsa/rsa-keyprop.c             |  631 +++++++++++++++
+-lib/rsa/rsa-verify.c              |   59 +-
+-scripts/Makefile                  |    3 +
+-scripts/Makefile.build            |    6 +-
+nscripts/asn1_compiler.c           | 1615 +++++++++++++++++++++++++++++++++++++
+-tools/Makefile                    |    2 +
+ 35 files changed, 6247 insertions(+), 11 deletions(-)

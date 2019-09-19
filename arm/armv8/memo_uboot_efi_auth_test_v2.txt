@@ -1,0 +1,91 @@
+Images:
+1. image.E not signed
+2. image.E signed with certificate.A
+3. image.E signed with certificate.A and certificate.B
+4. image.E signed with certificate.A and certificate.B
+   timestamped by T
+     with TS1 (< TS2)
+5. image.E signed with certificate.A and certificate.B
+   timestamped by T
+     with TS3 (> TS2)
+
+Possible certificates:
+a. digest.D of image.E (EFI_CERT_SHA256_GUID)
+b. certificate.A (EFI_CERT_X509_GUID)
+d. revocation certificate.R against certificate.A with TS2
+                 (EFI_CERT_X509_SH256_GUID)
+c. certificate.B (EFI_CERT_X509_GUID)
+e. revocation certificate.S against certificate.B with TS2
+                 (EFI_CERT_X509_SH256_GUID)
+f. TS Authority.T (EFI_CERT_X509_GUID)
+
+Test cases:
+    DB configuration		|Authentication
+    |DB  |DBX       |DBT	|
+#   |a b |a b d c e |f		|1 2 3 4 5
+----+----+----------+-----------+---------
+     y *  n * * * *  *		 y - - - -
+     n *  y * * * *  *		 n - - - -
+     n *  n * * * *  *		 n - - - -
+
+      (y    n: basically yes)
+       y    n n n n  n		 - y y y y
+       y    n y n n  n		 - n?n?n n
+       y    n n n y  n		 - y n?n?n?
+       y    n y n y  n		 - n?n?n?n?
+       y    n n y n  n		 - n n n n
+       y    n y y n  n		 - n?n n n
+       y    n n y y  n		 - y n?n n
+       y    n y y y  n		 - n?n n n
+
+       y    n n n n  y		 - y y y y
+       y    n y n n  y		 - n?n?y n
+       y    n n n y  y		 - y n?n?n?
+       y    n y n y  y		 - n?n?y n
+       y    n n y n  y		 - n n n n
+       y    n y y n  y		 - n?n n n
+       y    n n y y  y		 - y n?n n
+       y    n y y y  y		 - n?n y n
+
+      (n    y: basically no)
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+       n    y * * *  *		 - n n n n
+
+      (n    n: basically no)
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+       n    n * y *  *		 - n n n n
+
+       n    n n n n  n		 - n n n n
+       n    n y n n  n		 - n n n n
+       n    n n n y  n		 - n n n n
+       n    n y n y  n		 - n n n n
+       n    n n n n  y		 - n n n n
+       n    n y n n  y		 - n n n n
+       n    n n n y  y		 - n n n n
+       n    n y n y  y		 - n n n n
+
+     n n  n n n n n  n		 n n n n n
+     n n  y n n n n  n		 n n n n n
+     y n  n n n n n  n		 y y y y y
+
+Legend:
+y: certificate in DB
+n: certificate not in DB
+*: don't care (match any)
+
+y: image authenticated
+n: image execution denied
+?: T.B.D.
+-: don't know (depending on other conditions)

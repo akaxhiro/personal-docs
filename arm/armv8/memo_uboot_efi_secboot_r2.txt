@@ -1,0 +1,58 @@
+Functionality:
+* provide "SignatureSupport" variable
+* provide "VendorKeys" variable
+* support "dbt"(time) database
+* how we should handle "time" of variable authentication
+    in efi_variable_authenticate()
+* confirm signature database we should use in authenticating
+    variables other than PK/KEK/db/dbx
+* support EFI_VARIABLE_APPEND_WRITE in efi_set_variable_common()
+* enable a blacklist check in x509_get_sig_params()
+* currently a signature owner is ignored in verification
+    See efi_sigstore_parse_siglist()
+* support more certificate types in signature database
+    See efi_sigstore_parse_siglist()
+* support more certificate types in image signature
+    in efi_sigstore_parse_authdata()
+    WIN_CERT_TYPE_EFI_PKCS115
+    WIN_CERT_TYPE_EFI_GUID
+    WIN_CERT_TYPE_PKCS_SIGNED_DATA
+    (See section 32.2.4, Table 11)
+* confirm the condition for deleting an authenticated variable
+    in efi_set_variable_common()
+* record results of image authentication in EFI_IMAGE_EXECUTION_INFO_TABLE
+    in efi_image_authenticate()
+* support "dbr"(recovery) and "OsRecoveryXXX" variables
+* support "XXXDefault" variables
+* support "AuditMode" with TPM
+
+
+Implementation:
+* dependency on external library
+  - kernel code or other SSL libraries for asn1 parser
+  - BearSSL dependency in RSA decryption
+* need dedicated pkcs7 parser for variable's "signed data"
+    in efi_sigstore_parse_variable_authdata()
+* efi_signature_store holds a fixed number of signature array
+* algorithm hard-coded in efi_signature_verify()
+* algorithm hard-coded in public_key_verify_signature()
+* additionally check that a hash value of image data matches
+  a digest in a signature in efi_signature_verify()
+* how we should behave if any transition of secure state fails
+    in efi_transfer_secure_state()
+* recovery when saving non-volatile variables fails
+    in efi_set_nonvolatile_variable()
+* fix error at verifying self-signed signature
+    in public_key_verify_signature()
+* fix/recovery of specific error, "Processed size != SizeOfHeaders"
+    in efi_image_parse_authdata()
+* endianness of exponent value in rsa_gen_key_prop()
+* move win_certificate and others to a more appropriate header
+* revisit efi_signature structure
+* stub functions to communicate with secure-side storage (StMM services)
+
+
+Tools/Management:
+* host tool to generate a capsule(?) of authenticated variables
+* platform-specific installation of platform key(PK)
+* comprehensive testing

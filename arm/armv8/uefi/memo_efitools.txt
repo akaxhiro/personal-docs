@@ -1,3 +1,12 @@
 apt install libfile-slurp-perl
 apt install help2man
 sudo ln -s /usr/share/perl5/File/Slurp.pm /usr/lib/x86_64-linux-gnu/perl5/5.22/File/
+
+Crosscompiling:
+1. build gnu-efi-code
+2. install gnu-efi-code
+	$ make INSTALLROOT=$(SRC)/build PREFIX=/usr install
+
+3. apply crosscompiling patch
+4. build efitools
+	$ make LIBEFIPATH=... CROSS_COMPILE=... ARCH=...

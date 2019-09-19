@@ -12,6 +12,10 @@ prerequisite:
     $ cd CryptoPkg/Library/OpensslLib/
     $ git clone -b OpenSSL_1_1_0e https://github.com/openssl/openssl openssl
 
+		-> OpenSSL_1_1_1b (as of Sept 19, 2019)
+(check for the latest version by
+git log /home/akashi/arm/armv8/linaro/uefi/edk2/CryptoPkg/Library/OpensslLib/)
+
 ************************************
 === Normal steps from older memo ===
 ************************************

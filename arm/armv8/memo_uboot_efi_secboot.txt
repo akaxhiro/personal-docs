@@ -1,0 +1,55 @@
+Known issues:
+
+* kernel code or other SSL libraries for asn1 parser
+* BearSSL dependency in RSA decryption
+
+FIME:
+* endianness of exponent in rsa_gen_key_prop()
+* algorithm hard-coded in efi_signature_verify()
+* need dedicated pkcs7 parser for variable's "signed data"
+    in efi_sigstore_parse_variable_authddata()
+* how we should handle "time" of variable authentication
+    in efi_variable_authenticate()
+* Which signature database we should use in autheticating
+    variables other than PK/KEK/db/dbx
+* recovery when saving non-volatile variables fails
+    in efi_set_nonvolatile_variable()
+* fix errror at verifying self-signed signature
+    in public_key_verfiy_signature()
+* algorithm hard-coded in public_key_verfiy_signature()
+* enable a blacklist check in x509_get_sig_params()
+
+TODO:
+* efi_signature_store holds a fixed number of signature array
+* additionally check that a hash value of image data matches
+  a digest in a signature in efi_signature_verify()
+* support more certificate types in signature database
+    See efi_sigstore_parse_siglist()
+* currently a signature owner is ignored in verification
+    See efi_sigstore_parse_siglist()
+* what we should behave if any transition of secure state fails
+    in efi_transer_secure_state()
+* support EFI_VARAIBLE_APPEND_WRITE in efi_set_variable_common()
+* confirm the condition for deleting an authenticated variable
+    in efi_set_variable_common()
+* recovery of specific error, "Processed size != SizeOfHeaders"
+    in efi_image_parse_authdata()
+* record results of image authentication in EFI_IMAGE_EXECUTION_INFO_TABLE
+    in efi_image_authenticate()
+* move win_certificate and others to a more appropriate header
+* revisit efi_signature structure
+* support more certificate types in image signature
+    in efi_sigstore_parse_authdata()
+    WIN_CERT_TYPE_EFI_PCKS115
+    WIN_CERT_TYPE_EFI_GUID
+    WIN_CERT_TYPE_PCKS_SIGNED_DATA
+    See section 32.2.4, Table 11
+* support "dbt"(time) database
+* support "dbr"(recovery) and "OsRecoveryXXX" variables
+* support "AuditMode" with TPM
+* support "XXXDefault" variables
+* provide "SignatureSupport" variable
+* provide "VendorKeys" variable
+
+Tools:
+* host tool to generate a capsule(?) of authenticated variables

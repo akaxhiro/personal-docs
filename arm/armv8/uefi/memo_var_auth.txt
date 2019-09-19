@@ -1,0 +1,46 @@
+=== Client side ===
+VariableServiceInitialize()
+MdeModulePkg/Universal/Variable/RuntimeDxe/VariableDxe.c
+
+> VariableServiceSetVariable()
+  MdeModulePkg/Universal/Variable/RuntimeDxe/Variable.c
+
+>>  AuthVariableLibProcessVariable()
+    SecurityPkg/Library/AuthVariableLib/AuthVariableLib.c
+    or,
+    UpdateVariable()
+
+===
+VariableSmmRuntimeInitialize()
+MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.c
+
+> SmmVariableReady()
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.c
+
+>>  install tables
+    RuntimeServiceGetVariable
+    RuntimeServiceSetVariable
+
+=== Secure side ===
+VariableServiceInitialize()
+MdeModulePkg/Universal/Variable/RuntimeDxe/VariableStandaloneMm.c
+
+> MmVariableServiceInitialize()
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmm.c
+
+>>  MmiHandlerRegister(SmmVariableHandler)
+
+>>  For emulated non-volatile variable,
+    VariableWriteServiceInitializeSmm()
+
+>>  For FTW,
+    SmmFtwNotificationEvent()
+
+===
+SmmVariableHandler()
+MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmm.c
+
+> VariableServiceGetVariable()
+> VariableServiceSetVariable()
+  using FindVariable()
+  MdeModulePkg/Universal/Variable/RuntimeDxe/Variable.c
