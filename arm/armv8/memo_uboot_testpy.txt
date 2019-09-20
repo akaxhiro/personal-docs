@@ -5,7 +5,7 @@
 # vmlinuz-x...
 # try guestmount ... --trace --verbose <MNTPOINT>
 
-$ sudo (-E) py.test test/py/tests/test_fs/test_xxx.py --bd sandbox --build-dir ~/x86/build/uboot_xxx --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
+$ sudo (-E) py.test test/py/tests/test_xxx/test_xxx.py --bd sandbox --build-dir ~/x86/build/uboot_xxx --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
 
 -s: output messages from U-Boot immediately
 -k <name>: run only a test whose name contains <name>
