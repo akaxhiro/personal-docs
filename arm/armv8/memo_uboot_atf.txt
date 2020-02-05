@@ -4,8 +4,8 @@
 # obsolute:Modify FLASH_BASE=0x4000000 & NUM_OF_BANKS=1
 # Modify CONFIG_MAX_FLASH_BANKS=1
 
-$ make PLAT=qemu BL33=... FIP=...
-$ cd ~/arm/armv8/linaro/atf/qemu/debug
+$ make PLAT=qemu BL33=.../u-boot.bin FIP_NAME=... fip
+$ cd ~/arm/armv8/linaro/atf/build/qemu/debug
 $ ./create_fip64.sh efi_next_sec
 $ ./fill_flash64.sh bl1
 

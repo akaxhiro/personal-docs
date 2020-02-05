@@ -1,7 +1,16 @@
 Swithing python2 and python3
   change a symbolic link of /usr/bin/python
 
+	=> bad idea
+
 Otherwise, you will want to set up
   sudo update-alternatives install /usr/bin/python python /usr/bin/python2.7 2
   sudo update-alternatives install /usr/bin/python python /usr/bin/python3.4 1
   sudo update-alternatives config python
+
+
+
+Maintaining python modules:
+See https://www.reddit.com/r/learnpython/comments/4zqw0d/usrbinpython_vs_usrlocalbinpython/
+
+  => always use "python -m pip install ..." instead of "pip install ..."

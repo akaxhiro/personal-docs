@@ -5,6 +5,11 @@
 # vmlinuz-x...
 # try guestmount ... --trace --verbose <MNTPOINT>
 
+# Please check
+# guestmount -a /opt/disk/uboot_sandbox_fat.img -m /dev/sda  /mnt/tmp1
+# if it fails,
+# chmod a+rw /boot/vmlinuz-*
+
 $ sudo (-E) py.test test/py/tests/test_xxx/test_xxx.py --bd sandbox --build-dir ~/x86/build/uboot_xxx --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
 
 -s: output messages from U-Boot immediately
@@ -12,3 +17,8 @@ $ sudo (-E) py.test test/py/tests/test_xxx/test_xxx.py --bd sandbox --build-dir 
 
 If you see os.read() error, it probably means that u-boot has caused
 hang-up before termination.
+
+!!! Python3
+-----------
+/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/pytest.py test/py/tests/test_efi_secboot/test_authvar.py -s -k test_efi_var_auth1 --bd sandbox --build-dir ~/x86/build/uboot_sandbox_secboot --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
+

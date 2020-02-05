@@ -12,6 +12,12 @@ For systems,
 $ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir --with-git='socksify git'
 # remove -enable-libusb -enable-usb-redir
 
+If you see an error around git submodules, try:
+$ configure ... --disable-git-update
+$ ../../qemu/scripts/git-submodule.sh update  ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 dtc slirp
+$ configure ... --with-git=...
+$ make
+
 
 For binfmts,
 $ create a /usr/share/binfmts/qemu-aarch64

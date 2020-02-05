@@ -1,8 +1,13 @@
 Sources:
+  MdeModulePkg/Core/Dxe/Image/Image.c (for coreLoadImage)
   SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.c
+  CryptoPkg/Library/BaseCryptLib/Pk/CryptAuthenticode.c
+  CryptoPkg/Library/BaseCryptLib/Pk/CryptPkcs7VerifyCommon.c
   CryptoPkg/Library/BaseCryptLib/Pk/CryptTs.c
 VariableConfig:
   SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigImpl.c
+Policy definition:
+  SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.h
 
 DxeImageVerificationHandler
 ---------------------------

@@ -29,6 +29,8 @@ create a certificate request
 
    or you may want self-siging by skipping a request step:
  $ openssl req -new -x509 -key my.key > my.crt
+      or,
+ $ openssl req -x509 -sha256 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 365
 
 create a self-signed certifciate
 --------------------------------
