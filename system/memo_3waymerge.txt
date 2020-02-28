@@ -1,0 +1,2 @@
+meld <mysrc> <original> <new_from_original>
+Then, apply chanages from <mysrc-original> to <new>

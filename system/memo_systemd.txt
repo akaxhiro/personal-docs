@@ -1,0 +1,4 @@
+$ systemctl list-dependencies --reverse <service name>
+
+$ systemd-analyze critical-chain
+$ systemd-analyze blame

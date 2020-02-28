@@ -1,0 +1,5 @@
+CapsuleOnDisk
+MdeModulePkg/Library/DxeCapsuleLibFmp/CapsuleOnDisk.c
+
+UpdateCapsule
+MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleService.c

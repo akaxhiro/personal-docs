@@ -9,6 +9,9 @@ VariableConfig:
 Policy definition:
   SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.h
 
+Variable authentication:
+  SecurityPkg/Library/AuthVariableLib/AuthService.c
+
 DxeImageVerificationHandler
 ---------------------------
 * if not signed, use hash algo of sha256 for verification
@@ -63,3 +66,22 @@ DxeImageVerificationHandler
 
 * Finally, if the image is rejected,
   add inforamtion in executable information table.
+
+Variable authentication (private authenticate variables)
+========================================================
+ProcessVariable()
+  VerifyTimeBasedPayloadAndUpdate(AuthVarTypePriv)
+    VerifyTimeBasedPayload(SigData)
+      create NewData
+      // for TypePriv
+      if (overwrite && not append)
+        Pcks7GetSigners(SigData, &SignerCerts, &TopLevelCert)
+        CertData = (EFI_CERT_DATA *)SignerCerts[1]
+	CalcedDigest = CalculatePrivAuthVarSignChainSHA256Digest(
+					CertData->buffer, TopLevelCert)
+        GetCertsFromDb() and CompareMem(CalcedDigest, CertInDb)
+	Pcks7Verify(SigData, TopLevelCert, NewData)
+      CertData = (EFI_CERT_DATA *)SignerCerts[1]
+      if (new var)
+        insertCertsToDb(CertData->Buffer, TopLevelCert)
+    AuthServiceInternalUpdateVariableWithTimeStamp()

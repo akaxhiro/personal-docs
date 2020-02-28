@@ -1,0 +1,2 @@
+For write access,
+mount -t vfat -o umask=000 /dev/file /mnt/point

@@ -1,0 +1,223 @@
+Final propsals for EPIC cards
+=============================
+Created
+-------
+
+KWG-464: Upstream UEFI secure boot (phase 1)
+KWG-465: Implement timestamp-based revocation with "dbt" in UEFI secure boot
+KWG-466: Create timestamping tool on linux
+KWG-467: Support various signature types (hash algos) for signature in UEFI secure boot
+KWG-468: Support user-defined authenticated variables in UEFI secure boot
+KWG-469: Support default values for signature database in UEFI secure boot
+KWG-470: Enable platform-specific method of isntalling "PK" in UEFI secure boot
+KWG-471: Create common test suite for image authentication in UEFI secure boot
+KWG-472: Enhance efitools for testing UEFI secure boot
+KWG-473: Split UEFI variables from U-Boot environment variables
+
+Not created
+-----------
++ Support authenticated variables
+  + Implement secure storage based on StMM with OP-TEE
+		-> ongoing by LEDGE and SWG
+
+  + Support authenticated variables based on U-Boot environment
+    + Support other authentication types
+	- support EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS
+	- support EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS
+		-> Ilias said they were not required.
+
+    + Support recovery from crash
+	- support "dbr" and "OsRecoveryXXX" variables
+		-> This task is not directly linked to secure boot.
+
+    + Support extra secure state modes
+	- support "AuditMode" with TPM
+	- support "DeployedMode"
+		-> Those modes should be naturally implemented when
+		   relevant code(i.e. fTPM support) is integrated.
+
++ Support EFI_VARIABLE_APPEND_WRITE
+		-> This feature has already been merged in v2019.10-rc4.
+
++ Support runtime variable access with caching data
+		-> LEDGE-143
++ Support UEFI capsule update
+    + Support variable udpates with capsule update
+		-> LEDGE-187
+
+    + Support firmware updates with capsule update
+		-> This task is not directly linked to secure boot.
+
++ Testing UEFI secure boot
+    + Implementing automated tests in U-Boot
+      + Add test coverage for "post SAN19" stage
+		-> This task should be considered part of feature development.
+
+    + Integrating authentication tests in CI loop (LKFT?)
+		-> Ilias said LEDGE would take care of this task.
+
++ Tools for configuring secure boot and related tests
+    + Other tools?
+		-> No specific ideas at this moment
+
+==================
+Legend:
+  '+': proposed candidates of Epic cards
+  '-': detailed features/requirements, some of them may be counted as
+       separate (sub-)Epic cards
+  '==>': questions to you!
+
+* I didn't name "implementation" issues or bug fixes in my TODO list as
+  separate cards and they can potentially be blocking factors.
+* Some of proposed cards may be duplicated with existing ones.
+* Associating those cards to high-level Initaliative's, either "before SAN19"
+  or "post SAN19," is up to you!
+
+Proposed Epic cards
+===================
++ Support payload authentication
+  + Support PE image authentication - with "db" support only
+	- verified with a certificate (for signed images), or
+	- verified with a message digest (for unsigned images)
+	- provide x509/pkcs7 parsers based on linux-kernel code
+	- provide well-defined variables, "SignatureSupport" and "VendorKeys"
+  + Support PE image authentication - with "dbx" support
+	- Image always be forbidden by "dbx"
+  + Support PE image authentication - timestamp-based revocation with "dbt"
+	- Image be forbidden only if its timestamp, which is verified by
+	  "dbt," is newer thant that specified by certificate in "dbx"
+	- provide TSTInfo(TimeStampToken) parser
+	+ Timestamping tool
+	  - For adding a timestamp on efi binaries, we currently have
+	    no choice other than MS's signtool.
+  + Support various signature types
+	- currently support SHA256 only as a digest(hash) in a signature,
+	  but possibly SHA1, SHA384 and SHA512
+
++ Support authenticated variables
+  + Implement secure storage based on StMM with OP-TEE
+		==> linked to LEDGE's cards
+		==> Ilias, how do you want to test this functionality?
+  + Support authenticated variables based on U-Boot environment
+    + Support globally-defined variables with basic secure state transition
+	- variable authentication based on "PK", "KEK", "db", "dbx", "dbt" etc
+	- support authentication type:EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS
+          (Note that this has nothing to do with timestamp-based revocation)
+	- allow for only "SetupMode" and "UserMode"
+    + Support user-defined variables
+    + Support other authentication types
+	- support EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS
+		==> Ilias, this feature is deprecated,
+		    so need to clarify if it is required or not
+	- support EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS
+		==> Ilias, this feature is NOT yet provided even by EDK2
+		    so need to clarify if it is required or not
+    + Support recovery from crash
+	- support "dbr" and "OsRecoveryXXX" variables
+    + Support default values for "PK", "KEK", "db", "dbx" and "dbr"
+	- "xxxDefault" variables
+    + Support platform-specific method of installing "PK"
+		==> Ilias, UEFI spec says that platform may have
+		    a specific method of handling PK.
+		    Any requirements here?
+    + Support extra secure state modes
+	- support "AuditMode" with TPM
+	- support "DeployedMode"
+		==> Ilias, any requirements form viewpoint of system?
+
++ Support EFI_VARIABLE_APPEND_WRITE
+	- This is not directly related to secure boot, but will be highly
+	  demanded feature and used to update signature database(variables).
+
++ Splitting storage for UEFI variables from U-Boot environments
+    including,
+    - support multiple "contexts" in U-Boot environment
+    - support "auto-save" attributes for a persistent variable
+
++ Support runtime variable access with caching data
+    - basically read-only
+
++ Support UEFI capsule update
+    + Support variable udpates with capsule update
+		==> Ilias,
+		    Discussions about spec in boot-ML have been stalled
+		    since last December
+    + Support firmware updates with capsule update
+		==> Ilias, need to clarify requirements
+
++ Testing UEFI secure boot
+    + Implementing automated tests in U-Boot
+      + Set up test environment under pytest of U-Boot
+	- currently pytest will be used as automation framework.
+	- another option would be to develop test packages in EDK2
+	  so that we can share test cases?
+		==> Ilias
+      + Add test coverage for "before SAN19" stage
+      + Add test coverage for "post SAN19" stage
+    + Integrating authentication tests in CI loop (LKFT?)
+		==> Vicent, Ilias, need to clarify requirements
+
++ Tools for configuring secure boot and related tests
+    + Enhancing efitools
+	- This tool, including host tools as well as efi apps on targets,
+           is provided as a distro backage (including Ubuntu)
+	- One of changes I made so far is to modify a makefile so that
+	  it can be cross-compiled in standalone.
+	- Another option would be to add similar U-Boot commands.
+		==> Ilias, any requirements here?
+    + Other tools?
+	- For example, target-specific PK installation tool as I mentioned
+	  above.
+		==> Ilias, we need to establish some scinario for enabling
+		    secure boot.
+
+
+Secure boot-related JIRA cards
+==============================
+    (including TPM/measurement stuff as UEFI has a notion of "AuditMode")
+    (excluding already-closed/cancelled cards)
+
+1.KWG
+-----
+*Initiative/KWG-339 (UEFI Support implementation in U-Boot) has Epics cards:
+    KWG-328 Upstream u-boot mach-virt support
+    KWG-329 implement static UEFI boot order in u-boot
+    KWG-330 Implement operating system control of UEFI boot order in u-boot
+    KWG-332 UEFI shim support
+    KWG-333 UEFI option ROM support
+    KWG-334 UEFI varialble support in u-boot
+    KWG-335 UEFI capsule update support in u-boot
+    KWG-336 Ensure u-boot can run EUFI SCT
+    KWG-337 Ensure uboot can run ACS
+    KWG-403 UEFI secure boot support in u-boot
+
+  and is linked to Epic/LEDGE-155 below.
+
+2.LEDGE
+-------
+*Initiative/KEDGE-134 (Secureboot - SAN19) has Epics cards:
+    LEDGE-142 Authentication of efi images prior to their booting in u-boot
+    LEDGE-184 Add support for MM_COMMUNICATE call in u-boot
+    LEDGE-185 Set up qemu aarch64 platform for development
+    LEDGE-186 SPM in OP-TEE
+
+*Initiative/LEDGE-151 (UEFI u-boot implementation enhancement) has
+    LEDGE-155 UEFI support in uboot
+
+*Other Initiatives: (labeled as NEXT-CYCLE)
+    LEDGE-210 Boot attestation
+    LEDGE-211 Secure Boot stage 2
+    LEDGE-222 QEMU EBBR
+    LEDGE-223 Firmware and pre-OS updates
+
+*Other Epics: (labeled as NEXT-CYCLE)
+    LEDGE-143 Implement cache for storing uefi variables
+    LEDGE-144 Support for updating uefi secure variables
+    LEDGE-147 Add support for storage of uefi secure variables on eMMC device
+    LEDGE-148 Restricted Boot Options
+    LEDGE-187 U-Boot capsule update
+    LEDGE-227 QEMU with fTPM
+
+3.SWG
+-----
+* Epic/SWG-373 fTPM with OP-TEE

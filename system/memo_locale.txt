@@ -1,0 +1,6 @@
+/etc/environment
+/etc/default/locale
+* locale -a
+* locale-gen
+
+C.UTF-8 would be powerful.

@@ -1,0 +1,30 @@
+1) See my helloworld.efi project
+
+make -d -f gnuefi_aarch64.mk hello.efi
+
+aarch64-linux-gnu-gcc -I../../gnu-efi-code//inc -I../../gnu-efi-code//inc/aarch64 -I../../gnu-efi-code//inc/protocol -Wno-error=pragmas -fpic  -g -O2 -Wall -Wextra -Werror -fshort-wchar -fno-strict-aliasing -ffreestanding -fno-stack-protector -fno-stack-check -fno-stack-check -fno-merge-all-constants -DCONFIG_aarch64 -c hello.c -o hello.o
+
+arch64-linux-gnu-ld -nostdlib --warn-common --no-undefined --fatal-warnings --build-id=sha1 -shared -Bsymbolic ../../gnu-efi-code//aarch64/gnuefi/crt0-efi-aarch64.o -L ../../gnu-efi-code//aarch64/lib -L ../../gnu-efi-code//aarch64/gnuefi /opt/gcc/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/../lib/gcc/aarch64-linux-gnu/7.4.1/libgcc.a -T ../../gnu-efi-code//gnuefi/elf_aarch64_efi.lds --defsym=EFI_SUBSYSTEM=0xa hello.o -o hello.so -lefi -lgnuefi
+
+aarch64-linux-gnu-
+objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel \
+	    -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
+	    -j .reloc -O binary hello.so hello.efi
+
+------
+1-2) See my helloworld.efi project on x86_64
+gcc -I../../gnu-efi-code//inc -I../../gnu-efi-code//inc/x86_64 -I../../gnu-efi-code//inc/protocol -Wno-error=pragmas -mno-red-zone -mno-avx -fpic  -g -O2 -Wall -Wextra -Werror -fshort-wchar -fno-strict-aliasing -ffreestanding -fno-stack-protector -fno-stack-check -fno-stack-check -fno-merge-all-constants -DCONFIG_x86_64 -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args -c hello.c -o hello.o
+
+ld -nostdlib --warn-common --no-undefined --fatal-warnings --build-id=sha1 -shared -Bsymbolic /usr/lib//crt0-efi-x86_64.o -L /usr/lib -L /usr/lib/ /usr/lib/gcc/x86_64-linux-gnu/5/libgcc.a -T ../../gnu-efi-code//gnuefi/elf_x86_64_efi.lds hello.o -o hello.so -lefi -lgnuefi
+
+
+2) efitools on x86_64
+make -d HelloWorld.efi
+
+cc -I/home/akashi/x86/efitools/include/ -I/usr/include/efi -I/usr/include/efi/x86_64 -I/usr/include/efi/protocol -O2 -g  -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -fno-stack-protector -ffreestanding -fno-stack-check -DGNU_EFI_USE_MS_ABI -DEFI_FUNCTION_WRAPPER -mno-red-zone -DCONFIG_x86_64 -c HelloWorld.c -o HelloWorld.o
+
+ld -nostdlib -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o -L /usr/lib -L /usr/lib -L /usr/lib64 -T elf_x86_64_efi.lds HelloWorld.o lib/lib-efi.a -o HelloWorld.so -lefi -lgnuefi /usr/lib/gcc/x86_64-linux-gnu/5/libgcc.a
+
+objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym \
+	   -j .rel -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
+	   -j .reloc --target=efi-app-x86_64 HelloWorld.so HelloWorld.efi
