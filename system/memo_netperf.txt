@@ -1,0 +1,8 @@
+On host,
+$ netserver -p 11111
+
+On client,
+$ netperf -H localhost -t UDP_STREAM -l 10
+
+For latency,
+$ netperf -H localhost -l 100 -t TCP_RR -v 2 -- -o min_latency,mean_latency,max_latency,stddev_latency,transaction_rate

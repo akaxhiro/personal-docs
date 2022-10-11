@@ -1,0 +1,175 @@
+debian packages:
+  iperf
+  netperf
+  qemu-system-arm
+  sudo
+  isc-dhcp-server
+  kpartx
+  tcpdump
+  lshw
+For develop on host1,
+  git
+  pkg-config
+  clang llvm gcc make libelf-dev
+  linux-headers-$(uname -r)
+  libbpf-dev
+  libpcap-dev
+  openssl
+  libssl-dev (for kernel build)
+  libelf-dev (for kernel build)
+  dwarves (for kernel build)
+  bc
+  gdb
+  automake
+  libncurses-devel
+  strace
+  linuxptp
+  dosfstools
+  # newer version required by ftrace 3.0
+  # libtracefs-dev
+  # libtraceevent-dev
+  zstd
+  libzstd-dev
+  libaudit-dev
+For test on host2,
+  bpftool
+  screen
+For guest
+  wget
+  tcpdump
+  traceroute
+  dnsutils(dig)
+  netcat(nc)
+  ss(netstat)
+
+192:c0
+168:ab
+20:14
+10:a
+
+ON HOST
+=======
+Ethernet interfaces:
+eth0: 10G (right)	: mvpp2 f2000000.ethernet, ce:91:66:e8:ab:b2
+				PHY [f212a600.mdio-mii:00]
+eth1: 10G (left)?
+eth2: 1G		: mvpp2 f4000000.ethernet, a6:5e:ed:ad:3f:aa
+				PHY [f212a200.mdio-mii:00]
+
+eth3: 2.5G?
+
+$ ip addr add 192.168.20.1/24 dev eth0
+$ ip link set eth0 up
+In /etc/network/interfaces.d/eth0.conf
+auto eth0
+iface eth0 inet static
+address 192.168.20.1
+netmask 255.255.255.0
+
+# kill dhclient on vm guest
+
+For bridge,
+$ ip link set eth0 down
+$ ip addr del 192.168.20.2/24 dev eth0
+$ ip link add tmpbr0 type bridge
+$ ip link set eth0 master tmpbr0
+$ ip link set eth0 up
+$ ip link set tmpbr0 up
+
+For macvtap,
+$ ip link add link eth0 name macvtap0 address 52:54:00:b8:9c:58 type macvtap mode bridge
+
+For passthrough,
+# when booting the kernel, specify
+#         vfio-platform.reset_required=0 arm-smmu.disable_bypass=0
+#   or (this does not work with qemu)
+# $ echo 1 > /sys/module/vfio/parameters/enable_unsafe_noiommu_mode
+#
+# check /sys/kernel/iommu_groups
+#
+# https://elinux.org/R-Car/Virtualization/VFIO
+$ echo f2000000.ethernet > /sys/bus/platform/drivers/mvpp2/f2000000.ethernet/driver/unbind
+$ echo vfio-platform > /sys/bus/platform/devices/f2000000.ethernet/driver_override
+$ echo f2000000.ethernet > /sys/bus/platform/drivers/vfio-platform/bind
+
+For passthrough of a PCIe device,
+# when booting the kernel, specify
+#         vfio_iommu_type1.allow_unsafe_interrupts=1 arm-smmu.disable_bypass=0
+$ modprobe vfio-pci
+$ echo 1 > /sys/module/vfio_iommu_type1/parameters/allow_unsafe_interrupts
+$ lspci -n
+$ echo 0000:01:00.0 > /sys/kernel/iommu_groups/3/devices/0000\:01\:00.0/driver/unbind
+$ echo 8086 15f2 > /sys/bus/pci/drivers/vfio-pci/new_id
+# confirm no more devices to be bound
+$ ls /sys/bus/pci/devices/0000:01:00.0/iommu_group/devices
+$ chown akashi:akashi /dev/vfio/3
+...
+
+# build firmware,
+At TF-A root,
+$ make PLAT=a80x0_mcbin MV_DDR_PATH=../mv-ddr SCP_BL2=../binaries-marvell/mrvl_scp_bl2.img BL33=../../../build/uboot_mcbin/u-boot.bin DEBUG=1 all fip mrvl_flash
+
+# to copy binary to SD card,
+$ dd if=flash-image.bin of=/dev/sdX bs=512 seek=1 conv=sync
+
+# to flash SPI-ROM,
+load ...
+sf erase 0 400000
+sf write $kernel_addr_r 0 $filesize
+
+
+# To quit KVM at minicom,
+ctrl-A,ctrl-A,c,q
+
+# create qcow image, but too slow for installation
+$ qemu-image create -f qcow file.qcow 1G
+
+========
+ON GUEST
+========
+#
+# After installing debian, create grub manually
+#
+$ mkdir -p /EFI/BOOT
+$ cp /EFI/debian/shimaa64.efi /EFI/BOOT/BOOTAA64.EFI
+$ vi /EFI/debian/grub.cfg
+  add "hd0,gpt2"
+$ chroot /mnt/tmp2
+# mount -t devtmpfs dev /dev
+# grub-mkconfig -o grub.cfg
+# cp grub.cfg /mnt/tmp2/boot/grub/
+
+added packages:
+openssh-client
+iperf
+
+For XDP attempt,
+$ ethtool -k enp0s1
+$ ethtool --offload enp0s1 rx off tx off
+
+===========
+MEASUREMENT
+===========
+# iperf -s -i 1
+$ iperf -c <server addr> --trip-times
+
+$ systemctl start netserver
+$ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+To generate network load,
+$ netserver (on server side)
+$ netperf -H 192.168.20.1 -p 1234 -l 5 -t TCP_STREAM -b 1 -v 2
+
+
+============
+My benchmark
+============
+* install ptp_kvm on guest VM
+
+On server side,
+$ sudo /home/akashi/bin/neteval -s enp0s1 192.168.20.1 1234 3 (on VM)
+$ sudo /home/akashi/bin/neteval -s enp1s0 192.168.20.1 1234 3 (on host)
+
+On client side,
+$ sudo /home/akashi/bin/neteval enp0s1 192.168.20.1 1234 3 1000 10000 (on VM), or
+$ sudo /home/akashi/bin/neteval enp1s0 192.168.20.1 1234 3 1000 10000 (on host)

@@ -1,0 +1,2 @@
+edit and add insmod xfs.mod in
+    (hd1,gpt1)/EFI/ubuntu/grub.cfg

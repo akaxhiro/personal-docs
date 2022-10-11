@@ -1,0 +1,3 @@
+$ mkdir build
+$ cd build
+$ configure --prefix=/usr/local --target-list=aarch64-softmmu,aarch64-linux-user,arm-softmmu,arm-linux-user,x86_64-softmmu

@@ -1,0 +1,50 @@
+west build -b qemu_xen_a53 -d build/xen_hello samples/hello_world
+
+For debug,
+CONFIG_LOG
+CONFIG_LOG_MINIMAL
+
+
+For xenvm,
+- edit build/.../CMakeCache.txt  by adding "MACHINE:STRING=cortexa"
+- after creating a domain, reconnect the console with
+    xl console <domid> -t vuart
+
+Special notice for virtio blk demo
+CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC=62500000
+CONFIG_HEAP_MEM_POOL_SIZE=32768
+
+For qemu/xen dom0 trial,
+
+# switch to GICV2
+# In this case, we have to modify dts/arm/qemu-virt/qemu-virt-a53.dtsi
+# for gic regions
+# 8000000-8010000, 8010000-8020000
+
+CONFIG_ARM64_IMAGE_HEADER=y
+CONFIG_BUILD_OUTPUT_BIN=y
+
+CONFIG_SRAM_BASE_ADDR=0x60000000
+CONFIG_KERNEL_VM_BASE=0x60000000
+
+#if we need debug messages at any time,
+CONFIG_XEN_HVC_CONSOLE
+
+# if you use eventfd in vproxy_xen.c
+CONFIG_EVENTFD
+CONFIG_POLL
+
+For virtio proxy (thread model),
+note1)maybe enable CONFIG_XEN_HVC_CONSOLE
+note2)make sure that "backend name" for vdisk matches the one in be_disk.cfg
+note3)increase heap size up to 65536?
+note4)CONFIG_MSG_SIZE_MAX=64
+note5)CONFIG_MAX_PTHREAD_COUNT=10 (not 5!)
+
+west build -b xenvm -d build/xenvm_vd_be2 samples/vdiskdom
+
+To run on qemu,
+# runqemu.sh -u2 (2 is important!)
+
+> xl create /etc/xen/zephyr_vd_be.cfg
+> xl create /etc/xen/zephyr_vd_fe.cfg -c

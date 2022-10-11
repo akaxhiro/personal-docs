@@ -1,0 +1,3 @@
+# swap ctrl key and cap-lock key
+
+$ vi /etc/default/keyboard

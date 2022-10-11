@@ -1,0 +1,5 @@
+uncompress and extract the contents
+zcat /boot/initrd-$(uname -r).img | cpio -idmv
+
+Repack/recompress
+find . | cpio -o -c -R root:root | gzip -9 > /boot/new.img

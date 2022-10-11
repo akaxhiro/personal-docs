@@ -20,3 +20,30 @@
 
 # cp qemu-static
 % cp /usr/bin/qemu-aarch64-static ${ROOT}/usr/bin/
+
+
+#
+# telnet client mode
+#
+At host,
+$ nc -l 4444
+$ kvm -monitor stdio -serial tcp::4444,server=off
+Or
+$ kvm -monitor stdio -serial telnet::4444,server=off
+
+Or more telnet-friendly,
+# See https://ma-tech.centurysys.jp/doku.php?id=mae3xx_tips:use_socat:start
+# reuseaddr,fork is necessary to continue listening the port.
+$ sudo socat -d -d pty,link=/dev/ttyV0(,wait-slave) tcp-listen:4444,reuseaddr,fork
+2021/12/22 12:29:45 socat[111766] N PTY is /dev/pts/2
+2021/12/22 12:30:16 socat[111766] N listening on AF=2 0.0.0.0:4444
+2021/12/22 12:30:58 socat[111766] N accepting connection from AF=2 127.0.0.1:53766 on AF=2 127.0.0.1:4444
+2021/12/22 12:30:58 socat[111766] N starting data transfer loop with FDs [5,5] and [7,7]
+...
+$ minicom -p /dev/pts/2 (with /dev/ttyV0)
+
+On another window,
+$ kvm -monitor stdio -serial tcp::4444,server=off
+
+Then terminate a terminal app quickly to avoid losing typed characters.
+

@@ -16,19 +16,25 @@ prerequisite:
 (check for the latest version by
 git log /home/akashi/arm/armv8/linaro/uefi/edk2/CryptoPkg/Library/OpensslLib/)
 
+  3'. git submodule init; git submodule update
+  4. install nasm (for x86)
+
 ********************
 === Normal steps === (as of 2020.03.04)
 ********************
 $ cd uefi/edk2
 $ make -C BaseTools clean
 $ make -C BaseTools
-    $ source edk2/edksetup.sh
+$ source edk2/edksetup.sh
 $ edit Conf/target.txt
 ACTIVE_PLATFORM       = MdeModulePkg/MdeModulePkg.dsc, or
 			ArmVirtPkg/ArmVirtQemu.dsc
+			OvmfPkg/OvmfPkgX64.dsc
 TARGET                = DEBUG or RELEASE
 TOOL_CHAIN_TAG        = GCC5
-TARGET_ARCXH          = AArch64
+			ELFGCC (in /usr/bin)
+TARGET_ARCXH          = AARCH64, or
+			X86
 MAX_CONCURRENT_THREAD_NUMBER = 8
 $ export GCC5_AARCH64_PREFIX=/opt/gcc/gcc-5.4-aarch64/bin/aarch64-linux-gnu-
 $ build -D SECURE_BOOT_ENABLE

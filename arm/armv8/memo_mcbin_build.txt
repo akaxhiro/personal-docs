@@ -1,0 +1,44 @@
+U-Boot:
+$ 10.3_64-laputa:u-boot-marvell$ make O=../build/uboot_mcbin2010 mvebu_mcbin-88f8040_defconfig 
+
+Follow the instructions in README.md, except "-b DEBUG"
+$ build -a AARCH64 -b DEBUG -t GCC5 -p Platform/SolidRun/Armada80x0McBin/Armada80x0McBin.dsc -D X64EMU_ENABLE
+
+Build TF-A:
+make -C arm-trusted-firmware \
+        PLAT=a80x0_mcbin \
+        MV_DDR_PATH=$PWD/mv-ddr \
+        SCP_BL2=$PWD/binaries-marvell/mrvl_scp_bl2.img \
+        BL33=$PWD/Build/Armada80x0McBin-AARCH64/DEBUG_GCC5/FV/ARMADA_EFI.fd \
+        FIP_NAME=fip_edk2.bin \
+        DEBUG=1 \
+        all fip mrvl_flash
+
+	Trusted Boot Firmware BL2: offset=0xD8, size=0x7321, cmdline="--tb-fw"
+	SCP Firmware SCP_BL2: offset=0x73F9, size=0x28A2C, cmdline="--scp-fw"
+	EL3 Runtime Firmware BL31: offset=0x2FE25, size=0x1025B, cmdline="--soc-fw"
+	Non-Trusted Firmware BL33: offset=0x40080, size=0x200000, cmdline="--nt-fw"
+
+move flash-image.bin to flash-image_edk2.bin
+Then,
+make -C arm-trusted-firmware \
+        PLAT=a80x0_mcbin \
+        MV_DDR_PATH=$PWD/mv-ddr \
+        SCP_BL2=$PWD/binaries-marvell/mrvl_scp_bl2.img \
+        BL33=$PWD/Build/uboot_mcbin2010/u-boot.bin \
+        FIP_NAME=fip_uboot.bin \
+        DEBUG=1 \
+        all fip mrvl_flash
+
+Flash the ROM with U-Boot:
+load mmc 1:1 $kernel_addr_r flash-image.bin
+sf probe
+sf erase 0 0x400000
+sf write $kernel_addr_r 0 0x$filesize
+
+
+
+grub install:
+$ apt install grub-efi
+$ grub-mkimage -O arm64-efi -p /boot/grub > /tmp/grub.bin
+$ mv /tmp/grub.bin /BOOT/EFI/BOOTAA64.EFI

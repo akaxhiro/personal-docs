@@ -1,0 +1,14 @@
+* take care of ~/.dmrc
+
+Switching between login (or display) managers:
+
+* edit
+  /etc/X11/default-display-manager
+
+* For the worst case,
+  $ sudo dpkg-reconfigure lightdm/lxdm
+
+* If systemd is used,
+  $ systemctl disable gdm
+  $ systemctl enable lightdm
+  $ ln -s /usr/lib/systemd/system/lightdm.service /etc/systemd/system/display-namager.service

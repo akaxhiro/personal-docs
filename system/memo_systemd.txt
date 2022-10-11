@@ -2,3 +2,8 @@ $ systemctl list-dependencies --reverse <service name>
 
 $ systemd-analyze critical-chain
 $ systemd-analyze blame
+
+# clean logs
+# or edit /etc/systemd/journal.conf
+$ journalctl --vacuum-time=10d, or
+$ journalctl --vacuum-size=500M

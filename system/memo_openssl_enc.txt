@@ -1,0 +1,40 @@
+See https://stackoverflow.com/questions/7143514/how-to-encrypt-a-large-file-in-openssl-using-public-key
+
+A)
+Encrypt:
+openssl smime -encrypt -binary -aes-256-cbc -in plainfile.zip -out encrypted.zip.enc -outform DER yourSslCertificate.pem
+Decrypt:
+openssl smime -decrypt -binary -in encrypted.zip.enc -inform DER -out decrypted.zip -inkey private.key -passin pass:your_password
+
+B)
+Encrypt:
+openssl rand -base64 32 > key.bin
+openssl enc -aes-256-cbc -salt -pbkdf2 -in myLargeFile.xml -out myLargeFile.xml.enc -pass file:./key.bin
+openssl rsautl -encrypt -inkey public.pem -pubin -in key.bin -out key.bin.enc
+shred -u key.bin
+
+Decrypt:
+openssl rsautl -decrypt -inkey private.pem -in key.bin.enc -out key.bin
+openssl enc -d -pbkdf2 -aes-256-cbc -in myLargeFile.xml.enc -out myLargeFile.xml -pass file:./key.bin
+
+B')
+export OLD_RANDFILE=$RANDFILE
+RANDFILE=~/rand1
+openssl rand -base64 2048 > passwd.txt
+rm ~/rand1
+export RANDFILE=$OLD_RANDFILE
+
+Encrypt:
+openssl enc -aes-256-cbc -a -salt -in XXLarge.data -out XXLarge.crypt -pass file:passwd.txt
+openssl smime -encrypt -binary -in passwd.txt -out XXLarge.crypt.pass -aes256 PublicKey1.pem PublicBackupKey.pem
+rm passwd.txt
+
+Decrypt:
+openssl smime -decrypt -binary -in XXLarge.crypt.pass -out passwd.tmp -aes256 -recip PublicKey1.pem -inkey PublicKey1.key
+openssl enc -d -aes-256-cbc -a -in XXLarge.crypt -out XXLarge2.data -pass file:passwd.tmp
+rm passwd.tmp
+
+
+C)
+pgp --encrypt --recipient who --output file.pgp file
+pgp --decrypt file.pgp

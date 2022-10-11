@@ -1,5 +1,15 @@
 # https://sites.google.com/site/tetsuroweb/home/software/ubuntu/tips/mouse-pointer-speed
 # make the speed faster
 
-$ xinput set-prop 12 "Device Accel Constant Decelation" 1.4
-$ xinput set-prop 12 "Device Accel Adaptive Decelation" 20
+$ xinput ; for device id
+$ xinput set-prop 12 "Device Accel Constant Deceleration" 1.4
+$ xinput set-prop 12 "Device Accel Adaptive Deceleration" 20
+$ xinput list-props
+
+For wheel emulation
+$ xinput set-prop 12 "Evdev Wheel Emulation" 1
+$ xinput set-prop 12 "Evdev Wheel Emulation Button" 8
+
+
+Probably, you may want to define it in
+	/usr/share/X11/xorg.conf.d/50-logitech-trackball.conf

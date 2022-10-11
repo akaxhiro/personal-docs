@@ -22,3 +22,7 @@ hang-up before termination.
 -----------
 /usr/bin/python3 /usr/local/lib/python3.5/dist-packages/pytest.py test/py/tests/test_efi_secboot/test_authvar.py -s -k test_efi_var_auth1 --bd sandbox --build-dir ~/x86/build/uboot_sandbox_secboot --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
 
+At home environment,
+~/.local/bin/pytest test/py/tests/test_efi_capsule/test_capsule_firmware.py -s --bd sandbox --build-dir ~/x86/build/uboot_sb_capsule --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test
+
+pytest test/py/tests/test_efi_bootmgr/test_efi_bootmgr.py -s --bd sandbox --build-dir ~/x86/build/uboot_sb_disk_integ_debug --result-dir ~/tmp/uboot_sandbox_test --persistent-data-dir ~/tmp/uboot_sandbox_test

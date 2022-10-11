@@ -1,0 +1,3 @@
+apt install linux-tools-common ; for bpftool
+# Only available on 21.10 or later?
+# apt install libbpf-dev; for libbpf

@@ -1,0 +1,31 @@
+Prerequisite packages on Ubuntu (20.04)
+- libyajl-dev
+- libfdt-dev
+
+- make -C xen XEN_TARGET_ARCH=arm64 menuconfig
+- make XEN_TARGET_ARCH=arm64 build-xen install-tools
+
+- make XEN_TARGET_ARCH=x86_64 build-stubdom
+
+
+# disable most of stubdom's
+laputa:xen$ make XEN_TARGET_ARCH=x86_64 -C stubdom crossclean
+laputa:stubdom$ ./configure --disable-ioemu-stubdom --enable-c-stubdom --disable-caml-stubdom --disable-pv-grub --disable-xenstore-stubdom --disable-vtpm-stubdom --disable-vtpmmgr-stubdom
+
+
+# Native build on arm64 qemu
+# Read INSTALL
+# default path is /usr/local
+
+configure --with-system-qemu=/usr/bin/qemu-system-aarch64 --disable-docs --disable-stubdom
+
+make clean
+make -C xen menuconfig
+  - enable EXPERT
+  - enable IOREQ_SERVER
+make build-xen install-tools
+
+Operations:
+===========
+Ctrl-A * 6 (not 3): switch console
+Ctrl+]: detach vm, back to the prompt

@@ -1,0 +1,14 @@
+See
+https://hnakamur.github.io/blog/2018/03/31/l2tp-vpn-on-ubuntu-17.10/
+
+In addition,
+
+identity -> IPsec Settings -> Advanced
+Phase1 Algorithms: aes256-sha1-modp1024
+Phase2 Algorithms: 3des256-sha1-modp1024
+
+PPP Settings
+check PAP, CHAP, MSCHAP, MSCHAPv2, EAP
+uncheck MPPE
+uncheck "User Address/Control compression"
+check "PPP Echo"

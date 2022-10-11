@@ -1,0 +1,3 @@
+# install proprietary Nvidia driver
+$ add-apt-repository ppa:graphics-drivers/pp
+$ install a driver from "Software & Updates"

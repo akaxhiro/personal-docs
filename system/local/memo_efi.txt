@@ -1,0 +1,2 @@
+sudo vi /boot/efi/EFI/ubuntu/grub.cfg
+   insmod /efi/ubuntu/xfs.mod

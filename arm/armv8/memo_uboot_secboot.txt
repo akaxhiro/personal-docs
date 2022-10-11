@@ -1,0 +1,24 @@
+Signature verification process:
+
+PE's pkcs7				signed_info structure
+==========				=====================
+- contentInfo				-> data
+    - content
+        - digest			-> ctx->digest in efi_image_verify_digest()
+- certificates				-> certs			  |
+- signerInfo								  |
+    - encryptedDigest			-> s, s_size   <--+(encrypt)      |
+    - setOfAuthentedAttribute		-> authattrs   ---+               |
+        - authenticatedAttribute	-> msgdigest   <------------------+(hash)
+
+Steps
+=====
+1.data -(hash)-> digest -> (compare) <- msgdigest
+
+2.s -> (rsa verify) <- authattrs(i.e. msgdigest)
+ 1) authattrs -(hash)-> digest
+ 2) s -> (decrypt) <- signer <-(find_key)- certs
+             +-> buf in rsa_verify_key()
+ 3) buf -> (padding/compare) <- digest
+
+3.PE image -(hash)-> (compare) <- ctx->digest 

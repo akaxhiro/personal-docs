@@ -1,0 +1,11 @@
+# Capture packets
+sudo tcpdump -i enp1s0 -w tmp.pcap -j adapter_unsynced -tt --time-stamp-precision=nano -c 100 "vlan 5"
+
+# Show traces
+tcpdump -r tmp.pcap --time-stamp-precision=nano -e -x | less
+
+# Check multicast
+cat /proc/net/igmp
+ip maddr show dev enp1s0
+bridge -d -s mdb show
+"ip link show" should have "MULTICAST"

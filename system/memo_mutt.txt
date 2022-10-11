@@ -4,3 +4,11 @@ http://xmodulo.com/mutt-email-client-encrypted-passwords.html
 For error "CMS protocol not available",
 $ apt install gpgsm
 $ apt-mark auto gpgsm
+
+
+From git repo,
+./configure --enable-imap --prefix=/home/akashi --enable-sidebar --enable-compressed --enable-smtp --enable-hcache --with-ssl --with-sasl --enable-gpgme
+
+When invoked,
+$ LC_CTYPE=ja_JP.UTF-8 mutt
+  LANG=        (.utf8)

@@ -1,0 +1,10 @@
+See http://www.02.246.ne.jp/~torutk/cxx/automake/automake.html
+
+$ autoheader
+$ aclocal
+$ automake --add-missing
+$ cp /usr/share/libtool/build-aux/ltmain.sh .
+$ automake --add-missing
+$ autoconf
+
+$ ./configure 

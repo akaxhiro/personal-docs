@@ -1,0 +1,27 @@
+kraft init -w <target_dir>
+cd <target_dir>
+kraft configure --menuconfig (or -k)
+kraft build
+
+   or kraft -v build for verbose messages
+
+For aarch64,
+kvm -cpu host -machine virt,gic-version=2 -nographic --kernel /boot/uk_hello_kvm-arm64
+
+===
+mkdir workdir; cd workdir
+make -C /home/akashi/.unikraft/unikraft A=/home/akashi/tmp/uk_hello \
+	V=1 P= L=  <target>
+
+  <target> = fetch | configure | ...
+
+
+kraft list update
+kraft list pull TEMPLATE # download the source in local
+kraft init -t helloworld
+
+kraft configure
+kraft build
+kraft run
+
+kraft init -t helloworld

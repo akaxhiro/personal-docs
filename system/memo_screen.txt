@@ -1,1 +1,19 @@
 http://tm.root-n.com/unix:command:screen
+
+$ screen -t <window's name>
+$ screen -r <session's name>
+$ screen -ls
+
+Operations:
+Ctrl-A S: split window into two panes
+Ctrl-A d: detach from the screen
+Ctrl-A <space>/n/p: move around windows back and forth
+Ctrl-A A: rename window's name
+Ctrl-A <tab>: move to another pane
+Ctrl-A k: kill the current sessions
+Ctrl-A ": list sessions
+Ctrl-A a: send Ctrl-A
+Ctrl-A <esc>: scroll back with <pgUp>,<pgDown>
+Ctrl-A Q: remove other panes
+Ctrl-A X: delete current pane
+Ctrl-A Ctrl-A: switch sessions

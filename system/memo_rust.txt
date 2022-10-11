@@ -1,0 +1,7 @@
+# Installation
+# install binaries to $HOME
+curl https://sh.rustup.rs -sSf | sh
+
+# Add target support (cross-compling)
+rustup target list
+rustup target add ...

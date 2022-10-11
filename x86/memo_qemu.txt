@@ -9,8 +9,9 @@ $ make
 
 For systems,
 - install libncursesw5-dev, first
-$ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir --with-git='socksify git'
-# remove -enable-libusb -enable-usb-redir
+$ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu --enable-sdl --enable-curses --enable-fdt --enable-kvm --enable-linux-aio  --enable-libusb --enable-usb-redir [--with-git='socksify git']
+If you want,
+--enable-xen --enable-bpf --enable-virtfs
 
 If you see an error around git submodules, try:
 $ configure ... --disable-git-update

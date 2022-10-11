@@ -1,0 +1,29 @@
+Confirm NIC's TSN-capabilities
+# ethtool -T eth0
+
+* eth0 => enp1s0 for i225
+
+Sync system clock with PTP clock
+### sudo phc2sys -c enp1s0 -s CLOCK_REALTIME -O -37 --transportSpecific=1 -q; for master
+### sudo phc2sys -s enp1s0 -c CLOCK_REALTIME -O 37 --transportSpecific=1 -q ; for slave
+# sudo phc2sys -c enp1s0 -s CLOCK_REALTIME -O 0 --transportSpecific=1 -q; for master
+# sudo phc2sys -s enp1s0 -c CLOCK_REALTIME -O 0 --transportSpecific=1 -q ; for slave
+
+# modprobe ptp_kvm
+### sudo phc2sys -s /dev/ptp0 -c CLOCK_REALTIME -O 37 --transportSpecific=1 -q ; for slave VM
+# sudo phc2sys -s /dev/ptp0 -c CLOCK_REALTIME -O 0 --transportSpecific=1 -q ; for slave VM
+
+#   or with vfio,
+# sudo phc2sys -s enp0s2 -c CLOCK_REALTIME -O 0 --transportSpecific=1 -q ; for slave VM w/vfio
+
+
+
+# sudo ptp4l -i enp1s0 -A --transportSpecific=1 -q ; for master
+# sudo ptp4l -i enp1s0 -A --transportSpecific=1 -s -q ; for slave
+# sudo ptp4l -i enp0s2 -A --transportSpecific=1 -s -q ; slave VM w/vfio
+# sudo phc_ctl enp1s0 get
+# sudo pmc -i enp1s0 --transportSpecific=1
+
+Confirm the diff.
+# date; sudo phc_ctl enp1s0 get
+# date; sudo phc_ctl /dev/ptp0 get

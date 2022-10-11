@@ -1,13 +1,15 @@
 Sources:
   MdeModulePkg/Core/Dxe/Image/Image.c (for coreLoadImage)
   SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.c
-  CryptoPkg/Library/BaseCryptLib/Pk/CryptAuthenticode.c
+  CryptoPkg/Library/BaseCryptLib/Pk/CryptAuthenticode.c (AuthenticodeVerify)
   CryptoPkg/Library/BaseCryptLib/Pk/CryptPkcs7VerifyCommon.c
-  CryptoPkg/Library/BaseCryptLib/Pk/CryptTs.c
+  CryptoPkg/Library/OpensslLib/openssl/crypto/pkcs7/pk7_smime.c (PKCS7_verify)
 VariableConfig:
   SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigImpl.c
 Policy definition:
   SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.h
+timestamp:
+  CryptoPkg/Library/BaseCryptLib/Pk/CryptTs.c
 
 Variable authentication:
   SecurityPkg/Library/AuthVariableLib/AuthService.c
@@ -34,6 +36,8 @@ DxeImageVerificationHandler
   - Is Forbidden By Dbx
     - verify signature with x509 certificates in "dbx"
       (CERT_X509 only)
+    - If rejected, DENINED and exit
+
     - If not rejected,
       - go through signer's certificates list, and
         check if their hashes are in "dbx"
@@ -50,16 +54,17 @@ DxeImageVerificationHandler
   - Is Allowed By Db
     - verify signature with x509 certificates in "db"
       (CERT_X509 only)
-    - If verified, check if the used certificate is in "db"
+    - If verified, check if the used(or Root?) certificate is in "dbx"
       as in "IsForbiddenByDbx"
     - Then, check if signing time pass revocation time.
+    - continue
 
   - Db may allow or not allow, then double-check against mImageDigest
     (CertType should be one of CERT_SHA1/SHA256/SHA384/SHA512)
     - Is Signature Found in Dbx
-        DENIED
+        DENIED and exit
     - Is Signature Found in Db
-        SUCCESS
+        SUCCESS and continue
 
   - make a copy of signature(mImageDigest)
     (used for executable information table)
@@ -85,3 +90,81 @@ ProcessVariable()
       if (new var)
         insertCertsToDb(CertData->Buffer, TopLevelCert)
     AuthServiceInternalUpdateVariableWithTimeStamp()
+
+intermediate certificates
+=========================
+BaseTools/Source/Python/Pkcs7Sign/Readme.md
+https://github.com/microbuilder/certificate_chains
+
+
+
+Revocation again
+================
+IsForbiddenByDbx
+  for SigList in Dbx
+    for RootCert in SigList (x509 only)
+      AuthenticodeVerify(AuthData, RootCert)
+      if (verified)
+        "Forbidden"
+
+  Pkcs7GetSigners(AuthData, &CertBuffer)
+  for Cert in CertBuffer
+    IsCertHashFoundInDbx(Cert, Data, &Revocation)
+    if (found)
+      PassTimestampCheck(authData, RevocationTime)
+      if (after)
+        "Forbidden"
+
+  if (none matched)
+    "Not forbidden"
+
+
+IsAllowedByDb
+  for SigList in Db
+    for RootCert in SigList (x509 only)
+      AuthenticodeVerify(authData, RootCert)
+      if (verified)
+        IsCertHashFoundInDbx(RootCert, DbxData, &RevocationTime)
+        if (found)
+          PassTimestampCheck(authData, RevocationTime)
+          if (after)
+            "Not verified"
+        done here anyway
+      if (not passed)
+        continue verification
+
+
+DxeImageVerificationHandler
+  Try to get security data directory in PE
+
+  if (not signed)
+    IsSignatureFoundInDabatase(dbx)
+    if (error or found)
+      "failed"
+      goto Failed
+    IsSignatureFoundInDatabase(db)
+    if (found)
+      "success"
+    goto Failed
+
+
+  for WinCert in security data directory
+    HashPeImageByType(authData)
+
+    IsForBiddenByDbx(authData)
+    if (not verified)
+      IsAllowedByDb(authData)
+
+    /* check image's hash whatever the result was */
+    IsSignatureFoundInDatabase(dbx)
+    if (error || found)
+      "failed"
+
+    if (not failed)
+      IsSignatureFoundInDabase(db)
+      if (found)
+        "success"
+
+  create SignatureList with hash of image
+  <Faied:>
+  add execution information table(File, SignatureList)

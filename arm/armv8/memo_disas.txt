@@ -1,0 +1,46 @@
+> $ echo 'Code: f023 0303 60ca 4403 (6091) 685a' | \
+> >       ARCH=arm scripts/decodecode
+> Code: f023 0303 60ca 4403 (6091) 685a
+> All code
+> ========
+>    0:   23 f0                   and    %eax,%esi
+>    2:   03 03                   add    (%rbx),%eax
+>    4:   ca 60 03                lret   $0x360
+>    7:*  44 91                   rex.R xchg %eax,%ecx            <--
+> trapping instruction
+>    9:   60                      (bad)
+>    a:   5a                      pop    %rdx
+>    b:   68                      .byte 0x68
+> 
+> Code starting with the faulting instruction
+> ===========================================
+>    0:   91                      xchg   %eax,%ecx
+>    1:   60                      (bad)
+>    2:   5a                      pop    %rdx
+>    3:   68                      .byte 0x68
+
+The code looks like x86 instructions.
+Please don't forget to add "CROSS_COMPILE=..." :)
+
+Code: f023 0303 60ca 4403 (6091) 685a
+All code
+========
+   0:   f023 0303       bic.w   r3, r3, #3
+   4:   60ca            str     r2, [r1, #12]
+   6:   4403            add     r3, r0
+   8:*  6091            str     r1, [r2, #8]            <-- trapping instruction
+   a:   685a            ldr     r2, [r3, #4]
+
+Code starting with the faulting instruction
+===========================================
+   0:   6091            str     r1, [r2, #8]
+   2:   685a            ldr     r2, [r3, #4]
+
+Then,
+${CROSS_COMPILE}objdump --disassemble=malloc -lS ${your build dir}/u-boot | grep -A 10 -B 20 ${PATTERN}
+# Here, PATTERN may be the instruction ("6091") or the location ("8081496c" in your case?)
+
+or similarly
+
+${CROSS_COMPILE}gdb --batch -ex "disas/m ${LOC}" ${your build dir}/u-boot | grep -A 10 -B 20 ${LOC}
+# Here, LOC is your "reloc pc" (0x80817586)

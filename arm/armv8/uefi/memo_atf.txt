@@ -21,15 +21,20 @@ possible PLATs:
 Other useful optons are:
     FIP_NAME=
     ARCH=aarch32 (for arm)
-
+    QEMU_USE_GIC_DRIVER=QEMU_GICV3 
 
 For example,
-    $ make PLAT=fvp BL33=../Build/ArmVExpress-FVP-AArch64/DEBUG_GCC5/FV/FVP_AARCH64_EFI.fd DEBUG=1 all fip
+    $ make PLAT=qemu QEMU_USE_GIC_DRIVER=QEMU_GICV3 DEBUG=1 all
+    $ make PLAT=qemu BL33=/home/akashi/tmp/uboot_202010/u-boot.bin FIP_NAME=fip_uboot.bin fip
+        or
+    $ make PLAT=qemu QEMU_USE_GIC_DRIVER=QEMU_GICV3 BL33=/home/akashi/tmp/uboot_64/u-boot.bin FIP_NAME=fip_uboot.bin DEBUG=1 V=1 all fip
+
+
 
     $ make PLAT=qemu BL33=../Build/ArmVirtQemu-AARCH64/DEBUG_GCC5/FV/QEMU_EFI.fd DEBUG=1 all fip
 
-    $ make PLAT=qemu BL33=/home/akashi/tmp/uboot_64/u-boot.bin FIP_NAME=fip_uboot.bin DEBUG=1 V=1 all fip
-
-    $ make PLAT=hikey BL33=../Build/HiKey/DEBUG_GCC5/FV/BL33_AP_UEFI.fd DEBUG=1 all fip
+    $ make PLAT=fvp BL33=../Build/ArmVExpress-FVP-AArch64/DEBUG_GCC5/FV/FVP_AARCH64_EFI.fd DEBUG=1 all fip
 
     $ make PLAT=fvp ARCH=aarch32 AARCH32_SP=sp_min BL33=foo FIP_NAME=fip_foo.bin DEBUG=1 all fip
+
+    $ make PLAT=hikey BL33=../Build/HiKey/DEBUG_GCC5/FV/BL33_AP_UEFI.fd DEBUG=1 all fip

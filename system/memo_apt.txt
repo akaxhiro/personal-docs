@@ -1,0 +1,19 @@
+* check installed pacakages
+    apt-get -s install <pacakges...>
+
+
+Usage:
+=====
+Searching for packages:
+apt-cache search cargo
+apt search cargo
+dpkg -L cargo
+
+apt-cache show cargo
+apt-cache showpkg cargo
+
+Searching for files:
+dpkg -S rustc
+
+Listing installed pacakges:
+dpkg -l
