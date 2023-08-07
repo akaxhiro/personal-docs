@@ -1,0 +1,80 @@
+From takahiro.akashi@linaro.org Wed Jul 21 17:29:33 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a236a.tkyea130.ap.so-net.ne.jp. [120.74.35.106])
+        by smtp.gmail.com with ESMTPSA id z3sm25989103pfa.67.2021.07.21.01.29.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 21 Jul 2021 01:29:33 -0700 (PDT)
+Date: Wed, 21 Jul 2021 17:29:24 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-07-21
+Message-ID: <20210721082924.GA102652@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: A
+Content-Length: 2335
+Lines: 57
+
+This week ends today thanks to Olympics in Japan.
+
+[STR-7]/[STR-21]
+- continued revising my proposal document on virtio-proxy[1]
+  Now I'm trying to have some discussions with Jailhouse guy(Jan Kiszka)
+  and Gunyah guy(Carl van Schaik) after disclosing my draft[1] to them.
+
+  I have some valuable (but mixed) comments from Jan, whereas I see no response
+  from Carl yet.
+  One of Jan's concerns, which I have not been very concious about, is
+  "focus on mmio is suboptimal - too many users are PCI-based".
+  He also called on paying attention to "fast data paths like vDPA"
+  although the performance is not my first priority now.
+
+- Mike (Homes) casted doubt on the future of my study.
+  I don't know yet what he is really expecting.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+
+(MISC)
+- U-Boot capsule update support
+* respined my old follow-up patches and reposted them as v2[2].
+  All the patches are now rebased on Ilias' patch.
+  In his patch, the place for storing a public key was changed
+  from a device tree to U-Boot binary. But this has raised another
+  concern from Simon.
+
+* signing feature to mkeficapsule[3]
+  Preparing for posting v2.
+
+  Unfortunately, Ilias' patch made it difficult to add
+  test cases in existing scripts because the public key must now be
+  embedded in part of U-Boot's build process, which is difficult to
+  control from pytest framework.
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-July/455404.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455405.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455406.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455407.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+=== Patch status ===
+    uboot/cap auth v2: submitted on 07/21
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+* So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 
+

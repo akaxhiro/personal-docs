@@ -1,0 +1,202 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-07-15
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: OK (but not SR-IOV)
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+  On-chip NIC (mvpp2) with kernel 5.10+
+  -------------------------------------
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408     8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    vfio                   -      -      -       -
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host2-to-host1          75     85    277    21.6
+  vm-to-host1
+    tap                    -      -      -       -
+    macvtap                -      -      -       -
+    vfio                  80    102    317    19.6
+    ovs                    -      -      -       -
+    eBPF (XDP)             -      -      -       -
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+
+[STR-73] (Setup for passthrough, or VFIO)
+* The result below is just for reference as I have changed the system
+  configuration and I will never use those values in the future.
+
+  I attempted to run my benchmark program in an opposite direction
+  (b, host-to-vm).
+
+  => (a) modeling a sensor SoC as VM,
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+vm-to-host       38.4/  40.7/  88.6/  3.0        43.3/ 65.1/ 317.4/  9.8
+ w/ 3 netperf   476.9/1386.5/2037.2/211.4        73.9/176.4/1757.4/205.8
+ w/ 3 netperf    57.5/  97.5/ 349.2/ 41.5       105.8/260.4/ 608.6/ 85.2
+  in opposite dir
+
+  => (b) modeling a central ECU as VM,
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+host-to-vm       64.1/  73.3/ 136.0/  6.4        22.4/  34.1/  79.8/  5.3
+ w/ 3 netperf   127.8/ 943.7/2435.2/601.9        57.4/ 152.3/ 518.8/ 72.1
+ w/ 3 netperf    84.3/ 170.0/1178.8/166.4       864.0/1468.3/2227.7/225.0
+  in opposite dir
+
+  Obvious insights:
+  ^^^^^^^^^^^^^^^^
+  1) A latency in host->vm case is always bigger than the opposite.
+     (Cost in receiving packets on VM is high?)
+  2) Senders can easily contend with each other.
+  3) Receive actions may not have a big impact on sender actions.
+
+
+* I also attempted to use PREEMPT_RT kernel on host2 (VM itself runs standard
+  Linux) to see what impact it may have.
+                        (netperf)
+                         min    avg    max    stddev
+  host2-to-host1          91   100.5   531     16.9
+  vm-to-host1
+        vfio              85   122.4   313     16.6
+
+  Alex predicted that RT kernel won't be beneficial in our case.
+  I think RT kernel should have some advantage in some cases, for example,
+  where CPU load is high or we see a lot of interrupts for other devices.
+  In my simple environment, there is no stress other than network and
+  RT kernel won't help reducing latencies there.
+
+  Moreover, obviously RT kernel always has some SW overhead as you can see.
+
+
+[STR-92] (Setup for TSN)
+* I started to try TSN setup, especially taprio (time-aware priority scheduler).
+
+  Most example use cases that I found on the web utilizes it in txtime-assist
+  mode (kind of hardware offload) combined with another TSN feature, etf (earliest
+  txtime first scheduler) to meet latency goal.
+  The man page of taprio also mentions that "txtime-assist" is the only
+  supported mode for hardware offload.
+
+  However, there is no restriction in the kernel stack or i225 driver for
+  "full offload" and actually I was able to successfully configure the driver
+  for full offload mode.
+  So I decided to try full offload first.
+  (See my doc[1] for detailed system configuration.)
+
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+host-to-vm
+  macvtap        80.7/  97.9/2286.2/ 70.8        63.5/  71.0/ 155.0/  6.6
+ w/ 3 netperf   209.4/ 362.7/5764.3/206.8       117.8/ 242.9/ 596.5/ 67.9
+                             ^^^^^^
+  Well, I don't see any improvement in latencies under background network load
+  (long-tail in worst-case latency).
+  I don't know yet what's wrong here, TSN configuration, system environment
+  or some faults in my benchmark program?
+  (I guess that SW overhead on receiver side contributes the most.)
+
+* I will try, if I have some time, a TSN sample code from Intel, which adopts
+  taprio+etf configuration as mentioned above.
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-76] Break down the latency
+* I'm revising the test method/system configuration.
+  See [1], which is still being heavily modified.
+
+  In sync-up call with Alex, he argued that, although using TSN under VFIO
+  would be the best use scenario, we should also examine cases where
+  TSN NIC was shared among VM through virtio.
+  (I was a bit doubtful that it was also the case in automotive product systems, though.)
+
+* As the first step in my new approach here, I attempted to apply CPU affinity
+  to guest VM. The whole guest VM, including my benchmark program, is *pinned* to CPU#0
+  and the other background tasks (netperf) are run on the rest (CPU#1,2 or 3).
+  (Actually the same rule was applied to the sender side, too.)
+
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+host-to-vm
+  macvtap        93.0/ 100.3/ 400.0/ 12.2        62.9/  67.9/ 118.3/  4.2
+ w/ 3 netperf   351.5/ 625.6/8320.1/266.3       115.9/ 230.4/ 581.0/ 74.9
+
+  Again, I don't see any improvement here. There is little difference, comparing
+  with the result above.
+  I have no clue for the reason yet.
+
+
+* TODO: On my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress. The patch for testing is yet to be merged.
+
+(MISC)
+* Device path creation improvement for USB device[3]
+  No progress
+* Ilias took a role of U-Boot UEFI co-maintainer.
+  Half an year ago, Ilias asked me if I wanted to be UEFI maintainer and
+  I said yes if I played as a co(sub)-maintainer. Since then, I have never
+  been asked again and so he (they) must have abandoned this idea.
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+July 18: Sea Day (public holiday)
+?: summer holidays
+

@@ -1,0 +1,111 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org 
+Subject: [Weekly] Week ending 2022-12-23
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (at most,
+  1 minute though) measurement.
+
+  I repeatedly tried different configurations as I mentioned last week because
+  I got inconsistent results from time to time.
+  Even when I ran the benchmark program on initrd for a long period (say, ~10
+  minutes), the maximum latency sometimes hit around 1600 usec's.
+  When I enabled ftrace, the latency got even much bigger (~6000 usec's). Looking
+  into the ftrace log, it showed that trace-cmd seemed to interfere with vhost
+  thread or kvm (vcpu) thread to be scheduled. The size of ftrace log was also
+  a problem.
+  ---
+  For ten minutes run, the file grew up to 500MB (in a compressed binary, or ~8GB
+  in human-readable report format.
+
+  I think that trace-cmd (report) should have an option to retrieve the only
+  data that belongs to a user-specified time period.
+  ---
+
+  I'm now trying a few more *tunings* in addition to my past optimization:
+  - modify the benchmark program to make it a single-threaded program
+  - modify the program so that all the memory is *locked* with mlockall()
+    syscall
+  - then, isolate cpu#2 for vhost kernel thread, in addition to cpu#3 for kvm
+
+  After all,
+  - isolcpus=nohz,domain,managed_irq,2-3
+  - bind vhost kernel thread to cpu#2
+  - bind kvm's vcpu (user) thread to cpu#3
+  - redirect all the packets destined to the guest to NIC's rxq#2,
+    with other packets to rxq#0 or #1
+  - bind interrupts of rxq#2 to cpu#2, with rxq#0 and rxq#1 to cpu#0 or #1
+    (hence irq thread (including softirq) and vhost thread are the only
+    context executed on cpu#2)
+
+  Then I ran run the benchmark program on initrd without netperf workload in
+  background. The result for 10-minute run was:
+  (with ftrace enabled)
+  Total: 600000 packets
+    latency min/avg/max/stddev (usec): 102.394/124.534/280.674/15.461
+                                                       ^^^^^^^
+    delta min/avg/max/stdev (usec): 844.904/999.999/1164.008/21.699
+
+  And for 30-minute run,
+  (without ftrace)
+  Total: 1800000 packets
+    latency min/avg/max/stddev (usec): 71.810/86.914/210.076/11.938
+                                                     ^^^^^^^
+    delta min/avg/max/stdev (usec): 878.466/999.999/1131.045/13.019
+
+
+* I still have to investigate and identify the root problem that eventually
+  causes delays in scheduling relevant threads under an *ordinary* environment.
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No update after the first blog post[2].
+
+  The meeting with Continental will be held in the second (or third?) week
+  of January (according to Anmar).
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Dec 29-Jan 4: New year holidays

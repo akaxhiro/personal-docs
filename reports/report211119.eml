@@ -1,0 +1,78 @@
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:d1eb:d70:a3a2:35a3])
+        by smtp.gmail.com with ESMTPSA id e14sm1904382pga.76.2021.11.19.03.36.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 19 Nov 2021 03:36:26 -0800 (PST)
+Date: Fri, 19 Nov 2021 20:36:21 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-11-19
+Message-ID: <20211119113621.GA90897@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Didn't mention (AF_)XDP
+
+Stratos
+=======
+[STR-66]
+* hypervisor-less virtio implementation and
+  Continued to talk with with Dan Milea (WindRiver).
+
+  My current concern with this approach is whether the shared memory regions
+  defined in the draft virtio spec v1.2 can be used as "bounce buffers".
+
+  The spec says, "Shared memory regions MUST NOT expose shared memory regions
+  which are used to control the operation of the device, nor to stream data."
+  What does this text mean?
+
+  If the usage is *legal*, it would be much more generic and preferable
+  than a hacky fat virtqueue approach.
+
+* Continued to learn about Argo interfaces and virtio over Argo.
+  I'm gonna ask Christpher for better understanding about his idea
+  on virtio-over-Argo.
+
+[STR-21]
+  Dmytro updated his current work on this card.
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[1]
+  Heinrich has said nothing yet even after I pinged him several times,
+  asking whether he agree that we won't add partition-table devices for now.
+
+  So I modified the patches based on the comments that I have got so far.
+  I'm going to post RFC v2 sometime next week.
+
+[TS-102]
+- mkeficapsule revamp
+  I submitted v7[2].
+  A few comments from Heinrich; one is trivial and the others are
+  false claims.
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[3].
+  No progress
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[2] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+
+=== Patch status ===
+    uboot/cap auth v7: submitted on 11/16
+    uboot/uefi removable rfc: submitted on 11/09
+    uboot/disk_integ rfc: submitted on 10/01
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Nov 22: maybe off?
+Nov 23: Labor Thanksgiving Day (national holiday)
+
+

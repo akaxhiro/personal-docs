@@ -1,0 +1,85 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-12-18
+Reply-To: 
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- capsule authentication[1]
+  yet to make comments on ML
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-November/433553.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[2]
+  No progress.
+  I haven't heard any update from Ben about his status.
+
+  [2] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+[LBI-40] / [STR-21]
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+- Since I have done prototyping a frontend driver, I'm now thinking of
+  a backend implementation on Zephyr as a single-purpose guest domain.
+
+  There are a couple of candidates for base code:
+  * virtio-disk (this is merely a linux process in the current form, though.)
+  * vhost-user server (comes and works only with kvm)
+  * mini-os/stubdom (standalone guests included in xen tree)
+  * unikraft (a kind of unikernel. For xen, combined with mini-os)
+
+  I have been seeing unikernel approach as a bright hope, but any of
+  implementation (including unikraft) has not gained any momentum so far.
+  There are a couple of restrictions in unikraft; notably it doesn't
+  support Xen for arm64 yet (officially). I don't know why.
+
+  So my current plan is to take an approach similar to mini-os/stubdom
+  and 'link' Zephyr's runtime code (as a library) with virtio-disk
+  using xen libraries from mini-os/stubdom build.
+  As mini-os doesn't support arm/arm64, I'm investigating Makefile's
+  to see how mini-os/stubdom will be built, how it should be customized
+  and what to be added to support arm64 and Zephyr.
+
+  Contrary to the frontend, the backend code naturally replies on
+  OS/Hypervisor-specific features, and it won't be a low-hanging fruit.
+  I will have to find an immediate goal of my efforts before starting
+  substantial work.
+  (My hope is that we will have some level of generic library/framework
+  on top of which a backend domain can be built. Is it ever feasible?)
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- Zephyr on Xen[3]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [3] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+
+=== Patch status ===
+    uboot/capsule  v10: submitted on 11/30, and merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Dec 28th to Jan 4: New year holidays

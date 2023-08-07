@@ -1,0 +1,5 @@
+# withtout "sudo"
+systemctl --user restart pulseaudio
+
+Or,
+# pulseaudio -k

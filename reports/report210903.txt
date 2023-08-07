@@ -1,0 +1,105 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-09-03
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Waiting for any comments on ML[2], but nothing after four weeks.
+  Mike said, "I think when Alex is back next week we start to form
+  the next cycle plan, I know that Qualcomm is generating an opinion
+  that I'd like to include in that first draft."
+
+  But I don't anticipate QC will have a more concrete idea.
+
+  So what can I do?
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  Some updates:
+  1) Arm guy (Wei Chen) is also trying to build
+     a hypervisor-agnostic BE (library?) based on kvm-tool[4].
+
+  2) a proposal for kvm to add "MMIO/PIO dispatch" mechanism[5]
+        -> The person work on this task during her "Outreachy internship".
+           (I don't know what this internship is.) Then we can't see
+           any progress any time soon. RedHat won't take over the task.
+
+  3) Matias talks about his experience about his hypervisor-agnostic PoC
+     (I don't know who he is and for which company he works.)
+  New topics:
+  4) Oleksandr(EPAM) is now proposing to add a new hypervisor interface[6]
+     to Xen, which allows for creating the mapping of the whole FE memory
+     space to BE at the beginning, then we will be able to eliminate 'mmap'
+     operations at every virtio request handling.
+  5) Christopher explained Argo framework on Xen, which is a hypervisor-
+     agnostic inter-domain communication mechanism.
+     He suggested that Argo can be used as another transport for virtio's
+     and provides a hypervisor-agnostic BE solution.
+     I looked into the design doc of virtio-over-Argo, but I don't know
+     yet what is the current status.
+
+- I'm still trying to contact some engineers:
+  no progress
+
+  Intel: who has proposed msi-x support for virtio-mmio at linux kernel
+  a year ago, aiming to improve the performance under multiple virt queues.
+  Another Intel guy: who implemented ivshmem driver on Zephyr. I'm asking
+  about their future plan, especially virtio implementation on top of it.
+  Siemens: keep discussions with Jan
+  Qualcomm: I'm asking for any comments on my proposal
+
+- Stratos internal review
+  I made some comments, but no replies except from Mike.
+  Why? Nobody is very much interested in the doc?
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+[4] https://marc.info/?l=xen-devel&m=162373754705233&w=2
+[5] https://lore.kernel.org/kvm/cover.1613828726.git.eafanasova@gmail.com/
+[6] https://lists.xenproject.org/archives/html/xen-devel/2021-07/msg01532.html
+
+(MISC)
+- U-Boot capsule update support
+* posted mkeficapsule v3
+  Since we see no or little progress on the discussion about where to save
+  a public key in capsule authentication, I submitted v3[7] in which I dropped
+  pytest-related patches as they reply on the result of discussion.
+
+- Bootflow/bootmethod proposal on U-Boot
+  Simon proposed some API's for managing the boot sequence/order[8],[9].
+  Currently, the boot order can only be customized by a hush script.
+  (So the script, distro_bootcmd, is quite complicated.)
+  It appears that Simon also wants to kinda integrate UEFI boot manager
+  into this framework and so it may have some impact on the future
+  implementation of UEFI boot manager.
+  I reviewed the patches and joined the discussions.
+
+[7] https://lists.denx.de/pipermail/u-boot/2021-August/459347.html
+[8] https://lists.denx.de/pipermail/u-boot/2021-August/458384.html
+[9] https://lists.denx.de/pipermail/u-boot/2021-August/459218.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[10]
+  No discussions seen in ML
+
+[10] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v3: submitted on 08/31
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+I will take one-week vacation at the beginning of September
+(the week of Aug 30th or Sept 6th) unless the period of the state
+of emergency in Tokyo will be extended after end of August.
+
+But it is quite likely thanks to recent surge of covid cases.
+

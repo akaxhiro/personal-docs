@@ -1,8 +1,8 @@
 # Capture packets
-sudo tcpdump -i enp1s0 -w tmp.pcap -j adapter_unsynced -tt --time-stamp-precision=nano -c 100 "vlan 5"
+sudo tcpdump -i enp1s0 -w /tmp/tmp.pcap -j adapter_unsynced -tt --time-stamp-precision=nano -c 100 "vlan 5"
 
 # Show traces
-tcpdump -r tmp.pcap --time-stamp-precision=nano -e -x | less
+tcpdump -r tmp.pcap --time-stamp-precision=nano -e -XX | less
 
 # Check multicast
 cat /proc/net/igmp

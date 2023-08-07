@@ -1,0 +1,156 @@
+From takahiro.akashi@linaro.org Fri Apr 15 16:19:55 2022
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:18f3:1e4:6c4:6ea3])
+        by smtp.gmail.com with ESMTPSA id i11-20020a654d0b000000b0039d82c3e68csm3681870pgt.55.2022.04.15.00.19.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 15 Apr 2022 00:19:55 -0700 (PDT)
+Date: Fri, 15 Apr 2022 16:19:52 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2022-04-15
+Message-ID: <20220415071952.GC53581@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 4964
+Lines: 133
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  added (e)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: under investigation
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* enabling VFIO for NIC (mvpp2)
+  - fixed the issue that I saw last week:
+      $ kvm ... -device vfio-platform,host=f2000000.ethernet ...
+          kvm: -device vfio-platform,host=f2000000.ethernet: vfio f2000000.ethernet:
+            failed to setup container for group 0:
+              Failed to set iommu for container: No space left on device
+    by removing a "iommus" entry for one of SATA devies in a device tree.
+    The message seems to suggest that a maximum number of available
+    iommu groups has already reached with existing entries (iommus) in
+    a device tree.
+
+  - Then, I've got another error when invoking a guest VM:
+      $ kvm ... -device vfio-platform,host=f2000000.ethernet ...
+          kvm: Device vfio-platform can not be dynamically instantiated
+
+    Looking into the qemu code, I found that we would have to add
+    a "platform(and device)-specific code to qemu for creating a device
+    tree node of a corresponding device ("mvpp2").
+
+    "mvpp2" driver expects not only common properties like "compatible",
+    "reg" and "interrupts" but also "clocks" and "marvell, system-controller".
+    Since Those (platform-specific) properties can not be supported on a VM,
+    they must be faked or nullified. This means that we will have to
+    modify linux's driver (mvpp2) and qemu/kvm (and the firmware/U-Boot
+    in some case) to assign a NIC to a guest through VFIO.
+
+    I don't think that it will be worth pursuing this kind of solution
+    which is only effective for a particular platform.
+    In this sense, I'm getting a stronger feeling that MACCHIATOBin is
+    not the best platform for this kind of experiment.
+
+    We should better take a vfio-pci method for this configuration *if possible*.
+
+* enabling VFIO for PCIe devices
+  - no progress
+  - I need a vfio-capable pcie device to confirm if VFIO works.
+    The investigation on vfio-platform I mentioned above implies that not all
+    pcie devices are able to be assigned to a guest VM through VFIO.
+
+    I'm asking Alex what product he used when he experimented VFIO on MACCHIATOBin.
+
+[STR-74] Setup for Open vSwitch
+* I successfully installed OVS and got an initial result of measurement.
+  See above. A bit slower than the results in other configurations.
+* I have never tried AF_XDP-OVS which is still recognized as an experimental
+  feature.
+
+* So I think we can close this card now.
+  If we need more tuning, I will create another card.
+
+[STR-75] (Set up for eBPF-based bridge)
+* closed
+
+[STR-76] Break down the latency
+
+* No progress
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* I submitted v4[1].
+  Functionally no changes. Just reworked a order of patches.
+
+* I also posted another patch[2] which addresses some issues around
+  a partition table support which became visible due to the patch.
+
+  One of issues is that the SPL code size increases (and hence
+  the build process failed) due to a partition table support even though
+  no particular table types are enabled.
+
+(MISC)
+* No update from Kojima-san on his bootmenu v4[3]
+  It contains (part of) my removable media patch[4].
+
+* Device path creation improvement for USB device[5]
+  No progress
+
+* reviewed Sughosh's patch v6,v7[6]
+
+[1] https://lists.denx.de/pipermail/u-boot/2022-April/481532.html
+[2] https://lists.denx.de/pipermail/u-boot/2022-April/481531.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-March/478891.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+[6] https://lists.denx.de/pipermail/u-boot/2022-April/481409.html
+
+=== Patch status ===
+    uboot/disk_integ v3: submitted on 3/8
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: integrated into Kojima-san's patch series
+
+=== Issues ===
+* It takes a lot of time to build the kernel on MacchiatoBin with a HDD (not a SSD).
+* I need a PCIE card for VFIO testing.
+
+=== Travel&Holiday&Event ===
+Apr 29 - May 6: Golden week (public holidays)
+
+

@@ -1,0 +1,138 @@
+From takahiro.akashi@linaro.org Fri Sep  2 22:41:36 2022
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2022-09-02
+Message-ID: <20220902134133.GA78516@laputa>
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* Ran the benchmark program (sample-app-taprio) with mqprio scheduler in tap, OVS
+  and eBPF cases. My doc[1] also contains histograms for data.
+  (The definition of "latency" is different from the one in my benchmark program.
+   See also [1].)
+
+* last week I was not able to make PTP clocks work in those cases.
+  PTP-enabled NIC advertises itself as a clock master using a pre-defined IP
+  multicast address, but a kernel bridge seems to drop such a packet by default.
+  (There are lots of multicast-related parameters under sys/devices/virtual/net/tmpbr0/bridge
+  but none of them has affected this behavior as far as I tested.)
+
+  But I finally found a workaround; PTP daemon, ptp4l in linuxptp package,
+  has an option, "-2", with which PTP announce message is alternatively broadcast
+  using L2 multicast address.
+
+  TODO: find out a generic configuration of bridge to fix the issue
+  (although this won't have any impact on measured results).
+
+  - mqprio + etf
+  - sample-app-taprio[2] with 3 instances of netperf
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host1-to-host2          39.3   46.8   49.8    1.6
+  host1-to-vm
+    VFIO                  57.0   62.7  100.4    4.0    (NOTE: no netperf)
+    macvtap               92.5  139.1  275.4   35.6
+    tap                  107.4  228.8  434.4   70.4
+    OVS                  212.6  344.0  612.8   66.3
+    eBPF (XDP)          5598.0 6586.0 7659.0  390.3
+
+* I double-checked eBPF case by executing the benchmark program many times.
+  Data remained unsettling with a average latency swaying from 573 to 6586.
+
+  I also confirmed that a loaded eBPF program is surely executed in ingress
+  path and a packet is redirected to tap interface (of a VM guest) directly
+  via the *fast path*.
+
+  TODO: With my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[STR-92] (Setup for TSN)
+* No progress
+  If the issue mentioned below is not a matter, I'd like to close this card.
+
+* Vincent hinted that the configuration above might not be able to be applied
+  to *all* the cases, especially, if there are more than one applications which
+  require some level of bandwidth and latency for their network streams.
+
+  Currently, it is beyond my scope, or my current assumption described in [1].
+  If those cases really matter, we will have to review/revise what are the real
+  requirements in our efforts.
+	-> Alex?
+
+[STR-76] Break down the latency
+* I continued to consider how we should trace activities, especially, on host/kvm
+  side and which functions/events are important for analysis.
+
+  Since running PTP daemon and netperf makes a trace log chaotic, I temporarily
+  turned it off, traced all the function calls. What we are interested in here
+  is a kernel execution flow from accepting an interrupt for a coming packet,
+  notifying a guest of forwarding a packet (via vhost) to waking up the guest.
+  So I'm trying to seek for a particular cluster of functions that distinctively
+  indicates this kind of packet handing.
+
+  In the meantime, I found that virtio-net creates a kernel thread for vhost
+  acceleration and it can be crucial to bind it to the same cpu where a kvm
+  process is running for optimal performance (in terms of context switching/
+  memory caches).
+  I have not tested this setup yet.
+
+* Vincent suggested that I should use trace-cmd, which now has a better support
+  for host/vm-guest tracing.
+  (I think we can do the same thing by invoking ftrace on host and vm guest
+  by hand :) I'm afraid that sending trace data from vm to host via either
+  vsock or tcp/io stack may cause some disturbance in network stack at vm.)
+
+  Anyhow I tried this setup (of receiving trace data of vm at host) and
+  was able to make it with tcpip (-N option) but still not with vsock (-V).
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+
+  [1] https://docs.google.com/presentation/d/1zxxHVKgzMAcgB6_RIJ8i0v6yzqAff6gml7XuS5Xsyk8/edit?usp=sharing
+      (This link was updated to revision 2.)
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Reviewed/tested Kojima-san's eficonfig patch
+* Review of secure boot test spec
+  TODO: Yet to review the updated test spec[4].
+
+* Device path creation improvement for USB device[5]
+  No progress
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://github.com/stuyod01/edk2-test/blob/secure-boot/uefi-sct/Doc/UEFI-SCT-Case-Spec/SCT_Secure_Boot.md
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Sep 19: Respect-for-Senior-Citizens Day (public holiday)
+Sep 23: Autumnal Equinox Day (public holiday)
+
+

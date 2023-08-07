@@ -1,0 +1,90 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-12-16
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Continued to investigate a big latency observed  in a long-run (at most,
+  1 minute though) measurement.
+  My initial analysis of ftrace logs suggests that some block I/O activities on
+  the guest VM, which lead to an "IO thread" being invoked, may have affected
+  the scheduling of the kvm process (more strictly, vcpu thread in the process).
+
+  So I tried a couple of different configurations:
+  1) modify my benchmark program so that the log will be written out
+     *after* the test is terminated
+  2) use ext2 for the root file system. Please note ext4 supports
+     "journaling" that may cause asynchronous I/O's.
+  3) use tmpfs as the current directory when I run the benchmark program.
+     For the same reason as (2).
+  4) run the benchmark program when we are on initrd (by adding "break=init"
+     at the kernel cmdline.)
+     For the same reason as (2). This test case can potentially suppress some
+     IO-related system activities (like some level of loggings?) as well.
+
+* Unfortunately, however, I have not yet reached any conclusion about the root
+  cause of big latencies.
+
+  Basically, (1), (2) and (3) have made no distinct difference on the results
+  (although the maximum latency can vary from trial to trial).
+
+  Only in (4) case, I saw some improvements like:
+  ---
+  Total: 60000 packets (~= 1minute)
+    latency min/avg/max/stddev (usec): 62.380/82.553/196.903/7.678
+    delta min/avg/max/stdev (usec): 897.623/999.998/1123.950/12.047
+  ---
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No update after the first blog post[2].
+
+ --- FYI ---
+ The meeting with Continental will be held in the second (or third?) week
+of January (according to Anmar).
+ ---
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Dec 29-Jan 4: New year holidays

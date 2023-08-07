@@ -1,0 +1,42 @@
+Other possible platforms, both are supported by AGL as reference PF.
+- TI's Jacinto7
+- NXP's iMX8
+  * enetc supports VF(virtual function, SR-IOV) as well as TSN
+  * tc flower offload for the enetc IEEE 802.1Qci(PSFP)
+- NXP has another solution(S32) based on (lock-stepped) CR52
+
+===
+commit 0d08c9ec7d6e
+Author: Po Liu <po.liu@nxp.com>
+Date:   Thu Jan 2 04:59:24 2020 +0000
+
+    enetc: add support time specific departure base on the qos etf
+    
+    ENETC implement time specific departure capability, which enables
+    the user to specify when a frame can be transmitted. When this
+    capability is enabled, the device will delay the transmission of
+    the frame so that it can be transmitted at the precisely specified time.
+    The delay departure time up to 0.5 seconds in the future. If the
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    departure time in the transmit BD has not yet been reached, based
+    on the current time, the packet will not be transmitted.
+    
+    This driver was loaded by Qos driver ETF. User could load it by tc
+    commands. Here are the example commands:
+    
+    tc qdisc add dev eth0 root handle 1: mqprio \
+               num_tc 8 map 0 1 2 3 4 5 6 7 hw 1
+    tc qdisc replace dev eth0 parent 1:8 etf \
+               clockid CLOCK_TAI delta 30000  offload
+    
+    These example try to set queue mapping first and then set queue 7
+    with 30us ahead dequeue time.
+    
+    Then user send test frame should set SO_TXTIME feature for socket.
+    
+    There are also some limitations for this feature in hardware:
+    - Transmit checksum offloads and time specific departure operation
+    are mutually exclusive.
+    - Time Aware Shaper feature (Qbv) offload and time specific departure
+    operation are mutually exclusive.
+===

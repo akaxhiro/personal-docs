@@ -1,0 +1,64 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: 
+Subject: [Weekly] Week ending 2021-04-16
+Reply-To: 
+
+# from now on, cc to Alex.
+
+[STR-21] or rather [STR-7]?
+-Continued to investigate *my* code.
+ The purpose is to study the possibility of isolating Xen-specific code
+ from the rest of generic code.
+
+ Last week, I said that I was thinking of two options
+  1.to define some sort of shim layer (HAL, hypervisor abstraction layer), or
+  2.to move some of Xen-specific initialisation steps from BE itself
+    to
+      a.Xen toolstack (that is "xl" command), or
+      b.Xen itself (IOREQ framework).
+
+  Under the current implementation of IOREQ API's, (2-a) is simply
+  impossible because such interfaces, like create_ioreq_server(),
+  are expected to be called by BE itself.
+  (There is no function argument to specify the BE domain.)
+
+  (2-b) may also be undesirable since it will make Xen even *fatter*
+  and less flexible.
+
+  I have come up with yet another variant of (2-a); moving Xen-
+  specific code to dom0 as a "proxy (or delegate)" which is set
+  to communicate with BE domain and interpret/pass on MMIO events
+  from FE to BE as "request messages" as qemu/vhost-user does. 
+
+  Even with this approach, however, we will have to call a small
+  number of hypervisor- specific interfaces on BE, say, triggering
+  an interrupt to FE as a notification of virtqueue update.
+  (There is also another issue about the way of sharing virtqueues
+  and data between FE and BE.)
+
+- license terms of Xen libraries/toolstack
+  Since I have not yet followed Xen community calls, I don't know
+  what's being discussed there regarding this issue.
+
+  Meanwhile, I noticed that some guy(s) from EPAM have also been
+  working on "Zephyr on dom0." He asked me to show my current code,
+  particularly event channel and xenstore drivers, to him.
+  It is impossible for now.
+
+[STR-4]?
+- Continued to discuss SCMI demo on ML
+  As I mentioned in Stratos ML, I'm still a bit skeptical about
+  "single binary" approach.
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+April 29 to May 5: Golden week (long-last national holidays)

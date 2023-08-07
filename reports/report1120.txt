@@ -1,0 +1,112 @@
+From takahiro.akashi@linaro.org Tue Nov 24 09:52:42 2020
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a5642.tkyea130.ap.so-net.ne.jp. [120.74.86.66])
+        by smtp.gmail.com with ESMTPSA id g3sm4137383pfr.145.2020.11.23.16.52.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2020 16:52:42 -0800 (PST)
+Date: Tue, 24 Nov 2020 09:52:39 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Subject: [Weekly] Week ending 2020-11-20
+Message-ID: <20201124005239.GA7417@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 3264
+Lines: 89
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+- Reviewed the existing secure boot related JIRA cards.
+  I will close them since Vincent has agreed.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- Submitted v9[2]
+  As some patches in v8 have already been merged, I posted the rest
+  (with some additional follow-up's) as v9.
+
+  I hope that this will be the final one.
+
+- capsule authentication[3]
+  I haven't seen any post from Sughosh yet.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-November/432894.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support[4],[5]
+  No comments so far and I don't anticipate any comments in the coming
+  few weeks given such an extensive rework.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [5] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+(Misc)
+[LBI-40] / Stratos
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+  Continued working on implementing a virtio frontend driver (block
+  device) on Zephyr using Open-AMP library. The base code for block
+  device driver comes from Linux (drivers/block/virtio_blk.c).
+
+  It will take more time than I expected, assumingly one more week?,
+  partly because I will have to learn how interrupts should be handled
+  on Zephyr and partly because there are some differences in 'virtqueue'
+  handling interfaces in Linux and Open-AMP.
+
+  I found some interesting things:
+  * OASIS specification defines two types of virtqueue layouts, split
+    and packed, but Open-AMP supports only 'split', which I think
+    is the legacy layout.
+  * Linux's block device driver utilises a 'feature,' F_MQ or multiple
+    queues support, which is not defined in OASIS specification.
+
+- Last week, I reported a weird behavior in reading a configuration space
+  of a virtio device, but it's not a bug of qemu or whatever else since
+  I didn't understand that only IPA, or intermediate physical address,
+  does matter to EL2.
+
+- Continued to discuss about GIC-related issues on Zephyr with Stefano
+  and Julien.
+  The bug that Julien hinted last week was a known issue of qemu and has
+  been fixed some time ago.
+
+  I will post Julien's first bug fix to Zephyr ML anyway.
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  No progress
+
+=== Patch status ===
+    uboot/capsule  v9: submitted on 11/17
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+Nov 23: Labor Thanksgiving Day
+

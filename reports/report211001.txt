@@ -1,0 +1,79 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-10-01
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1],[2]
+  Alex told me that he was going to sort out a list of tasks for the next
+  devel-cycle plan and he would also include this card in there so that
+  we would see members' favor/preferences.
+
+  He said that it would be good for us to demonstrate the prototyping work,
+  but "demonstrate" means that the code must also be accessible for the public.
+  So he suggested that I should prepare for estimating the required efforts
+  to transform the source code into more license-permissive form.
+
+  I had no time to think about the estimated time this week.
+  (First, I will have to refresh my memory about my own code.)
+
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  I have not followed the discussions well.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+
+
+[TS-118]
+- UEFI-DM(U-Boot's device model) integration
+  I posted a new version of RFC[4] to re-ignite the discussion
+  as Ilias suggested me.
+
+  In my previous RFC[5], many UEFI components were handled as udevices
+  (devices in U-Boot device model). They included
+    - UEFI objects referred to by handles, including block devices
+    - loaded images
+    - protocol interfaces
+  Simon seemed to like the idea at that time, while Heinrich thought it was
+  an overkill approach.
+
+  So in [4], I only dealt with block devices (disks and partitions) only
+  and focused on making the implementation in a better shape aligned with
+  U-Boot's driver model, especially lifetime management (probe/remove).
+
+  The code itself has been almost completed last week, but I had to
+  spend more time than I expected in reworking/cleaning up the code
+  for RFC submission this week.
+
+
+(MISC)
+- U-Boot support
+* mkeficapsule v3[6]
+  no progress
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[5] https://lists.denx.de/pipermail/u-boot/2019-February/357923.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-August/459347.html
+
+- MMC UHS-II support
+* Genesys (Jason) posted v3.2[7]
+  no progress
+
+[7] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v3: submitted on 08/31
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Oct 14-21?: (probably) my summer holidays
+

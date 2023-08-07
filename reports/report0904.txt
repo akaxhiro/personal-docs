@@ -1,0 +1,98 @@
+From takahiro.akashi@linaro.org Fri Sep  4 21:54:37 2020
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a66b9.tkyea130.ap.so-net.ne.jp. [120.74.102.185])
+        by smtp.gmail.com with ESMTPSA id z9sm352884pfk.118.2020.09.04.05.54.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Sep 2020 05:54:37 -0700 (PDT)
+Date: Fri, 4 Sep 2020 21:54:34 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Subject: [Weekly] Week ending 2020-09-04
+Message-ID: <20200904125434.GA1400165@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 2214
+Lines: 75
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- No updates on Bugzilla[1].
+  I raised this issue in the EBBR bi-weekly meeting as one of topics
+  was "EBBR testing progress".
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+# No updates since last week.
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- patch v5[2].
+  No feedback from DFU maintainer. No progress.
+
+- Sughosh started the discussion about capsule authentication[3]
+  in boot-arch ML.
+  The conclusion was we should not define how a key for authentication
+  be handled in the specification because it is only an issue of firmware,
+  it has nothing to do with "interfaces between firmware and OS".
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-August/422224.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3[4]
+  No new comments.
+  I haven't taken any actions so far.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+- Blog write-up on UEFI secure boot
+  I think I have finished 90-95% of writing[5], but want to have
+  some time to refine some explanations and improve the overall story
+  before asking for reviews.
+
+  [5] https://drive.google.com/file/d/1G1dobdoyB6ukxiNHUk0-Rk9C2qC0VI8g/view?usp=sharing
+
+- Attended EBBR bi-weekly meeting on Sept 1st.
+
+=== Patch status ===
+    uboot/virtio   v1: merged
+    uboot/multi-sig fix v1: merged
+    uboot/secure-state fix v1: merged
+    uboot/capsule  v5: submitted on 8/8
+    uboot/int_ca   v5: merged
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+Sept 21-22: National Holidays
+Sept 22-24: Linaro Connect Virtual
+

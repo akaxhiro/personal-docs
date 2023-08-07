@@ -1,0 +1,160 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-06-17
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+[STR-73] (Setup for passthrough NIC)
+* Created STR-92, "Setup for TSN network
+  I also asked Alex to add STR-92 as as well as STR-76 to Sprint 3
+  as they are what I'm working on right now.
+
+* i225 (TSN NIC card) setup
+  I tried to trace the kernel execution by inserting debug messages.
+  It revealed that an access to a control register on PCIe controller
+  has caused a CPU to stall forever:
+  === details ===
+	armada8k_pcie_probe()
+	  armada8k_add_pcie_port()
+	    dw_pcie_host_init()
+	      dw_pcie_host_init()
+		dw_pcie_setup_rc()
+		  dw_pcie_dbi_ro_wr_en() -- inline
+		    reg = PCIE_MISC_CONTROL_1_OFF;
+		    val = dw_pcie_readl_dbi(pci, reg)  <= here
+  === ===
+  The code attempts to set a bit to allow for enabling "write"
+  to read-only registers on a PCIe controller.
+  Obviously, this is the *direct* cause of my issue, but not
+  the *root* cause because the same code, the same kernel, does work
+  without any errors if a given NIC card (Intel i225) is not inserted in a slot.
+
+  I reported this issue to the technical support at SolidRun 10 days ago,
+  but have not yet got any response.
+  I also contacted the Bootlin engineer who is the maintainer of this board's
+  pcie controller driver in the kernel. Sadly, he said, "I(Bootlin) has
+  stopped actively working on Marvell's platforms."
+
+  Now there is no way for me to investigate the issue, and I must have
+  change the approach; I asked Linaro folks who have their own MACCHIATOBin's
+  to check if the phenomenon is reproducible on their environment.
+
+  Give those circumstances (little help from the community as well as
+  the manufacturer), I have a doubt if MACCHIATOBin is the best platform
+  for future experimental tasks.
+
+  Last-minute UPDATE: Marcin hinted that 'clock' was most likely root cause.
+  He also suggested that I would switch to EDK2 instead of U-Boot.
+  Since it would be the last resort as it requires fully re-installing
+  the system, I then tried U-Boot without pci support *disabled*.
+  What happened: the kernel started successfully without a hangup, but
+  the system got stalled again when I tried to set the network link up
+  with "ip link set enp1s0 up". Sigh.
+
+[STR-76] Break down the latency
+* Continued to work on adding hardware timestamping feature.
+  I also added a standard deviation of one-way trip time in statistics result.
+  ===
+  $ sudo ./neteval 192.168.20.1 1234 3 1000 10000
+  elapse time: 10.266377 (sec)
+  Lost messages: 0
+  up min/avg/max/stddev = 104.781/107.766/158.818/3.435 (usec)
+     tx sw min/avg/max = 6.920/7.629/34.921 (usec)
+     wire  min/avg/max = 9.597/10.101/21.319 (usec)
+     rx sw min/avg/max = 87.421/90.035/125.785 (usec)
+  histgram:
+   <     50:     0 
+   <    100:     0 
+   <    200:  1000 ********************
+   <    500:     0 
+   <   1000:     0 
+   <  10000:     0 
+   >= 10000:     0 
+  down min/avg/max/stddev = 92.159/96.108/166.112/4.588 (usec)
+  histgram:
+   <     50:     0 
+   <    100:   946 ******************
+   <    200:    54 *
+   <    500:     0 
+   <   1000:     0 
+   <  10000:     0 
+   >= 10000:     0 
+  ===
+  Please note
+  1) Real "tx sw"  is much longer because we cannot use HW TX timestamp here
+     as reported last week. Then, real "wire" can be smaller as it may include
+     some SW overhead by *net scheduler* in kernel stack.
+  2) Do not calculate the break-down values, especially tx sw, for
+     down-direction because we have no way of notifying the client of HW TX
+     timestamp on the server.
+
+  I wonder why "rx sw" is dominating the latency here.
+  It may be due to interrupt handling and context switches.
+
+* No update on the report[1].
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress
+
+(MISC)
+* Device path creation improvement for USB device[3]
+  No progress
+* Reviewed Kojima-san's efimenu patch.
+* Reviewed Sughosh's FWUPDATE v5.
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+

@@ -1,0 +1,134 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-12-02
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* As I said in the last report, I was tackling 
+  a couple of issues that I have seen:
+  - switch to PREEMPT_RT kernel (on the host, not guest VM)
+  - latencies in case of tap+XDP
+  - tunings in case of OVS+AF_XDP
+
+1) switch to PREEMPT_RT kernel
+  Done.
+  The only issue that I see now is we cannot use VFIO.
+  When I try to make the network link up on the guest VM,
+  the system gets stalled (hanged up?).
+  Since this issue is not critical for our analysis,
+  I have not investigated it closely.
+
+2) latencies in tap+XDP
+  Fixed. It was due that I wrongly cleaned up the XDP programs some time ago.
+
+3) tunings in OVS+AF_XDP
+  I think that the following "flow" rule should work to let PTP packets
+  handled in the *local* networking stack, but it doesn't:
+   $ ovs-ofctl add-flow tmpovsbr0 "dl_dst=01:1b:19:00:00:00, actions=local"
+
+  I have no idea to fix it now.
+  The issue should be fixed when this configuration is used in product
+  systems, but it won't affect measurement results if properly fixed.
+
+* Now I performed the measurements again for all the configurations.
+  See my doc revision 3[1], page 15-20.
+
+  Shortly,
+  - The latencies have quite similar values except "tap+XDP" case.
+    This implies that the overhead due to the network stack is not huge,
+    at least under the current simple network configurations.
+  - When netperf is running in background, the latencies will get much worse.
+    But after applying some tunings (as I mentioned before, packet
+    filtering and irq affinities), the results are improved.
+    But they are still behind those in non-netperf scenarios.
+    Furthermore, the maximum latencies are much bigger than the averages.
+  - In OVS+AFXDP case, the result without any tuning is comparable
+    to the results in the other cases with tuning.
+    I didn't observe this phenomenon on the standard (non-RT) kernel.
+    This is, probably, due to the nature of AF_XDP support as well as
+    PREEMPT_RT kernel although I'm not sure.
+
+=== Dec 5 ===
+* try to improve the maximum latency
+ (OVS+AF_XDP)
+- change the priority of irq thread (for benchmark packets)
+$ chrt -f -p 55 861
+$ ps -O psr,pri,sched 860 861 862 863
+    PID PSR PRI SCH S TTY          TIME COMMAND
+    860   0  90   1 S ?        00:00:00 [irq/58-enp1s0]
+    861   0  95   1 S ?        00:00:00 [irq/59-enp1s0-TxRx-0] : benchmark
+             ^^
+    862   1  90   1 S ?        00:00:32 [irq/60-enp1s0-TxRx-1] : netperf
+    863   0  90   1 S ?        00:00:01 [irq/61-enp1s0-TxRx-2] : ptp
+
+  latency min/avg/max/stddev (usec): 102.806/124.618/193.191/9.299
+  latency min/avg/max/stddev (usec): 102.498/124.668/388.441/15.631
+  latency min/avg/max/stddev (usec): 100.492/124.005/638.450/20.038
+
+$ ps -O psr,pri,sched 13 28 36 44    
+    PID PSR PRI SCH S TTY          TIME COMMAND
+     13   0  19   0 S ?        00:00:01 [ksoftirqd/0]
+     28   1  19   0 S ?        00:00:00 [ksoftirqd/1]
+     36   2  19   0 S ?        00:00:24 [ksoftirqd/2]
+     44   3  19   0 S ?        00:00:00 [ksoftirqd/3]
+
+$ ps -m -O tid,psr,pri,sched 816
+    PID     TID PSR PRI SCH S TTY          TIME COMMAND
+    816       -   -   -   - - ?        10:57:51 ovs-vswitchd unix:/var/run/openvswitch/db.sock -vconsole:emer -vsyslog:e
+      ...
+      -     844   2  29   0 S -        00:00:09 -
+      -     858   1  29   0 R -        05:28:17 -
+      -     859   0  29   0 R -        05:29:09 -
+      ...
+
+=======
+
+[STR-76] Break down the latency
+* No progress
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* finalized the draft[2].
+  I hope that Ebba will publish the blog post any time soon.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/document/d/1ZBFCJTgsS-aUsyxofhH1pGrH6xlNaFG4JkVMOmZOv1s/edit?usp=sharing
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Dec 29-Jan 4: New year holidays

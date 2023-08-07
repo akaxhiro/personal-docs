@@ -1,0 +1,126 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-03-25
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* Alex added STR-73 and STR-75 to "Sprint 1".
+
+* latest result of latency measurement
+  Added the result in (f) case
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: under investigation
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* (insights I reported last week)
+  - SoC supports IO virtualization (IOMMU) for NICs and PCIe bus
+  - SoC can host a SR-IOV PCIe endpoint
+  - NIC interfaces can be assigned to 9 VM's
+    (which means Virtual Function/VF?, but NIC's are not on PCIe bus.)
+  - To properly set up IOMMUs for NIC (and PCIe), some code for assigning stream IDs
+    to the devices must be added to TF-A platform code.
+  - Marvell engineer did basic tests against NIC and said that pass-through should work, but
+  - He no longer has any enabling code
+
+* I think that it will be more difficult to add VF support to NIC (mvpp2) driver
+  as it would require more lines of code to implement it. So,
+
+* After discussing with Alex, I'm now asking Marvell guys about whether the current PCIe
+  driver can support SR-IOV for (NIC) devices on PCIe bus without any changes.
+
+[STR-75] (Set up for eBPF-based bridge)
+* The program is based on David's work[1].
+
+* I finally succeeded in running netperf under this configuration.
+  To make the network (UDP/TCP) work correctly, I had to turn off *hardware checksum
+  offload" on guest's network interface with
+    $ ethtool --offload enp0s1 rx off tx off
+  (probably, "tx off" is mandatory.)
+
+  I'm afraid that this restriction might impose negative impacts on network performance
+  under heavy traffic with large data.
+  Though I have seen little difference in values in the table above as the test environment
+  is quite simple.
+
+* FYI, I said last week that I heavily used 'ftrace' for debugging.
+  But there is also some limitation (not a drawback); with ftrace, any inline function won't
+  be traced while lots of functions in network stack are declared inline.
+  So I had to rebuild the kernel from Debian source with debug printings in order to reach
+  the last mile of the root cause :)
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+[STR-74] Setup for Open vSwitch
+* No progress
+  But from my experimental trial in February, it won't be difficult to set up Open vSwitch
+  for evaluation purpose.
+
+[STR-76] Break down the latency
+
+* No progress
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration v3[2]
+  The discussion on Simon's patch[3] has been somehow stalled for a while.
+  I'm not sure whether my patch will eventually go into v2022.04 release
+  at this moment.
+
+(MISC)
+* I reviewed or am still reviewing
+  - Heinrich's short-form path support
+  - Kojima-san's bootmenu v4[3]
+    It contains (part of) my removable media patch[4].
+    So I hope that I won't have to push this patch for being upstreamed.
+  - Sughosh's capsule cleanup[5]
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-March/477141.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-March/478891.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2022-March/478883.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v3: submitted on 3/8
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: integrated into Kojima-san's patch series
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Mar 21: Spring Equinox Day (public holiday)
+Mar 28-31: days-off

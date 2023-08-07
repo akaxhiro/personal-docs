@@ -1,0 +1,42 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-06-04
+Reply-To: 
+
+[STR-21] or rather [STR-7]?
+- Continued step-2 work
+  I finished the coding, and confirmed that the code can compile.
+
+- Among others, there may be, at least, three technical issues in step-3:
+  * it is totally unknown that my approach, particularly virtio proxy
+    protocol (RPC), is applicable to other hypervisors than Xen.
+  * Some of Xen's IOREQ-related API's, so Xen itself, must be modified.
+  * Open-AMP is used as virtio library on frontend side, while
+    kvmtools-origin library is used on backend side in my prototype.
+    This means that the two interface might conflict when
+    the frontend code and the backend code are integrated in virtio
+    proxy implementation which has both aspects.
+
+(MISC)
+- U-Boot capsule update support
+* Add signing feature to mkeficapsule[1]
+  no progress as I focused on virtio work this week.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

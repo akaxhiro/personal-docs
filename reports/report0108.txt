@@ -1,0 +1,132 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-01-08
+Reply-To: 
+
+'State of emergency' was declared again for Tokyo area yesterday.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- capsule authentication
+  Sughosh's latest patch series was now queued for -next (2021.04).
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1]
+  Pinged Ben, but I haven't heard any update from him about his status.
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+[STR-21]
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+- continued to work on porting/implementing 'virtio-disk'[2] on zephyr.
+  I created a makefile (actually, a cmake file in Zephyr's build system)
+  targeting x86_64, to compile and link it with Xen's user libraries which
+  are separately compiled for Xen's mini-os configuration.
+
+  At this stage, I don't expect that the workable binary can be built,
+  instead, my aim is to understand how virtio-disk (or rather a backend
+  server in general) should be composed and what functions are
+  needed to implement a specific virtio device, block device in my case.
+
+  Virtio-disk is rather self-contained with little dependency on
+  external libraries other than Xen's which include:
+   * libxenctrl.a
+   * libxendevicemodel.a
+   * libxenevtchn.a
+   * libxenforeignmemory.a
+   * libxentoolcore.a
+   * libxentoollog.a
+   * libxencall.a
+
+  Here are some problems:
+  
+  1) There are still missing functions, which are some 'POSIX' interfaces,
+  most notably socket/select system calls (and more). While Zephyr supports
+  (minimal) newlib library, it simply doesn't have enough set of functions.
+
+  2) Xen libraries need to be ported for Arm/Zephyr.
+  Fixing architecture-dependency would be straight-forward as most
+  features are generic but eventually end up with invoking Xen interfaces
+  via 'hypervisor call' which can, on Arm, be implemented with hvc instruction.
+  (Fortunately, only a few number of interfaces are utilised here.)
+  
+  OS-dependency would be more complicated to fix.
+  For instance, event channels (signaling/notification mechanism in Xen)
+  and xenstore (some kind of configuration database) are implemented
+  and accessed on Linux by ioctl's to character devices, /dev/xen/evtchn and
+  /dev/xen/xenstore, respectively.
+  So we have to invent a new (or substituted) mechanism on Zephyr for
+  communication with Xen.
+
+  Given those observations, I'm going to investigate more details of
+  implementation of virtio-disk and modify/simplify the code structure
+  to minimize porting efforts.
+  I'm afraid that it will take a few more weeks, maybe.
+
+- Studying FF-A (Firmware Framework for Armv8-A) specification.
+  I'm not sure that the specification may have direct or indirect impact
+  on my future work, but it's worth knowing, I believe.
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- IOREQ on Arm[3] by EPAM
+
+- Zephyr on Xen[4]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [2] https://github.com/xen-troops/virtio-disk.git
+  [3] https://lists.xenproject.org/archives/html/xen-devel/2020-11/msg02159.html
+  [4] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+- U-Boot statistics of contribution
+  While I have not noticed such statistics are published for every
+  release, I found my name in the recent list for 2020.10[3]:
+
+        Developers with the most changesets
+        Simon Glass                352 (17.2%)
+        Heinrich Schuchardt        153 (7.5%)
+          ...
+        AKASHI Takahiro             36 (1.8%)
+
+and
+
+        Top changeset contributors by employer
+        (Unknown)                  685 (33.4%)
+        Google, Inc.               352 (17.2%)
+        ST Microelectronics        122 (6.0%)
+          ...
+        Linaro                      48 (2.3%)
+
+Looks nice, doesn't it?
+I believe that most of my contribution came from EFI secure boot support.
+
+[3] https://lists.denx.de/pipermail/u-boot/2020-December/436282.html
+
+=== Patch status ===
+    uboot/capsule  v10: submitted on 11/30, and merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Jan 11: Coming-of-Age Day

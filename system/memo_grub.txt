@@ -1,0 +1,3 @@
+* edit /etc/default/grub
+
+$ sudo update-grub

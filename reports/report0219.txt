@@ -1,0 +1,88 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-02-19
+Reply-To: 
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1][2]
+  No progress
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [2] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[3] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+  Since the prototyping was finished and the code can now compile without
+  critical errors, I started debugging.
+  I confirmed that Zephyr, as BE bare-metal application, starts
+  and successfully talks to Xen via hypercalls and to Xenstore (daemon)
+  via Xen API's. The code goes into the main loop, waiting for FE booting up
+  and then hangs up when I start FE (also Zephyr) on another domain.
+
+  So far, I'm rather optimistic about the progress of debugging efforts,
+  but I want to find out a better way of tracing as I probably need to
+  keep track of the code execution at FE, BE and Xen in parallel.
+
+- Apart from technical challenges, there is one big issue in my approach.
+  When Maarten (WindRiver) read my slides that I prepared for last Tuesday's
+  meeting, he pointed out a license problem on my code.
+
+  In order to make the prototyping easier in developing FE and BE application,
+  a lot of code was derived from Linux, Xen and kvmtool. All of them are
+  distributed under GPLv2, while Zephyr is under Apache 2.
+
+  Those two licenses are thought to be incompatible[4] each other,
+  in particular, regarding how the patents should be treated.
+  While Apache 2 has a kind of 'patent termination' term, GPLv2 doesn't
+  have any explicit statement.
+  So merging GPLv2 code into Zephyr would lead to license infringement.
+
+  Given that my current code is treated as a private prototype, and it would
+  not be a problem, but it is inevitably impossible to make the code public
+  in any form.
+  The goal/output in my activity here must be set out differently
+  (at least in short-term).
+
+- GIC-related issues on Zephyr
+  No progress
+
+- IOREQ on Arm[5] by EPAM
+  The patch has now been merged in the upstream.
+
+- Zephyr on Xen[6]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [3] https://github.com/xen-troops/virtio-disk.git
+  [4] http://www.apache.org/licenses/GPL-compatibility.html
+  [5] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [6] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+- Nothing
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 23: Emperor's Birthday (holiday)
+
+

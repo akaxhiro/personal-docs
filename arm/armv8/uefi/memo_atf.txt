@@ -38,3 +38,5 @@ For example,
     $ make PLAT=fvp ARCH=aarch32 AARCH32_SP=sp_min BL33=foo FIP_NAME=fip_foo.bin DEBUG=1 all fip
 
     $ make PLAT=hikey BL33=../Build/HiKey/DEBUG_GCC5/FV/BL33_AP_UEFI.fd DEBUG=1 all fip
+
+    $ make CROSS_COMPILE=aarch64-none-linux-gnu- PLAT=qemu BL33=/home/akashi/arm/build/uboot_202207/u-boot.bin DEBUG=1 all fip

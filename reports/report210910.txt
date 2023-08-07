@@ -1,0 +1,103 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-09-10
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Waiting for any comments on ML[2], but nothing after five weeks.
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  1) Arm guy (Wei Chen) is also trying to build
+  2) a proposal for kvm to add "MMIO/PIO dispatch" mechanism[5]
+  3) Matias talks about his experience about his hypervisor-agnostic PoC
+  4) Oleksandr(EPAM) is now proposing to add a new hypervisor interface[6]
+     to Xen, which allows for creating the mapping of the whole FE memory
+     space to BE at the beginning
+  5) Christopher explained Argo framework on Xen, which is a hypervisor-
+     agnostic inter-domain communication mechanism.
+
+  I kept talking to Christopher about Argo framework for the purpose of
+  understanding it better.
+
+- I'm still trying to contact some engineers:
+
+  1) Intel: who has proposed msi-x support for virtio-mmio at linux kernel
+     a year ago, aiming to improve the performance under multiple virt queues.
+  2) Another Intel guy: who implemented ivshmem driver on Zephyr.
+  3) Qualcomm: I'm asking for any comments on my proposal
+
+I got a reply from the guy (2). He said he had no plan to do with
+ivshmem and that ACRN[7] now has virtio device support.
+
+So I looked into ACRN's virtio implementation. In short,
+  * ACRN host one Service VM, which seems to hehave like Xen's dom0
+    or kvm host kernel.
+  * transport: virtio-pci only(?)
+  * All virtio BEs work on Service VM.
+  * BE as a user process should collaborate with "Device Model" (or DM)
+    which will bridge a user space and kernel/hypervisor.
+    It works like qemu (as VMM, I guess).
+  * Virtio BE can be implemented in three ways (frameworks):
+    - User-Land Virtio          : control/data in user
+    - Kernel-Land Virtio        : control in user, data in kernel
+    - Vhost                     : control/data in kernel
+      (not exact same as linux's)
+  * Differences are where 'control plane' and 'data plane' are handled.
+
+From the technical POV, at least, it's quite interesting.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+[4] https://marc.info/?l=xen-devel&m=162373754705233&w=2
+[5] https://lore.kernel.org/kvm/cover.1613828726.git.eafanasova@gmail.com/
+[6] https://lists.xenproject.org/archives/html/xen-devel/2021-07/msg01532.html
+[7] https://projectacrn.github.io/latest/developer-guides/hld/hld-virtio-devices.html
+
+(MISC)
+- U-Boot capsule update support
+* mkeficapsule v3[8]
+  the discussion about where to save a public key for capsule authentication
+  is still in a *chaotic* situation.
+
+- Bootflow/bootmethod proposal on U-Boot[9],[10]
+  No visible progress. As far as UEFI manager is concerned, Simon
+  seems to have no good knowledge about specification as well as
+  implementation.
+
+- UEFI-DM(U-Boot's device model) integration
+  The discussion above about bootflow reminded us of the integration
+  issue, which I reported from time to time.
+  So I attempted to forward-port my old patch[11] to upstream,
+  and fixed some issues. (Unlike my original patch, I just tried
+  to manage UEFI disks (BLOCK_IO_PROTOCOL objects) in this prototype.
+  The creation of those objects are coupled with the device model's
+  probe mechanism (at least, to some extent :).
+
+  Ilias also told me that he would propose this issue as a Linaro's
+  new task to member companies.
+
+[8] https://lists.denx.de/pipermail/u-boot/2021-August/459347.html
+[9] https://lists.denx.de/pipermail/u-boot/2021-August/458384.html
+[10] https://lists.denx.de/pipermail/u-boot/2021-August/459218.html
+[11] https://lists.denx.de/pipermail/u-boot/2019-February/357923.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[12]
+  Ulf made a few comments.
+
+[12] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v3: submitted on 08/31
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===

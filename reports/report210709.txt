@@ -1,0 +1,59 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-07-09
+Reply-To: 
+
+All the venues in Tokyo and neighbourhood are not allowed
+to accept any spectators for Olympic games. So the ticket
+I hold will also eventually be cancelled.
+
+[STR-7]/[STR-21]
+- started studying other hypervisors in order to understand
+　how virtio devices are implemented on them.
+
+  Jailhouse: I found that I had misunderstood ivshmem in some way
+  as it is yet another transport, like pci or mmio. It is not
+  a right thing that we would implement virtio-proxy "for virtio-mmio"
+  on top of ivshmem. If I understand correctly, ivshmem can
+  potentially provide a kind of hypervisor-agnostic solution for backend
+  as it appears as a PCI device on both frontend and backend alike.
+
+  Gunyah: No virtio implement yet? It supports "para-virtualized"
+  devices, using "vdevice" mechanism. It looks similar to Xen's
+  IOREQ (maybe).
+
+- keep learning Rust by myself[1].
+  Consumed another 20 videos this week.
+
+[1] https://www.youtube.com/watch?v=-lYeJeQ11OI&list=PLfllocyHVgsRwLkTAhG0E-2QxCf-ozBkk&index=1
+
+(MISC)
+- U-Boot capsule update support
+* signing feature to mkeficapsule[2]
+  no progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+- There is one interesting topic in U-Boot[3], which will hopefully
+  lead to more graceful integration of UEFI to U-Boot's device model.
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-July/453943.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+* So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

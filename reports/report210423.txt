@@ -1,0 +1,84 @@
+From takahiro.akashi@linaro.org Fri Apr 23 17:28:13 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a44d5.tkyea130.ap.so-net.ne.jp. [120.74.68.213])
+        by smtp.gmail.com with ESMTPSA id x83sm4012183pfc.219.2021.04.23.01.28.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Apr 2021 01:28:13 -0700 (PDT)
+Date: Fri, 23 Apr 2021 17:28:10 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-04-23
+Message-ID: <20210423082810.GA27825@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org,
+	alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 2232
+Lines: 59
+
+[STR-21] or rather [STR-7]?
+- Continued to investigate *my* backend code.
+  The purpose is to study the possibility of isolating Xen-specific code
+  from the rest of generic code.
+
+  I have no visible progress here, instead I started to talk to
+  Jan (Siemens, the Jailhouse maintainer).
+
+  I think that the one of reasons that we see no comments on
+  our proposal for SCMI demo is that nobody has any experience
+  in implementing virtio backend (or frontend) and that
+  they don't have good understandings of technical issues.
+
+  On the other hand, Jan is of course an expert of Jailhouse,
+  but also has a lot of experiences with automotive and industrial
+  segments. We could expect valuable inputs from him.
+
+- license terms of Xen libraries/toolstack
+  I didn't attend Xen's FuSa community call on Thursday although
+  Stefano invited me as well as Alex.
+
+(MISC)
+- U-Boot capsule update
+  Since I have had few feedbacks about virtio demo in Stratos ML,
+  I spent my spare time in working on capsule update, in particular,
+  capsule authentication implemented by Sughosh.
+
+  When Sughosh's patches were merged, I didn't go through them
+  in details. This week I had some discussion with our LT
+  (Masami), and I found there are a couple of "non-good"
+  implementations.
+
+  In particular,
+  1) The script in EDK2 is used to sign and generate a capsule file.
+     Why do we want to use EDK2 source? Why not extend my mkeficapsule
+     command?
+  2) He added a wired device-tree overlay code to mkeficapsule.
+     It has nothing to do with a capsule file, and the same processing
+     can be performed by using the standard commands (dtc/fdtdelay.)
+
+  So I decided to enhance mkeficapsule by adding a signing feature,
+  and posted RFC[1] (but wo actual code), aiming to revise the current
+  implementation.
+
+  As some cleanup work is needed, I plan to submit the patch
+  some time in the next week.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-April/447918.html 
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+April 29 to May 5: Golden week (long-last national holidays)
+

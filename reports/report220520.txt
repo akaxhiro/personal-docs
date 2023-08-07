@@ -1,0 +1,201 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: Resend: [Weekly] Week ending 2022-05-20
+Reply-To: 
+In-Reply-To: <20220520110308.GA51073@laputa>
+
+# I have forgot to fill out some data in my first report
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* TODO: create sub cards for SR-IOV/TSN trial
+
+* NIC card purchase
+  I pinged Gen several times for the current status of the process, but
+  he has never replied to me yet. I don't know why.
+
+  In addition to TSN-capable NIC cards, we may want to buy a TSN-capable
+  switch so that we will set up more *realistic* network environment
+  in a vehicle.
+
+[STR-76] Break down the latency
+* one-way trip time
+  I reviewed command line options against phc2sys command,
+    $ sudo phc2sys -s eth0 -c CLOCK_REALTIME -O 37 --transportSpecific=1 -q
+  and now have got an plausible result:[micro secs]
+	0: up   184.662
+	0: down 157.122
+	1: up   109.176
+	1: down 98.879
+	2: up   103.255
+	2: down 95.399
+	3: up   101.375
+	3: down 95.199
+	4: up   104.974
+	4: down 94.599
+	...
+        (up: client -> server, down: server -> client)
+  The round-trip time measured by netperf is about 200 micro secs,
+  so 198 (= 104 + 94) seems to be consistent.
+
+  Yet my benchmark program is a bit too primitive in terms of
+  - the size of packet is small, tens of bytes per one transmit
+
+	=> 72 bytes
+	struct timestamp_msg {
+		int seqno;
+		struct timespec up_tx_time;
+		struct timespec up_rx_time;
+		struct timespec down_tx_time;
+		struct timespec down_rx_time;
+	};
+
+  - submit packets in burst mode, while we see periodic data traffic
+    in a real use case, like a vehicle's surveillance camera
+
+=== update on host-to-host (not -to-vm) ===
+On client,
+$ netperf -H 192.168.20.1 -p 12865 -l 15 -t TCP_STREAM -b 1 -v 2 &
+$ ~/bin/neteval 192.168.20.1 1234 1000 10000
+                <addr>     port> <count> <interval>
+
+There were 27 messages lost.
+up min/avg/max = 55.047/32756.449/335085.147
+histgram:
+ <     10:     0 
+ <     20:     0 
+ <     50:     0 
+ <    100:     3 
+ <   1000:   856 *****************
+ <  10000:     4 
+ >= 10000:   110 **
+down min/avg/max = 55.646/557.596/1804.254
+histgram:
+ <     10:     0 
+ <     20:     0 
+ <     50:     0 
+ <    100:    48 
+ <   1000:   730 **************
+ <  10000:   195 ***
+ >= 10000:     0
+===        ===
+
+  Intel's TSN sample program[1] may have an advantage in this sense.
+  It also has additional features:
+    * capturing more info about a latency (breakdown) by utilising
+      socket's timestamping
+    * another test scenario using AF_XDP
+      (I don't know what's the difference from the normal(AF_SOCKET) case.)
+  So it may be possible to use this tool in my future trial.
+  (it's not difficult to add similar features to my program though.)
+
+  [1] https://github.com/intel/iotg_tsn_ref_sw.git
+
+* I found an interesting article[2] about TSN evaluation in container
+  (Kata Container) environment.
+  It shows that TSN may give us a good result on latencies as well as jitters.
+
+  We will be able to reproduce the measurements in TSN-enabled network
+  as well as non-TSN environment with guest VMs.
+
+  [2] https://docs.starlingx.io/developer_resources/stx_tsn_in_kata.html
+
+* Continued to learn about VLAN/QoS configuration with linux's tc,
+  in particular, how to set up qdisc's in traffic control to utilise TSN:
+   - taprio (802.1Qbv, time-aware scheduler)
+   - etf (Earliest TxTime First)
+   - cbs (802.1Qav, credit-base scheduler)
+  
+  Those feautures can be offloaded to the underlying hardware but also
+  implemented by software (kernel's network stack) and we may be able to
+  try them even without TSN nic (with some overheads).
+
+  Those features have influence only on packet transmissions (tx queues), and
+  I don't have good understandings yet:
+   a.whether VLAN needs to be configured even if there is no bridge/router
+     in the network path betweenRRhe endpoints.
+   b.whether socket priorities (and VLAN's PCP (priority)) has influence
+     on the *receiver* side (rx queues)
+
+  Regarding (b), Kojima-san told me that our proprietary TSN-capable NIC had
+  8 rx queues, one per one PCP, all the received packets are enqueued to a proper
+  rx queue associated to the corresponding PCP in packet's TCI tag.
+
+  But I'm a bit dubious here because such a behavior can be NIC specific
+  and I don't think that all the NICs in the market behave as he said
+  as far as I know by looking into the network drivers for Marvell's mvpp2
+  and Intel's igc (i225).
+
+  As far as I know, 'multiple rx queues' are referenced in the context of
+  RSS (Receive Side Scaling) which allows different CPUs to handle dedicated
+  rx queues to reduce the overhead of rx processing in multi-core systems.
+
+  The kernel doc[3] says,
+    "The goal of RSS and the other scaling techniques is to increase performance
+     uniformly. Multi-queue distribution can also be used for traffic prioritization,
+     but that is not the focus of these techniques."
+
+  I do want to know how we should do "traffic prioritization" on receiver side
+  at the kernel level, but there is no description found.
+
+  [3] Documentation/networking/scaling.rst
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[4] for short-form device path support
+  Got Some minor comments from Heinrich
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress
+* reviewed Kojima-san's bootmenu patch v6[6]
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+[6] https://lists.denx.de/pipermail/u-boot/2022-May/484186.html
+
+=== Patch status ===
+    uboot/short_path v2: submitted on 5/12
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I need a PCIE card for VFIO/TSN/SR-IOV testing.
+
+=== Travel&Holiday&Event ===

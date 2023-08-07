@@ -1,0 +1,145 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-05-27
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+* Ilias raised a concern about the result of eBPF case, saying that the latency
+  should be much smaller than other cases.
+
+[STR-73] (Setup for passthrough NIC)
+* TODO: create sub cards for SR-IOV/TSN trial
+
+* NIC card purchase
+  I was finally able to reach out Gen. Lost more than 10 days.
+  He first wanted to buy parallel-imported products from an unknown distributor
+  at Amazon marketplace.
+  So I suggested that we should buy Intel 'genuine' products if possible.
+
+[STR-76] Break down the latency
+* one-way trip time
+  I improved my benchmark program in several ways:
+  - add 'interval' parameter
+  - add 'socket priority' parameter
+  - better handling against lost messages
+    (because UDP is used here)
+  - output statistics of the results, including minimum/average/maximum
+    latency as well as a pretty histogram chart
+
+  The output looks like (1000 packets, one at every 10 msec):
+	$ ~/bin/neteval 192.168.30.1 1234 1000 10000
+	elapse time: 10.265699 (sec)
+	Lost messages: 0
+	up min/avg/max = 48.042/100.790/171.502 (usec)
+	histgram:
+	 <     50:     1
+	 <    100:   483 *********
+	 <    200:   516 **********
+	 <    500:     0
+	 <   1000:     0
+	 <  10000:     0
+	 >= 10000:     0
+	down min/avg/max = 99.404/103.376/161.202 (usec)
+	histgram:
+	 <     50:     0
+	 <    100:    10
+	 <    200:   990 *******************
+	 <    500:     0
+	 <   1000:     0
+	 <  10000:     0
+	 >= 10000:     0
+
+* configure tc/VLAN
+  for future evaluation against TSN configuration, I made preliminary
+  measurements under non-TSN network.
+  - run the benchmark on a separate VLAN
+    (but without PCP (VLAN priority) assigned)
+  - raise a 'socket priority' of test packets to 3 (higher is more prioritized)
+  - stress the network with multiple(3) instances of netperf
+
+  For instance, the result of the case, 'benchmkark under socket priority 3 and
+  3 netperf instances' is:
+	elapse time: 10.998191 (sec)
+	Lost messages: 4
+	up min/avg/max = 97.620/305.492/4223.394 (usec)
+	histgram:
+	 <     50:     0
+	 <    100:    13
+	 <    200:   196 ***
+	 <    500:   725 **************
+	 <   1000:    38
+	 <  10000:    24
+	 >= 10000:     0
+	down min/avg/max = 69.229/198.718/8393.942 (usec)
+	histgram:
+	 <     50:     0
+	 <    100:    13
+	 <    200:   843 ****************
+	 <    500:   108 **
+	 <   1000:    20
+	 <  10000:    12
+	 >= 10000:     0
+
+   See the draft report[1] for the summary and TODO's.
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2] for short-form device path support
+  Two of three commits in [2] were merged.
+
+(MISC)
+* Device path creation improvement for USB device[3]
+  No progress
+* reviewed Kojima-san's bootmenu patch v6[4]
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/484186.html
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I need a PCIE card for VFIO/TSN/SR-IOV testing.
+
+=== Travel&Holiday&Event ===

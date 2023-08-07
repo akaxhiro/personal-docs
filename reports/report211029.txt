@@ -1,0 +1,59 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-10-29
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1],[2]
+
+  Alex replied, saying that we could not justify the efforts of completing
+  this task. So what's next that I can do?
+  We will discuss in next 1:1 meeting.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[3]
+  We continued the discussions, particularly on how we should
+  model software partitions in DM world.
+
+  Simon and Heinrich suggested that we had a special node (device)
+  of 'partition table' in DM tree. But I don't think it is very
+  useful as there is always 1:1 relationship between a physical device
+  and a partition table and even the latter is not a 'device'.
+
+  We still have some gap before reaching some consensus.
+
+(MISC)
+- U-Boot support
+* mkeficapsule
+  I submitted v5[4] and got some feedback from Simon, but his comments
+  won't be big issues.
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-October/465244.html
+
+- MMC UHS-II support
+* Genesys (Jason) posted v3.2[7]
+  no progress
+
+[7] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v4: submitted on 10/07
+    uboot/disk_integ rfc: submitted on 10/01
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Nov 3: Culture Day (national holiday)
+Nov 23: Labor Thanksgiving Day (national holiday)
+
+

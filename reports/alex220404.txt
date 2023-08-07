@@ -1,0 +1,43 @@
+Topics:
+* ePBF-based bridge
+  Fixed the issue by disabling "hardware checksum offload" on a guest
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    eBPF (XDP)           221    254    571    13.4  <= New
+
+* passthrough
+  I'm still inquiring Marvell guys and discussing about details of modification.
+
+  NIC:
+     We will have to set stream IDs in various registers.
+
+     Registers exist per rxq(128), txq(32), cpu_no(per-cpu queues, 8)
+     and port_no(buffer pools, 16). 
+     So I need to understand how the kernel driver be configured to
+     determine what values in what registers.
+
+  PCIe:
+     We will have to configure "SID vector" register.
+
+     With "iommu-map" property in the device tree, a requester ID
+     (composed of bus:device:function in PCI packet) will be mapped
+     to a stream ID.
+
+  I'm going to spend this week to modify the code (kernel/TF-A) and test it.
+  But if it doesn't go well, probably we should give up this approach (of
+  using MacchiatoBin).
+
+  (For testing, I will have to buy a PCIe card.)
+
+* Next step
+  - STR-76(?)
+    Investigate more realistic use cases with some cpu/network load
+    Any feedback from member companies/car makers?
+  - STR-74 (Open VSwitch)
+    how important this case is? (especially for Xen!)
+ 
+  

@@ -1,0 +1,67 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-06-11
+Reply-To: 
+
+[STR-21] or rather [STR-7]?
+- Continued to debug the code for step-2 work
+  I confirmed that the RPC implementation works and that the backend
+  successfully starts the configuration phase. But I found some design
+  flaws on the current RPC implementation:
+     - Posix message queue (mqueue) had to be replaced with Zephyr's
+       k_queue as I assumed that messages will be passed "by pointer"
+       rather than "copying".
+     - "Nested" RPC cannot be allowed. In most cases, that's fine, but
+       there is one exceptional case;
+          proxy --(mmio write to QUEUE_PFN register)-->
+                        server --(vm op (map memory))-->
+                                proxy --(return from vm op -->
+                                          server
+
+       So the message handling, at least on server side, must be
+       asynchronous with receiving messages. Otherwise the server cannot
+       accept a reply from vm op in the case above.
+
+  Even with those issues, I am rather confident that the step-2 work
+  (thread model) will prove up and running by the end of the next week.
+
+  So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+        -> Alex, Vincent
+
+- Among others, there may be, at least, three technical issues in step-3:
+  * it is totally unknown that my approach, particularly virtio proxy
+    protocol (RPC), is applicable to other hypervisors than Xen.
+  * Some of Xen's IOREQ-related API's, so Xen itself, must be modified.
+  * Open-AMP is used as virtio library on frontend side, while
+    kvmtools-origin library is used on backend side in my prototype.
+    This means that the two interface might conflict when
+    the frontend code and the backend code are integrated in virtio
+    proxy implementation which has both aspects.
+
+(MISC)
+- I've got some inquiries about kdump from Fathi.
+
+- U-Boot capsule update support
+* Add signing feature to mkeficapsule[1]
+  no progress as I focused on virtio work this week.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

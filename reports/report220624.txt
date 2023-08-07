@@ -1,0 +1,142 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-06-24
+Reply-To: 
+
+A critical bug in U-Boot's UEFI secure boot was reported.
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+[STR-92] (Setup for TSN)
+* i225 (TSN NIC card) setup
+  After I got Marcin's reply, I tried U-Boot with pci-support *disabled*
+  because I saw some discussion, in linux-pci ML, that U-Boot initializes
+  pci bus in a different way as Linux does.
+  The kernel v5.10 (the Debian 11's) doesn't work, but v5.17 (from
+  unstable release) DOES work.
+
+* The initial result (host-to-host, not host-to-vm)  with my own benchmark
+  program is as follows:
+	$ netperf ...
+	   ...
+	Minimum      Mean         Maximum      Stddev       Transaction
+	Latency      Latency      Latency      Latency      Rate
+	Microseconds Microseconds Microseconds Microseconds Tran/s
+
+	90           102.09       246          14.52        9761.240
+
+* At the end, I have never seen any reply from the technical support of SolidRun.
+
+[STR-76] Break down the latency
+* Now that hardware timestamping is available on i225, I tried it.
+	$ sudo ./neteval enp1s0 192.168.20.1 1234 3 1000 10000
+	elapse time: 10.138410 (sec)
+	Lost messages: 0
+	up min/avg/max/stddev = 36.799/38.602/87.271/2.451 (usec)
+	   tx sw min/avg/max = 13.711/14.310/50.598 (usec)
+	   wire  min/avg/max = 0.-11/0.016/0.042 (usec)
+	   rx sw min/avg/max = 22.650/24.275/62.576 (usec)
+	histgram:
+	 <     50:   997 *******************
+	 <    100:     3
+	 <    200:     0
+	 <    500:     0
+	 <   1000:     0
+	 <  10000:     0
+	 >= 10000:     0
+	down min/avg/max = 33.840/38.408/85.715/2.389 (usec)
+	histgram:
+	 <     50:   996 *******************
+	 <    100:     4
+	 <    200:     0
+	 <    500:     0
+	 <   1000:     0
+	 <  10000:     0
+	 >= 10000:     0
+  (don't mind negative values in "wire". They are close to zero anyway.)
+
+   What are strange comparing it with MACCHIATOBin's are
+   - the latency is mush shorter although the network speed (2.5Gbps)
+     is slower (due to the below?)
+   - "tx sw" and "rx sw" have relatively-similar values.
+
+* Please note that the program on i225 is yet a bit unstable as I sometimes
+  see that read/readmsg() after select() fails.
+
+* No update on the report[1].
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress. The patch for testing is yet to be merged.
+
+(MISC)
+* A critical bug in UEFI secure boot was privately reported
+  by a Siemens engineer
+  I don't disclose it here, but it causes fatal vulnerability,
+  and we will probably have to issue a CVE incident.
+
+  I have already created a bug fix against this issue, and further
+  continued to investigate whether a similar problem exist.
+
+  I currently defer to Ilias about what action we should take next.
+  (He wanted that he had his internal review on the patch.)
+
+* Device path creation improvement for USB device[3]
+  No progress
+* Reviewed Kojima-san's efimenu patch.
+* Reviewed Sughosh's FWUPDATE v5.
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+

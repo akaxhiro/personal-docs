@@ -1,0 +1,96 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-05-12
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* I and Vincent agreed that we'd better finish, at least hold off, this task
+  for now unless we see any feedback from member companies or interested parties
+  in the industry.
+
+  I will talk to Alex in the next sync-up.
+
+[STR-76] Break down the latency
+* Probably we should close this card now.
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[1]
+* I finished the draft of the 2nd article[2], addressing all the comments from Ebba.
+  She said that she had already published the article but that it seemed not to have
+  appeared on the web.
+  We are waiting for an action by IT service.
+
+  [1] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [2] https://docs.google.com/document/d/1lJgIb8aoTg49CqxlfQUmFzfDDb0Jlln4Er_2AW6FtAc/edit?usp=sharing
+
+Orko(?)
+====
+[virtio-gpu]
+* I'm by far unfamiliar with virtio-gpu and related technologies, so
+  doing zapping among different sources to understand the architecture
+  and the current circumstances around relevant software stack,
+  including Vulkan driver for virtio-gpu (Vinus) in Mesa project.
+
+* Reviewed and made comments on Alex's initial draft for [LBO-318].
+  I would expect more concrete descriptions about objectives, deliverables,
+  exit criteria and the strategy to the future step aiming to involve
+  the community.
+  Otherwise, the item (performance measurement) sounds to be an internal
+  self-satisfying experiment (like my TSN work).
+
+--- 5/15 ---
+practical concerns:
+* test platform
+* software stability & version coflicts among the stack (on host & guest)
+
+  -> Without any expertise, highly possible to get into trouble.
+
+     A better way is to contact Collabora, AMD or Google and
+     mimic their test environment.
+     A more better way is to ask those folks to take measurements.
+
+* benchmark programs (I tried them on x86+GTX1050/ubunt 22.04)
+  - glmark2 (ran to finish)
+  - vkmark  (failed with "invalid argument")
+  - GFXBench (probably will run)
+  - Basemark GPU (ran to finish)
+* metric combination - no direct way to compare GL vs. VK
+				    virtio  native
+ X11	--+   +--OpenGL(glmark2)
+          |-X-|
+ Wayland--+   +--Vulkan(vkmark)
+--- ---
+
+U-Boot support
+==============
+[SCMI on U-Boot]
+  I'm asking Vincent to write up the EPIC card for this activity.
+  Otherwise, the task seems to be very much ad-hoc.
+
+* Preliminary study
+  - Read SCMI specification.
+  - Looked at the U-Boot code around pinctrl/gpio framework.
+  - Reviewed the RFC patch from EPAM for adding scmi-pinctrl support to Linux.
+
+* Test environment
+  I'm trying to create the test environment using qemu with OPTEE/SCMI server.
+
+  I think I successfully built all the necessary binaries, but got an error
+  message like:
+          WARNING: Image id=4 size out of bounds
+          ERROR:   BL2: Failed to load image id 4 (-27)
+
+* Prototyping[3]
+  No progress
+
+  [3] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+=== Patch status ===
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+

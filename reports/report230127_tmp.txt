@@ -1,0 +1,70 @@
+Ideal configuration
+===================
+Traffic Control
+---------------
+		tc	outgoing prio
+qeueu#0		0 		7
+(critical)
+qeueu#1 	1		5
+(high)
+qeueu#2 	2		3
+(mid)
+qeueu#3 	3		1
+(low)
+
+RX FILTER
+---------
+	incoming VLAN prio	cpu affinity
+qeueu#0 	6,7		2(,3)
+qeueu#1 	4,5		2(,3)
+qeueu#2 	2,3		0,1
+qeueu#3 	0,1		0,1
+
+Current configuration
+=====================
+Traffic Control
+---------------
+		tc	outgoing socket prio		VLAN prio	time slot
+qeueu#0		0 		5 (PTP)			5		1 (100-200)
+(critical)
+qeueu#1 	1		3 (benchmark)		3		2 (200-300)
+(high)
+qeueu#2 	2		7			7		3 (300-500)
+(mid)
+qeueu#3 	3		0-2,4,6,8-15		0-2,4,6		0 (0  -100)
+(low)				(netperf)
+
+RX FILTER
+---------
+		Dest MAC addr	cpu affinity
+qeueu#0		host(netperf) 	0,1
+qeueu#1		PTP		2
+qeueu#2 	benchmark	2
+qeueu#3 	-		-
+
+tc setup
+========
+To clear the existing settings,
+$ sudo tc qdisc del dev enp1s0 root &>/dev/null
+
+
+$ sudo tc -d qdisc replace dev enp1s0 parent root handle 100 taprio num_tc 4 map 3 3 3 1 3 0 3 2 3 3 3 3 3 3 3 3 queues 1@0 1@1 1@2 1@3 base-time 1674521067000000000  sched-entry S 08 100000  sched-entry S 01 100000  sched-entry S 02 100000  sched-entry S 04 200000  sched-entry S 08 100000  sched-entry S 01 100000  sched-entry S 02 100000  sched-entry S 04 200000   clockid CLOCK_TAI flags 0x2 txtime-delay 0
+[ 1289.009110] igc 0000:01:00.0 enp1s0: Reset adapter
+Error: The 'clockid' cannot be specified for full offload.
+akashi@mcbin1:~/misc/iotg_tsn_ref_sw_tmp$ echo $?
+2
+
+(issue#1) removed clockid
+$ sudo tc -d qdisc replace dev enp1s0 parent root handle 100 taprio num_tc 4 map 3 3 3 1 3 0 3 2 3 3 3 3 3 3 3 3 queues 1@0 1@1 1@2 1@3 base-time 1674521067000000000  sched-entry S 08 100000  sched-entry S 01 100000  sched-entry S 02 100000  sched-entry S 04 200000  sched-entry S 08 100000  sched-entry S 01 100000  sched-entry S 02 100000  sched-entry S 04 200000  flags 0x2 txtime-delay 0
+[ 1356.195736] igc 0000:01:00.0 enp1s0: Reset adapter
+Error: Device failed to setup taprio offload.
+akashi@mcbin1:~/misc/iotg_tsn_ref_sw_tmp$ echo $?
+2
+
+(issue#2) remove sched-entries
+$ sudo tc -d qdisc replace dev enp1s0 parent root handle 100 taprio num_tc 4 map 3 3 3 1 3 0 3 2 3 3 3 3 3 3 3 3 queues 1@0 1@1 1@2 1@3 base-time 1674521067000000000  sched-entry S 08 100000  sched-entry S 01 100000  sched-entry S 02 100000  sched-entry S 04 200000 flags 0x2 txtime-delay 0
+[ 1511.689229] igc 0000:01:00.0 enp1s0: Reset adapter
+akashi@mcbin1:~/misc/iotg_tsn_ref_sw_tmp$ echo $?
+0
+
+(issue#3) allow base-time is zero in scheduler.py

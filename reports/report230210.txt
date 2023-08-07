@@ -1,0 +1,122 @@
+From takahiro.akashi@linaro.org Mon Feb 13 11:26:35 2023
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:12c9:b4c4:674b:682e])
+        by smtp.gmail.com with ESMTPSA id b8-20020a1709027e0800b0019956f23fc1sm6842050plm.302.2023.02.12.18.26.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 12 Feb 2023 18:26:35 -0800 (PST)
+Date: Mon, 13 Feb 2023 11:26:32 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2023-02-10
+Message-ID: <20230213022632.GA40138@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 4093
+Lines: 99
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  Basically, no progress. I still occasionally see big spikes of latency
+  (> 3000 usecs).
+  What was *commonly* observed based on a ftrace log was:
+  - At (t0 - 1000) (i.e. the previous packet), an interrupt for the benchmark was
+    triggered on cpu#2 and was serviced properly.
+  - Since then, no interrupts for the benchmark were triggered until (t0 + 3000).
+  On the other hand,
+  - Approximately at (t0 - 3000), an interrupt for netperf was triggered on cpu#0
+    and ksoftirqd was kicked (but not scheduled yet)
+  - Since then, no interrupts for netperf were triggered until when ksoftirqd
+    was scheduled in at around (t0 + 3000).
+    During this period, I saw some interrupts for arch timer and IPIs.
+  - Once ksoftirqd started (the NIC driver's poll function was called),
+    interrupts started to take place both for netperf on cpu#0 and the benchmark
+    on cpu#2.
+
+  - Coincidentally (or not), from (t0 - 3000) to (t0 + 3000) gc_worker()
+    was executed on a kworker thread on cpu#0.
+
+    ("3000 usecs" here is an approximate value and it may vary.)
+
+* This observation suggested me a few potential issues:
+  1) For some reason, gc_worker() stays running for a quite long period.
+     gc_worker() is a netfilter-related function and always tries to keep
+     track of network connections. (It is unlikely that we can disable it.)
+  2) ksoftirqd may easily be delayed by other threads (kernel threads or user
+     processes) as it is nothing but a normal task (SCHED_OTHER).
+     (Please note that a softirq routine may be called even at the end of
+     a hardirq context.)
+  3) The NIC driver's code *might* prevent interrupts for other queues from
+     being triggered while an interrupt was triggered and was waiting for
+     being serviced.
+
+  Given the fact (2),
+  if the scheduling class of kosoftirqd on cpu#0 is changed to SCHED_FIFO
+  (I tried the priority 90 as well as 41, the lowest in the class) or if the thread
+  was bound to cpu#2, a big spike has gone. (3) might have happened even in this
+  case, but the period of irq disablement was expected to be good short.
+  (I don't say that this workaround always works, though.)
+
+  I think, however, that this workaround can hinder the root cause being exposed,
+  which is (3) I guess. So I'm now digging into the driver's code, especially
+  the code for masking and clearing interrupts.
+  Unfortunately, no clue was found an almost no way to further investigate the issue.
+ 
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No action yet about the follow-up blog post after the first one[3].
+
+  If the today's result is re-producible, I will start thinking of a new blog post
+  based on the latest values.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)
+Feb 24: My birthday (private holiday :)
+

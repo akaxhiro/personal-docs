@@ -1,0 +1,175 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-02
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* v4 WIP environment
+  - The guest OS failed with an error: "timeout (5s) waiting for renderer poll()
+    to finish." (when trying to start the wayland server).
+
+    After debugging virtio-gpu module in qemu, I found that this happened
+    when the guest waited for the response to the release command
+    (CMD_RESOURCE_UNREF) of some resource which had been created by
+    CMD_RESOURCE_CREATE_2D. 
+    With Collabora's patch applied, any command issued by a guest is set to
+    be processed asynchronously. So I temporarily disabled this behavior
+    as a workaround.
+    I reported this issue to Collabora guy (Dimtry). He fixed it and updated
+    his repository(virglrenderer/qemu) for me.
+
+  - The guest can now successfully be started.
+    Then Vkmark runs but fails immediately.
+
+    Enabling the debug option (VK_LOADER_DEBUG) in libvulkan (or Vulkan-
+    Loader) on the guest generated a log in which I found an error message:
+    ===
+    ERROR: loader_validate_device_extensions: Device extension VK_KHR_swapchain
+        not supported by selected physical device or enabled layers.
+    ERROR: vkCreateDevice: Failed to validate extensions in list
+    ===
+
+    I also reported this issue to Dimtry and he pointed that the host GPU
+    might be too old and it would not support "VK_KHR_swapchain".
+
+    After some debuggings, I found a couple of facts:
+    - "vulkaninfo" command on the host shows that the gpu (my
+    nividia GTX1050) supports this extension.
+    - The error happens when a "logical device" is created where vkmark
+      application requires KHR_swapchain extension.
+    - KHR_swapchain is not inherited from the corresponding "physical
+      device on the host, expectedly my gpu, but is set locally by
+      examining semaphore_importable attribute of a local physical device,
+      I guess virtio-gpu.
+    - This attribute is set when vkmark tries to create a "instance"
+      in vulkan-loader (libvulkan) by examining a semaphore property,
+      externalSemaphoreFeatures & VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT,
+      of the physical device on the guest using
+      vkGetPhysicalDeviceExternalSemaphoreProperties() API.
+    - vkGetPhysicalDeviceExternalSemaphoreProperties(), which is processed
+      in virtglrenderer on qemu by calling into the underlying vulkan driver
+      (I guess is nvidia's), doesn't set this bit.
+
+    This means that I have reached to vulkan driver's callsite which seems to
+    be a root cause of the issue.
+    So I will have no way to dig into the source code, find a workaround 
+    against the issue and continue the performance evaluation efforts
+    as long as I use my own GPU (nvidia).
+
+ - I now asked Alex to get another GPU (AMD radeon?) or any other test platform
+   for me.
+
+* Other issues with my v3 environment
+  (no progress)
+  I had no time to dig into those issues yet.
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+
+SCMI
+====
+[SCMI-54] (Setup dev/test environment)
+* U-Boot's sandbox with SCMI dummy(stub) drivers
+
+  All the existing "unit test" under sandbox architecture failed
+  with my prototype patch applied.
+  There seems to be some conflict in initializing SCMI 'uclass'es as my
+  prototype code modified the sequence a bit to be well aligned with
+  U-Boot's driver model.
+
+  To tackle this issue, I started to implement a dummy "sandbox" driver
+  for Base protocol so that we will follow the same init sequence both
+  on arm/qemu and sandbox (as step-4 in SCMI-47).
+  (Please note that "unit test" of SCMI on U-Boot is sandbox-specific.)
+
+[SCMI-47] (Add scmi base protocol support)
+steps:
+  1.check my prototype code of the base protocol[2]
+* 2.refactor the code
+* 3.write a small U-Boot command ("scmi base")
+  4.write sandbox scmi drivers and ut test cases
+  5.(and try to upstream the code)
+
+  After some changes, I confirmed that most of interfaces in the base
+  protocol in my prototype code worked well.
+  I have already implemented a large portion of "scmi" command to verify
+  the behaviors.
+  (This command is mainly for debugging, not for practical use.)
+  ===
+	=> scmi base info
+	SCMI device: scmi
+	  protocol version: 131072
+	  # of agents: 3
+	      00: platform
+	    > 01: OSPM
+	      02: PSCI
+	  # of protocols: 4
+	    0x11:
+	    0x13:
+	    0x14:
+	    0x15:
+	  message attributes: 0x00000304
+	  vendor: Linaro
+	  sub vendor: PMWG
+	  impl version: 34275328
+  ===
+  In addition, "scmi base perm_dev," "scmi base perm_proto," and
+  "scmi base reset" are now implemented to exercise the other API's
+  but it seems that those operations trigger nothing at OPTEE SCMI server
+  on arm/qemu.
+
+* Refactoring the code
+  I have two issues right now:
+  1. API style
+  2. variable length of return values
+
+  (1): There are two candidates: for instance,
+  a. scmi_base_discover_agent(dev, u32 agent_id, char *name);
+  b. scmi_base_discover_agent(dev, struct dicover_agent_in *in, sturct dicover_agent_out *out) 
+
+  Obviously (a) would be nice and natural, while (b) is the best if we need to
+  run SCMI Compliance suite[3] which takes simple arrays of u32 both as parameters
+  and results at any interface
+  (otherwise, we need to hack the test driver per interface/command).
+  I would go for (a) since U-Boot SCMI is just a wrapper to the underlying "platform"
+  and we don't have to pass the compliance test on U-Boot.
+
+  Regarding issue (2), the current implementation of transport interfaces (either
+  optee, smc or mailbox) has limitation that it cannot handle some commands which
+  return a variable length of return value which can only be determined by some
+  field in the returned message. (I confirmed this with Etienne.)
+  Commands of this kind include:
+    - Base: discover_protocols
+    - Pinctrl: list_associations 
+
+  [2] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+  [3] https://git.gitlab.arm.com/tests/scmi-tests.git
+
+[SCMI-46]
+* In addition to the issue I mentioned in [SCMI-47], I have had some concerns
+  with the current implementation:
+  - unaligned access to a field in parameter and result structures
+  - enforcing little-endian in parameters and results
+
+  Thinking that SCMI is arm-specific and most modern chips allow unaligned
+  access and that U-Boot can compile only with little-endian on arm,
+  we probably don't have to care those issues.
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+July 12-13: AGL all member meeting

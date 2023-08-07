@@ -1,0 +1,82 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-04-02
+Reply-To: 
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1][2][3]
+
+  Ulf closed this card.
+  I think that he should have discussed with socionext's LT
+  before taking any action on this card.
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [2] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+  [3] https://www.spinics.net/lists/linux-mmc/msg63065.html
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[4] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+When we want to apply the dom0less configuration to BE app,
+there are a couple of technical issues.
+One is xenstore dependency. BE need to access xenstore database
+in order to fetch configuration information in initializing itself
+as a IOREQ server.
+The problem is that xenstore is currently implemented as a user
+space application on linux(dom0). So the Zephyr cannot simply
+start up for itself as the *first* domain in the system.
+It must inevitably synchronize itself with linux domain's booting.
+
+- Zephyr as dom0
+In my efforts above, I also tried to run a Zephyr app (hello world)
+as the *first* domain instead of linux. I confirmed that it successfully
+ran if some tweaks on gic initialization code were applied.
+(Accesses to some gic registers must be commented out. I don't know why.)
+
+However it doesn't mean that Zephyr can work as dom0, or a *control* domain,
+because it lacks any ability to create/start/stop additional guest domains.
+Providing such a functionality requires us to port Xen libraries as well as
+command tools, in particular, "xl" command, to Zephyr environment.
+
+Apparently, it will be difficult to do so partly due to limited API's
+available on Zephyr and partly due to license incompatibility
+(GPL v2 vs Apache v2).
+
+In addition, we need to have, at least, xenstore daemon and xenlog daemon
+running (probably on dom0) as well in order to provide Xen's full set of
+features.
+
+- GIC-related issues on Zephyr
+  No progress
+
+- IOREQ on Arm[5] by EPAM
+  The patch has now been merged in the upstream.
+
+- Zephyr on Xen[6]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [4] https://github.com/xen-troops/virtio-disk.git
+  [5] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [6] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===

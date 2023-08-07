@@ -1,0 +1,170 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-07-08
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  An initial result for case (d) was added in this table.
+  But please note that the values should not be compared with results
+  for other cases listed in this table since Intel i225 NIC, instead of
+  on-chip 10G NIC, is used to measure latencies in case (d).
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: OK (but not SR-IOV)
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+                          75     85    277    21.6   <= NEW (with i225)
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    vfio                  80    102    317    19.6   <= NEW (with i225)
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+[STR-92] (Setup for TSN)
+* No progress in terms of TSN-specific setup
+
+[STR-73] (Setup for passthrough, or VFIO)
+* I have resumed this task as I have confirmed i225 is now up and running
+  on Debian's 5.18 kernel with a modified version of U-Boot as I reported
+  last week.
+
+* The big issue was that the mainline (and Debian's) kernel does not enable
+  IOMMU on MACCHIATOBin and hence the pcie driver (based on DesignWare IP)
+  is not cable of VFIO.
+
+  The main reason for this was that PCIe and ethernet interfaces are not
+  configured for IOMMU properly at the firmware (i.e. TF-A) level for some reason.
+  (so the feature is never verified *officially*.)
+
+  That said, a few weeks ago I have got a small patch from a guy (semihalf.com)
+  who used to work on implementing drivers. With this patch applied, the stream
+  ID register for pcie is initilized at a driver level and hopefully it will
+  allow us to utilize VFIO on MACCHIATOBin pcie bus.
+  (In theory, this hack should go into TF-A.)
+
+* Yes, I finally succeeded to hand over i225 NIC to gust VM via VFIO and
+  the guest kernel was able to access the device directly.
+  See the netperf result in the table above.
+  It indicates that there is a small amount of software overhead (102 usec
+  versus 85) even in case of VFIO.
+
+* I also performed my own benchmark (one-way trip time) here:
+  Please note
+  - this is an initial result and may not be reproducible.
+  - TSN feature (along with TC/traffic control) is not configured yet.
+
+
+  => (a) modeling a sensor SoC as VM,
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+vm-to-host       38.4/  40.7/  88.6/  3.0        43.3/ 65.1/ 317.4/  9.8
+ w/ 3 netperf   476.9/1386.5/2037.2/211.4        73.9/176.4/1757.4/205.8
+ w/ 3 netperf    57.5/  97.5/ 349.2/ 41.5       105.8/260.4/ 608.6/ 85.2
+  in opposite dir
+
+
+------(update on July 11th)------
+
+  => (b) modeling a central ECU as VM,
+                up                              down
+                min/avg/max/stddev (usec)       min/avg/max/stddef (usec)
+                ------------------              ------------------
+host-to-vm       64.1/  73.3/ 136.0/  6.4        22.4/  34.1/  79.8/  5.3
+ w/ 3 netperf   127.8/ 943.7/2435.2/601.9        57.4/ 152.3/ 518.8/ 72.1
+ w/ 3 netperf    84.3/ 170.0/1178.8/166.4       864.0/1468.3/2227.7/225.0
+  in opposite dir
+
+Obvious insights:
+^^^^^^^^^^^^^^^^
+1) A latency in host->vm case is always bigger than the opposite.
+   (Cost in receiving packets on VM is high?)
+2) Senders can easily contend with each other.
+3) Receive actions may not have a big impact on sender actions.
+
+* I think we should think twice of the network-load "model" of measurement.
+  It's is quite unlikely that a sensor SoC which is to transmit ADAS camera data 
+  is also a source of network bulk traffic.
+  In our current assumption, the latter is geographic or mapping data for navigation.
+  It doesn't reflect real product use cases.
+
+  The data souce of bulk data should exist outside the two hosts (VM).
+
+* Which side (sender or reciever) of optimisation should we be focused on for the time being?
+  - Sender side: TSN will matter.
+  - Receiver side: OS/tuning, including PREEMPT_RT?  as well as CPU affinity/scheduling class,
+    will matter.
+	-> I will have to re-build the kernel with PCIe hack.
+	-> any other kvm-specific techiniques?
+
+* Task priorities for other virtual-network configurations (tap, macvtap, xdp, etc.)?
+  (worth combining them with TSN on host as a receiver?)
+
+----------------------------------
+
+
+[STR-76] Break down the latency
+* TODO: On my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+* No update on the report[1].
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress. The patch for testing is yet to be merged.
+
+(MISC)
+* U-Boot UEFI secure boot issue
+  I posted the patch[3] and it has been already merged in v2022.07-rc.
+
+* Device path creation improvement for USB device[4]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-July/488080.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+?: summer holidays
+

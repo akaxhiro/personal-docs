@@ -1,0 +1,64 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-02-12
+Reply-To: 
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1][2]
+  In Ben's reply, he said that his colleague would take over
+  UHS-2 work after the Chinese new year.
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [2] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[3] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+  I have almost finished the coding/changes for (3) except event channel
+  interfaces. It will take one or two more days.
+
+- There will be a meeting for "Hypervisor-less virtio" on next Tuesday.
+  Those who will attend it include guys from WindRiver, Xilinx and NXP
+  as well as Linaro folks.
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- IOREQ on Arm[4] by EPAM
+  v4 is now under review in ML
+
+- Zephyr on Xen[5]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [3] https://github.com/xen-troops/virtio-disk.git
+  [4] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [5] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+- Nothing
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 23: Emperor's Birthday (holiday)
+
+

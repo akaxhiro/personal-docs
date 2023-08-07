@@ -1,0 +1,49 @@
+- purpose of 1:1 sync
+  - sharing "my" status
+  - Alex's status
+    how much of your time you can spend for virtio stuff?
+  - circumstances around the project/related topics
+    worried about the future of project
+  - I'm shamful when posting any comments for premature topics
+    as they go through virtio-dev ML
+    Mike doesn't want to share his own opinion.
+- who is the driving force of the project?
+  pivotal person?
+  collaborate with Francois/Joachim
+  demos for artifacts
+  daily activities/monitoring
+  struggling to find out the direction yet
+  big picture/ultimate goal
+  visible/workable timeframe of development
+- My propsal describes the techincal details of implementation,
+  but not decision discipline behind the design/issues to tackle/
+  constraints.
+  Without those backgrounds, it could be difficult to discuss details.
+- reinforce reasons for the design that I take here
+
+- few comments from others in community/ML discussions
+  - summer break or not
+  - symathetic with hesitance of reviewing or getting involved in BE
+- concept of hypervisor-agnostic
+  - more discussions on high-level abstract/architectural aspects,
+    or requirements/practical uses
+  - Mike has concern on "my" approach
+  - Mike promised to contact the key persons in Google/Qualcomm
+  - SCMI can be a good example?
+  - needs for RTOS support as BE targets, HLOS vs. minimal RTOS
+- survey of commercial hypervisors' approach
+- performance issues
+- memory sharing; ivshmem, fat virtqueue
+
+
+DPDK
+- DPDK can be run/portable on RTOS? (under limited set of OS services)
+  not sure can benefit best on linux (or HLOS)
+- it is not ideal/suitable/preferable to put lot of application(device)
+specific logic into the kernel/hypervisors.
+
+vhost-user
+- socket, eventfd(irqfd, ioeventfd), mmap with fd
+- virtio-proxy ~= qemu's vrtio-device-model
+  - more abstracted messages than virtio-proxy's events which are bare MMIOs
+  - socket <-> virtio-proxy's virtqueue

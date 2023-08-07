@@ -47,3 +47,9 @@ $ kvm -monitor stdio -serial tcp::4444,server=off
 
 Then terminate a terminal app quickly to avoid losing typed characters.
 
+
+#
+# Debugging qemu itself
+#
+At qemu,
+> handle SIGUSR1 pass nostop noprint

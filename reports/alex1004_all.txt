@@ -1,0 +1,78 @@
+- Enabling hypervisor agnosticism for VirtioIO backends (August 5)
+- implementing Xen bindings for rust-vmm (Sept 13)
+  - ome enabling work in rust-vmm to support Xen?
+    * David/I like this idea
+      Alex Agache has already started some preliminary
+      hacking on supporting Xen guests within rust-vmm
+
+    * Alex
+      sending along a more detailed post once I've finished my
+      work breakdown, envisioning two parts:
+      - A xen-sys crate for the low level access that supports
+        both ioctl and hypercall calls
+
+
+- Rust virtio demos on Xen (Sept 25)
+	1. Xen Rust Bindings ([STR-51])
+	.. 1. Upstream an "official" rust crate for Xen ([STR-52])
+	.. 2. Basic Hypervisor Interactions hypercalls ([STR-53])
+	.. 3. [#10] Access to XenStore service ([STR-54])
+	.. 4. VirtIO support hypercalls ([STR-55])
+
+	2. Xen Hypervisor Support for Stratos ([STR-56])
+	.. 1. Stable ABI for foreignmemory mapping to non-dom0 ([STR-57])
+	.. 2. Tweaks to tooling to launch VirtIO guests
+
+	3. rust-vmm support for Xen VirtIO ([STR-59])
+	.. 1. Make vm-memory Xen aware ([STR-60])
+	.. 2. Xen IO notification and IRQ injections ([STR-61])
+
+	4. Stratos Demos
+	.. 1. Rust based stubdomain monitor ([STR-62])
+	.. 2. Xen aware vhost-user master ([STR-63])
+
+  - Marek/Christopher:
+    the default memory model of VirtIO
+    is to have full access to the frontend domains memory map.
+    security/safety
+    pre-allocated memory
+    (virtio-)IOMMU
+    Virtio-Argo
+	-> Oleksandr
+
+    Who can decide which regions of memory be granted to BE?
+    (even with IOMMU)
+
+    my comments:
+    ivshmem , using pci capabilities to expose a config
+
+  - Stefan
+    there are already constraints in other situations
+    like Confidential Computing, where swiotlb is used for bounce
+    buffering.
+  - Adnrew(Citrix)'s comments
+    The intention is the crate is independent of the version
+    of Xen it runs on (above the baseline version chosen). This will
+    entail:
+
+
+- Assumptions
+  - base OS to work on? Rust on linux on Xen?
+    but you mentioned uni-kernel as well.
+  - required OS interfaces, say, eventfd? Rust-vmm comply with POSIX?
+  - supported transport is limited to virtio-mmio? agreed?
+  - frontend unchanged. What level? existing code?
+
+- Q
+  - STR-51
+    implement APIs?
+    What are the "basic" hypercalls? just stub or more concrete interfaces?
+    What's differnt btw STR-53 & 55?
+  - STR-56
+    What's different btw STR-55 & 57?
+    tools? Extend 'xl' command for STR-58?
+  - STR-59
+    how different from an interface provided in STR-57?
+    vhost-user slave?
+    IOREQ takes a notification via an event channel
+

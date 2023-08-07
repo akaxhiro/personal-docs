@@ -1,0 +1,87 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-02-18
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to set up MACCHIATOBin boards.
+  Finally I got two boards from a local distributor.
+  I was able to boot the linux kernel (latest v5.16) on the board,
+  but the networking doesn't work. All the NIC devices on board are
+  detected but the PHYs seem not to be properly initialized.
+
+  FYI, the board has a cooling FAN for the SOC chip and it's quite noisy
+  and hardly bearable :)
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration
+  I submitted v2[2].
+  V2 also breaks some existing tests (not linked to UEFI).
+  One of errors was due to a "INFO-level" log message generated
+  by my patch. It is easy to fix but I think that the assertion
+  in that test is quite fragile because the test result (decision
+  of success or failure) can be affected by a log message on
+  the console.
+
+  Another error seems not to be directly attributed to my patch.
+  In one of my patch set, four new DM-related tests are added, but
+  simply adding another test, whatever the test is, will cause
+  a failure in one of existing tests.
+
+  I reported this issue to ML and (I hope) Simon now takes care of it.
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication)[3]
+  v11 has now been merged to the upstream.
+
+  Heinrich also requested me to post a follow-up patch which enables
+  capsule authentication tests to be kicked off in CI loop.
+  But it is somehow intentional because Heinrich or Simon has opposed
+  adding additional defconfig file just to run my pytest.
+
+(MISC)
+* reviewed some patches
+  - Ilias' bugfix on secure boot authentication algorithm
+  - Sughosh's "FWU Multi Bbank update" v4.
+  - Masami's fixup relating to a reset by CapsuleUpdate
+
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-February/474844.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/474721.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v2: submitted on 2/10
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 23: Emperor's Birthday (public holiday)
+Mar 21: Spring Equinox Day (public holiday)
+(I may have one-week vacation in March.)

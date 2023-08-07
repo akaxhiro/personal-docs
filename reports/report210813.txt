@@ -1,0 +1,83 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-08-13
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Waiting for any comments on ML, but nothing after one week.
+  (I believe that Mike have contacted and asked Qualcomm/Google folks
+  to review the proposal as he promised.)
+
+- had 1:1 meeting with Alex
+  The purpose is to share my current status and discuss technical issues
+  with him, and in addition, to get informed about what's happening
+  around Stratos project in Linaro.
+
+  What I noticed in this meeting is that even Alex doesn't understand
+  the details of my proposed specification as well as the goal of my study
+  and the plan for prototyping (step 1,2 and 3 as I mentioned in a past
+  weekly report) of virtio-proxy approach very well.
+  If he doesn't, who else will want to understand and review my proposal?
+
+  In addition, he suggested that we might be able to think of source-level
+  portability instead of "single-binary" approach.
+  But if we lift this restriction, I will have taken a totally different
+  approach. That is why I insist, in ML, that we should first discuss
+  the goals/requirements/use cases for "hypervisor-agnosticism".
+  Otherwise (without any consensus on those assumptions), it won't be worth
+  discussing specifically about my proposal!
+
+- I'm still trying to contact some engineers:
+
+  Intel: who has proposed msi-x support for virtio-mmio at linux kernel
+  a year ago, aiming to improve the performance under multiple virt queues.
+  Another Intel guy: who implemented ivshmem driver on Zephyr. I'm asking
+  about their future plan, especially virtio implementation on top of it.
+  Siemens: keep discussions with Jan
+  Qualcomm: I'm asking for any comments on my proposal
+
+  No reply from anyone this week.
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  I made some comments to Stefano's reply.
+  As Alex will stay on vacation until Sept 5th, we won't anticipate
+  visible progress in discussions on this subject (and my proposal
+  as well) for a while.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+
+(MISC)
+- U-Boot capsule update support
+* mkeficapsule v2[4]
+  I have no update since the discussion about where to save a public key
+  is still going on (actually a bit stalled).
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-July/456293.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[5]
+  No discussions seen in ML
+
+[5] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v2: submitted on 07/27
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+I will take one-week vacation at the beginning of September
+(Aug 30th or Sept 6th) unless the period of the state of emergency
+in Tokyo will be extended after August.
+
+But it is quite likely thanks to recent surge of covid cases.
+

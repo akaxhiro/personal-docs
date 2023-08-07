@@ -1,0 +1,71 @@
+From takahiro.akashi@linaro.org Mon Oct 11 11:42:34 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (122-100-26-39m5.mineo.jp. [122.100.26.39])
+        by smtp.gmail.com with ESMTPSA id m6sm5840793pff.189.2021.10.10.19.42.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 10 Oct 2021 19:42:34 -0700 (PDT)
+Date: Mon, 11 Oct 2021 11:42:25 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-10-08
+Message-ID: <20211011024225.GF44356@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 1558
+Lines: 48
+
+[STR-7]
+- my proposal document on virtio-proxy[1],[2]
+
+  I made full efforts to estimate *remaining* efforts to complete
+  virtio-proxy idea. The consequence is that I will need 20-22 weeks
+  to re-write my prototype from the scratch.
+
+  Please note that it contains some uncertain technical factors, including
+  re-writing Xen libraries, which may be unnecessary, and modifying
+  Xen's APIs which may depend on security model.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+
+
+[TS-118]
+- UEFI-DM(U-Boot's device model) integration[3]
+  I've got comments from Simon and am going to go through all of them
+  one-by-one next(this) week.
+
+(MISC)
+- U-Boot support
+* mkeficapsule
+  Since the discussion about a public key for capsule authenticaion
+  has been settled in final release of v2021.10, I posted v4[4].
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-October/462754.html
+
+- MMC UHS-II support
+* Genesys (Jason) posted v3.2[7]
+  no progress
+
+[7] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v4: submitted on 10/07
+    uboot/disk_integ rfc: submitted on 10/01
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Oct 15-22: my *summer* holidays
+
+

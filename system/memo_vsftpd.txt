@@ -1,0 +1,3 @@
+after installing the package,
+edit /etc/vsftpd.conf, adding
+  write_enable=YES

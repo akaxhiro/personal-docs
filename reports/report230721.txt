@@ -1,0 +1,108 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-07-21
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* Vkmark benchmark app doesn't work with Radeon.
+  I was finally able to debug the guest kernel with gdb via qemu.
+  (It required extra 20GB on the host to compile the kernel with DEBUG_INFO,
+  another 8GB on the guest's root file system to install the kernel package.
+  Every time the system runs out of disk space, I had to manage to increase
+  free spaces.)
+
+  Then I identified the source code line which failed with -EINVAL in
+  virtio-gpu's drm module:
+  virtio_gpu_vram_mmap()
+      ...
+      wait_event(resp_rq, vram->state != STATE_INITIALIZING)
+      if (vram->map_state != STATE_OK)
+          return -EINVAL;
+
+  As you can see, however, this is not the root cause which should have
+  set vram->map_state to STATE_ERR.
+  What I know at this point is that there are two possible functions
+  to do this:
+     virtio_gpu_cmd_map()
+	(VIRTIO_GPU_CMD_RESOURCE_MAP_BLOB)
+     virtio_gpu_cmd_resource_assign_uuid()
+	(VIRTIO_GPU_CMD_RESOURCE_ASSIGN_UUID)
+  Both will eventually invoke commands to the host (qemu).
+  I will have to debug the host side next week.
+
+* Get a test platform (AVA)
+  It seems that Anmar is trying to contact a guy who is supported to have
+  returned to office from his vacation this week.
+  On the other hand, Shimada-san made a contact with one of local dealers
+  for AVA in Japan, he said that there seemed to be no stock of hardware
+  in Japan.
+
+SCMI
+====
+[SCMI-46] (improve scmi suport on U-Boot)
+* trivial bugfixes[1],[2]
+  Both were now applied to the master.
+
+[1] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-74) (Upstream patch of scmi base protocol support)
+* patch v1[3]
+  The rework was finished, but I found another issue due to this change
+  when I started to work on SCMI-57.
+  So I may want to revert this change, returning to the original
+  approach (implementing the base protocol as a U-Boot device).
+
+[3] https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+
+[SCMI-57] (Use base protocol information to verify scmi server compatibility)
+* started
+  There are two items to work on:
+  1. Check if a protocol is provided by the server
+     (using SCMI_BASE_DISCOVER_LIST_PROTOCOLS) 
+  2. Match server's implemented version of protocol with U-Boot driver's
+     expected version
+     (using SCMI_PROTOCOL_VERSION)
+
+  (1) was finished, while I've got an issue on (2).
+  SCMI_PROTOCOL_VERSION as well as the other two commands are basically
+  'common' among all the protocols. How ever, now that the base protocol is
+  not a U-Boot device, we cannot use the same help function.
+  Carving out a common code can make the code a bit complicated and ugly
+  due to the way the SCMI agent (U-Boot) manages a 'transport channel'
+  per resource (say, clock, power domain and ...).
+
+  It would be quite easy to fix this problem if I revert the rework
+  that I've done above. I will think twice next week.
+  I also made some inquiry to Etienne about the current implementation
+  of transport layer to sort out a workaround without reverting the change.
+
+[SCMI-49] (Add pinctrl protocol support)
+* no progress in this week.
+
+
+U-Boot support
+==============
+Nothing
+
+
+=== Patch status ===
+u-boot dm bugfix: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+u-boot scmi base v1: under review
+  https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+ 
+=== Issues ===
+* Get Arm-based test platform for virtio-gpu evaluation
+
+=== Travel&Holiday&Event ===
+July 31 - Aug 4 Summer vacation
+

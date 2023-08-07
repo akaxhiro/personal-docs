@@ -1,0 +1,71 @@
+Topics:
+* I managed to install Debian to eMMC and now am able to boot the system.
+
+  The upstream U-Boot seems not to be able to handle eMMC's boot partitions
+  (boot0 or boot1) properly and so I used Marvell's downstream repository
+  to build a bit newer version of U-Boot.
+
+* I still have difficulty in booting the firmware (TF-A&U-Boot) on eMMC
+  and need to start Debian on eMMC with U-Boot on SPI-ROM.
+
+* The configuration on SPI-ROM is
+  TF-A: Upstream v2.5
+  BL2: Marvell's binaries-marvell-armada-SDK10.0.1.0
+  U-Boot (BL33): Marvell's u-boot-2018.03-armada-18.12
+
+  On eMMC,
+  boot0: same as SPI (but it doesn't work)
+  data partition: Debian Bullseye (11.2.0)
+                  uname -v: SMP Debian 5.10.92-1 (2022-01-18)
+
+* installed a guest vm
+  I first booted *netinst* image with U-Boot and the installation of
+  Debian has failed at the last moment ("install grub"), probably,
+  since U-Boot EFI doesn't support variable runtime service.
+  So I had to install grub and set up grub.cfg manually :)
+
+  U-Boot: mainline v2022.04-rc2
+  system: Debian Bullseye (11.2.0)
+          uname -v: SMP Debian 5.10.92-1 (2022-01-18)
+          kvm --version: 5.2.0 (Debian 1:5.2+dfsg-11+deb11u1)
+
+  For network configurations,
+  a.nat: doesn't work yet
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: not tried yet
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: not tried yet
+
+* results
+  Does "vhost=on" make difference for netdev?
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  (b)                    214    254    581    14.2
+  (c)                    275    309    691    16.4   <= Friday's trial
+                         258    283    654    13.9   <= today's trial
+			 217    244    567    13.0   <=  and with vhost=on
+  (d)
+
+  (ping)
+  $ ping 192.168.20.1 -c 10
+
+                         min    avg    max    stddev
+  host2-to-host1         170    184    209    11
+  (b)                    266    296    375    33
+  (c)                    311    328    380    18
+  (d)
+
+
+* How can we setup NIC pass-through on MACCIATOBin?
+  $ echo f2000000.ethernet > /sys/bus/platform/drivers/mvpp2/\
+				f2000000.ethernet/driver/unbind
+  $ echo vfio-platform > /sys/bus/platform/devices/\
+				f2000000.ethernet/driver_override
+
+  Then, I cannot find any iommu on the system!?

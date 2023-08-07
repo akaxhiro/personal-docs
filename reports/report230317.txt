@@ -1,0 +1,112 @@
+From takahiro.akashi@linaro.org Fri Mar 17 16:51:50 2023
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:938c:5572:7e69:920e])
+        by smtp.gmail.com with ESMTPSA id y11-20020a1709027c8b00b001943d58268csm930967pll.55.2023.03.17.00.51.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Mar 2023 00:51:50 -0700 (PDT)
+Date: Fri, 17 Mar 2023 16:51:47 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2023-03-17
+Message-ID: <20230317075147.GA56885@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 2746
+Lines: 71
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results in [1]
+  [1] itself is getting rather obsolete due to these days' changes.
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  15 minutes) measurement.
+
+  I tried a couple of changes in settings.
+  1) update the kernel to PREEMPT_RT v6.3-rc2
+  2) fix CPU affinity of kvm process
+  (3 try yet another gate list as Alex suggested last week)
+
+  v6.3 contains a couple of patches against igc (NIC) driver around TSN-related code
+  and I expected a small hope but ...
+
+  Regarding (2), I found that I accidentally had changed the kernel command line
+  against cpu *isolation* and it ended up to not isolating cpu#3 for kvm process
+  in my tests I have reported last week.
+  After fixing this error along with the kernel update, I performed the measurements
+  once again.
+
+  Apparently, as shown in [2] (page 75 and later), the result seem to be unaffected
+  by those changes and known issues (big spikes and PTP disorder) were still observed.
+  The average and the standard deviation of latency in non-netperf case were even
+  increased. Not sure why.
+
+  === 3/20/2023 ===
+  NIC doesn't allow for interleaving of gate control, like #1 and #3 (and not #2 nor #4)
+  simply because the registers can hold the *start* time and *end* time per queue.
+  === ===
+
+  For some reason, I still fail to set up XDP+AF_XDP case as in the past.
+
+  === 3/20/2023 ===
+  I mistakenly invoked kvm process with a wrong parameter.
+  (I should specify "runqemu.sh ovs_afxdp" but actually did "runqemu.sh xdp_afxdp".
+
+  After fixing the parameter, I was able to enable the network but I got a kernel panic
+  (network watchdog relating to TX timeout in igc).
+  This seems to be due to some patch against igc (NIC) driver introduced in v6.3.
+  I have temporarily to revert it.
+  That works, but then after the measurement, I got another kernel error message,
+  which is set to be fixed by *that* patch.
+  and the network went down.
+  === ===
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[4]
+* I spent most of my time in writing up an initial text for the next article.
+  I basically finished to describe the test environment and system/network setup
+  (how to configure the network with proper parameters).
+  Another two or more days will be needed to describe the test result and analysis.
+
+  See the unfinished draft [5].
+
+* My proposal of TSN for Linaro Connect session was finally accepted.
+  My plan is to create the slides based on the blog article *plus* additional analysis.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] http://patchwork.ozlabs.org/project/intel-wired-lan/list/?series=345092
+  [4] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [5] https://drive.google.com/file/d/11nrviGSsxE78DfI55t9qvL3xFl8QZdB8/view?usp=share_link
+
+U-Boot support
+==============
+No update
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Mar 21: Sprint Equinox Day (public holiday)
+(Around this week, I may take a week-long vacation.)
+
+

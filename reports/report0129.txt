@@ -1,0 +1,107 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-01-29
+Reply-To: 
+
+We had snows in Tokyo for the first time this winter.
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1]
+  No progress on my side
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[2] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+  Started (3). For some reasons, I wanted to modify virtio-disk code first
+  to make the porting efforts easier:
+  * mismatching interfaces, e.g. virtio-disk's main routine utilizes
+    'select' syscall for event-driven handling while Zephyr (and ported
+    drivers (2) above) doesn't support select other than for real 'sockets.'
+    (Please note that Xen user libraries doesn't assume file descriptors
+    as interfaces.)
+  * Xenstore is used heavily for retrieving configuration parameters of the vm
+    and monitoring up/down status of frontend; I want to separate this
+    behavior from backend's virtio implementation.
+
+- I'm still uncertain that the goal of 'hypervisor-agnostic' backends
+  is a feasible target as I have looked into the virtio-disk code
+  and other tools more closely.
+
+  In my view, virtio-disk consists of three parts:
+     a.main loop with backend configuration; It is responsible for
+       redirecting IO requests from frontend to backend implementation.
+       This is somehow hypervisor specific.
+     b.rather-generic backend virtio implmentation which still contains
+       hypervisor specific code (mostly in initialization).
+     c.backend IO's, e.g. disk accesses, which is OS dependant.
+
+  (Virtio-disk inherits bunch of code, especially virtio and IO code,
+  from kvmtool.)
+
+  I'm also having a quick look at the implementation of
+  vhost-user (with kvm) as well as kvmtool from the perspective of
+  interaction/interface between hypervisors and backend servers.
+
+- On the other hand, Alex made a comment in his message on Stratos ML:
+  I'm planning on closing out STR-7 (Create a common virtio library for
+  use by programs implementing a backend) as I'm not sure what it would
+  achieve.
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- IOREQ on Arm[3] by EPAM
+  v4 is now under review in ML
+
+- Zephyr on Xen[4]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [2] https://github.com/xen-troops/virtio-disk.git
+  [3] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [4] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+[U-Boot]
+- Coincidentally(?), there were some discussions about missing features:
+
+  * EFI_IMAGE_EXECUTION_INFO_TABLE in EFI secure boot
+    While some guy from Arm said that it should be mandatory for EBBR
+    as it is required on Windows, Grant has dismissed it so far.
+  * EFI SYSTEM RESOURCE TABLE in EFI capsule update
+    Another guy from Arm posted an RFC patch[5] for adding entries associated
+    with EFI capsule updates. I reviewed it, leaving comments.
+
+- I suspect that there is some 'movement' inside Arm that pursues
+  fully compliant implementation of EBBR (with U-Boot).
+  The said, "we plan on testing for its presence in the upcoming "Secure Boot"
+  test suite (which may include SCT/FWTS tests)."
+
+  [5] https://lists.denx.de/pipermail/u-boot/2021-January/438974.html
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day
+Feb 23: Emperor's Birthday (holiday)
+

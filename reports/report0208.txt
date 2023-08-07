@@ -1,0 +1,111 @@
+From takahiro.akashi@linaro.org Mon Feb  8 09:58:58 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a66b8.tkyea130.ap.so-net.ne.jp. [120.74.102.184])
+        by smtp.gmail.com with ESMTPSA id m10sm13860289pjs.25.2021.02.07.16.58.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 07 Feb 2021 16:58:58 -0800 (PST)
+Date: Mon, 8 Feb 2021 09:58:55 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Subject: [Weekly] Week ending 2021-02-05
+Message-ID: <20210208005855.GA10067@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 3263
+Lines: 88
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1]
+  After the discussion with Ulf and Masami, I pushed my latest patch
+  to my linaro repo[2].
+  (though I haven't touched the code in the last two months.)
+
+  I also pinged Ben again, but haven't seen any response yet.
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [2] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[3] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+  As I said last week, I made some changes on virtio-disk. The purposes
+  were:
+  * isolate xenstore-related code, which is quite Xen-specific, from others.
+  * replace socket-based code in the main loop with Xen's API's.
+
+  The resulting code yet heavily relies on Xen's API, but I believe that
+  it will be easier to port virtio-disk onto Zephyr.
+
+  Since there are still missing functions in event channel and xenstore
+  interfaces imported from unikraft, (2) above, I will have to add
+  some code to fill the gap.
+  (I hope I will finished implementing 'buildable' code this week.)
+
+- 'hypervisor-agnostic' backends
+  I have looked into vhost-user (and rust-vmm) more closely. One of insights
+  was that vhost-user library receives a file descriptor which represents 
+  the portion of frontend's memory from kvm and map it on backend's address
+  space with mmap().
+  So it would be difficult to directly implement this protocol on Zephyr
+  any way.
+
+- Alex forwarded to me the invitation of the meeting, "Hypervisor-less virtio
+  - with Zephyr?".
+
+  I can easily imagine that, if we assume that we will only support "static"
+  configuration of virtual domains with virtio devices and that such
+  configuration will be available, say via system DT, we will not need most of
+  hypervisor-specific code in backend code.
+  (because we don't have to monitor up/down of frontent domains and fetch
+  virtio's configuration dynamically in a hypervisor-specific way.)
+
+  There may be one difference between hypervisor and hypervisor-less cases:
+  notification. On Xen, for example, the notification will be delivered
+  by an event channel, but an interrupt for heypervisor-less RTOS?
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- IOREQ on Arm[4] by EPAM
+  v4 is now under review in ML
+
+- Zephyr on Xen[5]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [3] https://github.com/xen-troops/virtio-disk.git
+  [4] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [5] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+- Nothing
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 11 (and 12): National Foundation Day
+Feb 23: Emperor's Birthday (holiday)
+
+

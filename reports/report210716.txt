@@ -1,0 +1,60 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: 
+Subject: [Weekly] Week ending 2021-07-16
+Reply-To: 
+
+[STR-7]/[STR-21]
+- continued studying other hypervisors (jailhouse, gunyah) in order to
+  understand 　how virtio devices are (or can be) implemented on them.
+
+  Gunyah doesn't have any framework yet that would allow for implementation
+  device emulation outside the hypervisor (something like IOREQ on Xen)
+  but other functional requirements for virtio proxy, like signaling interrupts
+  and mapping remote memory, seem to be available (with some restriction?).
+
+  I intend to put my insights from this study into my proposal in some way.
+
+- continued revising my proposal document on virtio-proxy[1]
+  Hopefully, I would put an entry in the next Stratos meeting
+  to present it.
+  I'm still modifying it, especially the last few pages, current
+  status, comparison and issues though.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+
+(MISC)
+- U-Boot capsule update support
+* signing feature to mkeficapsule[2]
+  no progress, but reviewed a few patches relating to capsule update
+  from Ilias.
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+* Quite interesting question from Simon[3]
+  He proposed "verified boot for embedded (VBE)."
+  His goal would be almost the same as what EBBR with UEFI aims to do,
+  but in U-Boot specific way using the *existing* technologies.
+
+  He seems to want to avoid duplicated features, secure boot and secure
+  firmware update, to co-exist in U-Boot, "parallel worlds" in his word.
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-July/454821.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+* So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

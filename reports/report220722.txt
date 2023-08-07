@@ -1,0 +1,190 @@
+Date: Mon, 25 Jul 2022 10:52:43 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2022-07-22
+Message-ID: <20220725015243.GA11895@laputa>
+Content-Length: 6442
+Lines: 178
+
+Covid cases hits the record, more than 200,000 in Japan.
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update, just re-formatting the tables)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: OK (but not SR-IOV)
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+  On-chip NIC (mvpp2) with kernel 5.10+
+  -------------------------------------
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408     8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    vfio                   -      -      -       -
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host2-to-host1          75     85    277    21.6
+  vm-to-host1
+    tap                    -      -      -       -
+    macvtap                -      -      -       -
+    vfio                  80    102    317    19.6
+    ovs                    -      -      -       -
+    eBPF (XDP)             -      -      -       -
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+
+[STR-73] (Setup for passthrough, or VFIO)
+* No progress
+  We can close this card any way because I can cleanly set it up with
+  i225.
+
+
+[STR-76] Break down the latency
+* Based on a new test method/system configuration, see [1], I continued
+  to collect some statistics of latencies.
+  The main changes are:
+    - My benchmark program is run in VM, but only on receiver side.
+    - It (and hence VM) is run on a dedicated cpu, #3 isolated with
+      isolcpu=3, both on sender side and receiver side.
+    - trying different taprio configuration, especially gate states
+
+	  config-1                   config-2
+          sched-entry S 01 300000    sched-entry S 01 100000
+          sched-entry S 02 300000    sched-entry S 02 100000
+          sched-entry S 04 400000    sched-entry S 04 300000
+
+* The results are a bit unstable and unpredictable; each result may show
+  distinct dimensions. For example,
+
+                up                       
+                min/avg/max/stddev (usec)
+                ------------------       
+host-to-vm
+  macvtap        79.3/  86.4/ 338.2/ 10.9
+ w/ 3 netperf   215.1/ 334.8/ 545.1/ 61.3  (1st)
+                196.5/ 334.5/ 642.9/ 62.6  (2nd)
+
+* With different gate states (scheduler),
+
+                up                       
+                min/avg/max/stddev (usec)
+                ------------------       
+ w/ 3 netperf  1024.1/1250.0/4134.7/116.9  (1st)
+                836.8/1307.3/1479.3/ 81.0  (2nd)
+                856.4/1452.8/2162.0/224.3  (3rd)
+
+  (Here I saw more "tx sw" cost in some cases, and more "rx sw"
+  in other cases.)
+
+* I thought that those results indicated
+  - TSN (taprio) should be configured more carefully
+  - my benchmark program has room for improvement,
+  - it would be crucial to isolate TSN configuration issue
+    from the overhead by VM.
+
+  To measure the overhead by VM, I tried to utilize *ftace* but
+  it was difficult to set up a proper set of events/functions to trace
+  as the log can easily get huge with trivial tracepoints specified,
+  for instance, igc_poll (i225's interrupt handler), sched_wakeup and
+  kvm_exit.
+
+  So I shifted my efforts in focusing on TSN in the first place and
+  examining how the program should behave.
+
+* TODO: On my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+
+[STR-92] (Setup for TSN)
+* A good start point, I believe, is Intel's example code[2].
+  This was first provided by Intel's IOT group (for Apollolake?), and
+  I know that some guy from StaringX project (kata container) used it
+  for his evaluation[3].
+  What are obvious differences between Intel code and my own benchmark
+  programs are:
+    - The focus of Intel program seems to be deterministic behavior
+      in a periodic transmission of data rather than the latency itself. 
+    - It parameterises CPU affinity, RT scheduling class, socket priority
+      as well as tc-related options.
+    - It sends packets one-way only.
+      (My program sends back replies, and it might impose some overhead.)
+      TAPRIO
+    - On sender side, it enables txtime-assisted mode + etf.
+      (My program uses full offload mode.)
+    - On sender side, it specifies txtime and even tries to send out packets
+      at the timing when a gate dedicated for packet's traffic class is open.
+    - On receiver side, arrived packets are distributed in different queues
+      based on VLAN's PCP (priority)?
+
+  I'd like to determine which aspect may have what impact on latencies.
+
+  First, I'm going to prepare and reproduce the result in [3].
+  (I have already tried the measurements several times but the results are
+  not what I saw in the document.)
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+  [3] 
+
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* For the record, TS-248 (U-Boot secure boot vulnerability fixes) was
+  created and closed.
+
+* I joined the internal review of UEFI secure boot test specification (in SCT)
+  (organized by Arm guy) with a bunch of comments.
+
+* Device path creation improvement for USB device[3]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Aug 15 - Aug 19: summer holidays
+

@@ -1,0 +1,63 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-06-18
+Reply-To: 
+
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-06-11
+Reply-To: 
+
+[STR-7]/[STR-21]
+- completed debugging the code for step-2 work
+  Now my prototype app is up and running with the save behavior.
+  No question that the FE app is the exact same as the step-1.
+
+- started to update/refine the proposal document of virtio proxy approach.
+
+- While I will be waiting for more feedback on my code and document,
+  I will put my development work on hold next week and instead,
+  I'm going to spend my time on learning Rust by myself
+  as I was not granted a chance of joining Rust tutorial seminar. 
+
+- Among others, there may be, at least, three technical issues in step-3:
+  * it is totally unknown that my approach, particularly virtio proxy
+    protocol (RPC), is applicable to other hypervisors than Xen.
+  * Some of Xen's IOREQ-related API's, so Xen itself, must be modified.
+  * Open-AMP is used as virtio library on frontend side, while
+    kvmtools-origin library is used on backend side in my prototype.
+    This means that the two interface might conflict when
+    the frontend code and the backend code are integrated in virtio
+    proxy implementation which has both aspects.
+
+(MISC)
+- U-Boot capsule update support
+* Had a small talk with Ilias about my current capsule implementation.
+* signing feature to mkeficapsule[1]
+  no progress as I focused on virtio work this week.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+* So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+        -> Alex, Vincent
+
+  (Actually, I have not got any feedback on this question.)
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

@@ -1,0 +1,82 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: 
+Subject: [Weekly] Week ending 2022-01-07
+Reply-To: 
+
+For Dec 27, Jan 6 and 7.
+We had snow in Tokyo last week.
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to learn basic network technologies, including
+  TSN, XDP and SR-IOV (for virtual network).
+
+  I said in the last week:
+  - I struggled a bit to set up a bridge which is to connect
+    a vm's network interface to the host's local network.
+    I haven't succeeded yet to enable a vm to reach a DHCP server
+    (actually, a router) in the network to which my PC is attached.
+    (If I launch a DHCP server on my PC's nic locally,
+    everything works fine though.)
+
+  I was able to fix it by
+    echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+  This means that we should disable the default iptable rules
+  against bridge interfaces to allow for accessing external networks.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  no progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration, RFCv2[2]
+  I checked Heinrich's comments and replied to them.
+
+[TS-102]
+- mkeficapsule revamp v8[3]
+  I checked Heinrich's comments and replied to them.
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+  Kojima-san is now proposing a UI app for UEFI boot manager[5].
+  My patch would be a bit helpful so that we don't have to reply on
+  distro_bootcmd.
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-December/470053.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5]
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/cap auth v8: submitted on 12/20
+    uboot/disk_integ rfc2: submitted on 12/10
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* boards (MachiatoBin)
+  I've got the delivery at the end of December, but the order
+  was wrong; the package contained only one SingleShot board.
+  I asked Shimada-san to re-order the boards. A new delivery
+  date would be early February.
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day (public holiday)
+Feb 23: Emperor's Birthday (public holiday)
+

@@ -1,0 +1,76 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-11-12
+Reply-To: 
+
+Stratos
+=======
+[STR-66]
+* Looked more into hypervisor-less virtio implementation and
+  had some dialogue with Dan Milea (WindRiver).
+
+ His implementation uses a draft feature of shared memory defined
+ in virtio draft version 1.2 to eliminate the need of memory mapping
+ hypervisor calls.
+ This can apparently be applied to other approaches, including my virtio-proxy.
+
+* Started to learn about Argo interfaces and Christopher's study
+  on virtio over Argo.
+
+  He seems to want to use dma api for bounce buffering, but Argo
+  does not expose any shared memory region explicitly and this will
+  add more overheads due to extra data copying than on other shared-memory
+  based approach, like ivshmem (and fatvirtqueue?).
+
+[STR-21]
+  Dmytro updated his current work on this card.
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[1]
+  I suggested that, even if we wanted to hold partition table data
+  somewhere, we'd better have it within a block device structure,
+  in particular, using a "tag" support which is also set to be added
+  in my next version of RFC.
+  It seems that Simon finally admitted this approach.
+  Not sure yet what Heinrich thinks of that since he didn't comment.
+
+  Anyhow, if we want to convert partition drivers to DM, it will
+  require additional efforts of reworking the code.
+
+[TS-102]
+- Ilias assigned me to this card.
+- mkeficapsule v6[2]
+  While I'm proposing that we should have a tool-local header file
+  to fix a build failure on OpenBSD, I haven't got any feedback
+  from Heinrich and the re-work is suspended.
+
+(MISC)
+* "removable media" support on UEFI bootmanager
+  I posted a RFC[3].
+  It is an RFC because I think that some people may not see it very
+  useful as it is already supported in distro_bootcmd script.
+
+  Unexpectedly, I got a few positive comments from Heinrich and another folk.
+  A major issue is how we should represent a "removal media" as
+  a device path, which may not be attached to the board when we define
+  a "BOOTxxxx" variable. 
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[2] https://lists.denx.de/pipermail/u-boot/2021-October/465244.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+
+=== Patch status ===
+    uboot/uefi removable rfc: submitted on 11/09
+    uboot/cap auth v6: submitted on 11/02
+    uboot/disk_integ rfc: submitted on 10/01
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Nov 23: Labor Thanksgiving Day (national holiday)
+
+

@@ -1,0 +1,152 @@
+From takahiro.akashi@linaro.org Fri Mar 10 15:57:29 2023
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:27fe:21fc:85a1:3ac])
+        by smtp.gmail.com with ESMTPSA id jx17-20020a170903139100b0019468fe44d3sm711221plb.25.2023.03.09.22.57.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Mar 2023 22:57:29 -0800 (PST)
+Date: Fri, 10 Mar 2023 15:57:26 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Message-ID: <20230310065726.GA50027@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 4784
+Lines: 130
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  I tried a couple of changes in settings.
+  1) PTP update&tuning
+  2) OVS retry
+  3) Modify the gate list of taprio
+  4) Put vhost thread in SCHED_FIFO,priority 41
+
+  (1) page 53,54 in [2]
+  Debian package was v3.1.
+  I built Linux PTP from the latest master branch, so the version should be
+  v3.1.1+. In addition, I put the PTP daemon (ptp4l) in SCHED_FIFO, priority 41
+  (41 is the lowest in this scheduling class).
+
+    -> we observe a couple of big spikes of latency as well as some kind of
+       PTP disorder.
+
+  I didn't have time to investigate those cases with ftrace on.
+
+  (2) page 55,56 in [2]
+  The exact same configuration as before, except PTP changes in (1).
+
+    -> we observe a couple of big spikes of latency as well as some kind of
+       PTP disorder.
+
+  (3)&(4) page 57 in [2]
+  I adopted the following configuration for taprio.
+  Packets from the benchmark can now be transmitted not only in the slot#1
+  but also in the slot#2 so that we have another chance to send a packet
+  even if we miss the first slot.
+  (before)      (after)
+  03    ->      03 101000
+  02    ->      03 103000  <== add bit#0
+  06    ->      06 109000
+  0a    ->      0a 190000
+
+  I failed to set up the NIC with this configuration due to the Intel
+  driver's bug. I sent a bugfix patch and it was accepted[3].
+
+    -> I do not see any noticeable improvement regarding either on latencies nor jitters.
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[4]
+* I once again performed tests against all the network types.
+  (sender)
+  - PREEMPT_RT kernel v6.2-rc3
+  - taprio with the new configuration mentioned above
+  - PTP v3.1.1+ assigned to FIFO,41 with the socket priority 5          <- new
+  - the benchmark app runs in FIFO,90 with the socket priority 7
+
+  (receiver)
+  - PREEMPT_RT kernel v6.2-rc3
+  - taprio with the new configuration mentioned above
+    (This setup is temporarily removed in OVS+AF_XDP due to PTP failure.)
+  - PTP v3.1.1+ assigned to FIFO,41 with the socket priority 5          <- new
+  - Packet filtering with IRQ affinities
+       benchmark -> queue#0 -> cpu#2
+       ptp       -> queue#1 -> cpu#1
+       netperf   -> queue#2 -> cpu#0
+   (This setup is removed in OVS+AF_XDP case.)
+  - CPU #2 and #3 are isolated with nohz,domain,managed_irq
+  - CPU affinities
+      vhost in FIFO,41 to cpu#2                                         <- new
+      or ovs-switchd in FIFO,41 in OVS+AF_XDP case                      <- new
+      kvm process to cpu#3
+
+      (ksoftirqd to cpu#2 as well?)
+
+* See page 58-71 in [2].
+  - The result in OVS+AF_XDP case got worse than the last week's.
+    After the test, I tried to copy the log file to my PC, but "scp" command
+    failed without "connection refused", while "ping" still responded.
+    (After a few minutes, this problem was silently recovered.)
+
+    Given that scp is a TCP (connection-oriented) app and that gc_worker(), which
+    is part of netfilter's connection tracker, was running in big-spike cases
+    in the past, It seems that the network got disrupted somewhere in the stack's
+    connection management.
+
+  - I still see some big spikes as well as a kind of PTP disorder.
+  - Except those issues above,
+    * There is not a big difference in measured latencies among different
+      network technologies
+        -> due to a relatively small network configuration
+    * Average latency increases in netperf case, but the diff is kept
+      relatively small
+        -> thanks to TSN (Qbv)
+    * Standard deviation (jitters) increases in netperf case, but acceptable?
+        -> thanks to system tunings,
+           but probably more optimisation expected
+
+    Those are the *tentative conclusion*.
+
+
+* I haven't written up any text yet :)
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] http://patchwork.ozlabs.org/project/intel-wired-lan/list/?series=345092
+  [4] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No update
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Mar 21: Sprint Equinox Day (public holiday)
+(Around this week, I may take a week-long vacation.)
+

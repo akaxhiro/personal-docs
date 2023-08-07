@@ -1,0 +1,8 @@
+make bindeb-pkg
+
+<build dir>/debian/usr/share/doc/...
+
+dpkg-deb: building package 'linux-image-6.3.2+' in '../linux-image-6.3.2+_6.3.2-g698c96322701-1_amd64.deb'.
+dpkg-deb: building package 'linux-libc-dev' in '../linux-libc-dev_6.3.2-g698c96322701-1_amd64.deb'.
+dpkg-deb: building package 'linux-headers-6.3.2+' in '../linux-headers-6.3.2+_6.3.2-g698c96322701-1_amd64.deb'.
+

@@ -1,0 +1,106 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-10-22
+Reply-To: 
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- Bugzilla[1].
+  I've got a comment from Samer (Arm). He said that FWTS (FirmWare
+  Test Suite from Ubuntu) covered "image authentication."
+
+  It's pointless. I know the test case and know that it doesn't
+  test "image authentication."
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- patch v6[2]
+  No new comments on ML.
+  I will re-post the patch after rc-1 merge window is closed(10/26).
+
+- capsule authentication[3]
+  I haven't seen any post from Sughosh this week.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-September/425675.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3[4]
+  I and Ben have had a couple of iterations of updating the patch[5]
+  and running/testing the code.
+
+  After I reworked interrupt handling on sdhci, the driver can successfully
+  detect and initialize an UHS-2 card.
+  Yet I don't know that Ben was able to access data on a card.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [5] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+(Misc)
+[LBI-40] / Stratos (?)
+- Trial of Xen guest vm
+  We can't start Zephyr directly on domU yet, but now can load and
+  run it from U-Boot(!). The only change needed is to modify U-Boot's
+  "bootelf" command by disabling and invalidating data cache before
+  jumping into the entry address.
+  (Qemu's TLB seems to be to blame.)
+
+  Regarding Zephyr, I somehow successfully ran "Hello World" application.
+  But we need a couple of tweaks around interrupt handling on Zephyr.
+  I'm going to continue to discuss about this issue with Stefano and
+  Julien.
+
+  For console output, I currently use a hypervisor service for debugging
+  and so it is "output only". To fully para-virtualize the console,
+  we need to port a lot of xen features like xenbus, event channels,
+  grant tables and so on.
+
+- I believe that we should definitely have some tool that allows us to
+  debug the binary on a guest vm in an effective manner.
+  I pinged Xendbg's author again, but have not received any reply yet.
+
+  The only option that I can come up with is "Fast Model" with RealView
+  debugger. It can allow us to access a different memory space in
+  a different exception level.
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  I've got a bit lazy feedbacks from the maintainer.
+
+  [6] https://lists.denx.de/pipermail/u-boot/2020-October/429431.html
+
+=== Patch status ===
+    uboot/xendebug v1: submitted on 10/15
+    uboot/capsule  v6: submitted on 9/7
+    uboot/virtio   v1: merged
+    uboot/multi-sig fix v1: merged
+    uboot/secure-state fix v1: merged
+    uboot/int_ca   v5: merged
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+None
+(Probably I will take week-long day-offs in October.)

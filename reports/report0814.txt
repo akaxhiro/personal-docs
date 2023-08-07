@@ -1,0 +1,115 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-08-14
+Reply-To: 
+
+Apologies for missing last week's report.
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- No updates on Bugzilla[1].
+  Pinged one of assignees (ARM) again, but saw no response.
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+
+- "intermediate certificates" support[2]
+  Finally Heinrich agreed to merge the last patch in my patch set.
+  Actually I have not made any change, but instead fixed a bug[3]
+  of the existing signature verification code, which caused him
+  to see a test failure in his local environment.
+
+- fixed multiple signatures issue
+  Heinrich has raised his concern about the semantics in handling
+  multiple signatures case.
+  I have been doubtful about the issue, but then confirmed
+  that he was right as I observed how EDK2 behaved against
+  the same scenario.
+  I submitted a fix patch[4] with the test case updated.
+
+  Anyhow, this shows how important it is for us to have
+  some kind of compliant test suite for secure boot as I mentioned
+  in KWG-471.
+  Otherwise, different implementations may work in a slightly different
+  way, and this can potentially lead to security attack vectors.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-July/420879.html
+  [3] https://lists.denx.de/pipermail/u-boot/2020-August/423137.html
+  [4] https://lists.denx.de/pipermail/u-boot/2020-August/423375.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- patch v4[5].
+  Waiting for a review by 'DFU' maintainer.
+
+  [5] https://lists.denx.de/pipermail/u-boot/2020-July/420966.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3[6]
+  I have seen no activities in ML.
+
+  [6] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+- Blog write-up
+  I have started to collect some topics that I would deal with
+  in the article.
+  In particular, I'm now trying to boot distro linux with secure
+  boot enabled in U-Boo on qemu-arm64. Saw a bunch of difficulties.
+
+  It was so tricky to install EFI-enabled OS image to a disk; at first,
+  installed the OS with EDK2, then started U-Boot, enrolling
+  all signature database, PK, KEK and db with the certificate extracted
+  from shimaa64.efi.
+  I finally managed to boot Centos, but still fail in installing
+  Ubuntu.
+
+  For your curiosity, Centos image, specifically shimaa64.efi and
+  grubaa64.efi, is signed, but not by Mcirosoft CA but by
+  "Red Hat *Test* Certifying CA".
+  More interestingly, the certificate contains a "period of valid
+  signing time", but it is from 2012 to 2013.
+  Meanwhile, the signing time in, for example, shimaa64.efi, is
+  dated '2019'.
+
+  This fact implies that, at least with CentOS, secure boot has never
+  been used on arm64 platforms.
+
+- I would also like to mention a current hot topic, "BootHole",
+  in the article though it is not directly linked to secure boot.
+
+=== Patch status ===
+    uboot/capsule  v5: submitted on 8/8
+    uboot/int_ca   v5: submitted on 7/21
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+None
+
+
+

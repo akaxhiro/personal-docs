@@ -1,0 +1,98 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-12-17
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to learn basic network technologies, including
+  TSN, XDP and SR-IOV (for virtual network).
+
+  In particular,
+  - more details of TSN protocols, and asked Kojima-san about
+    his task on measuring a latency with TSN on DeveloperBox
+  - PCI passthrough and SR-IOV(VF)
+    If PF or VF under passthrough is available, it will be trivial
+    that those technologies will give a vm the best network performance.
+
+    Then I wonder why we will have to assess/investigate the software
+    overhead in other cases (using XDP).
+    (If a latency is a *must* requirement, it would be worth paying
+    to have a dedicated NIC in automotive products. Using TSN or not
+    is an independent issue.)
+
+* continued to investigate the kernel's timestamping[1] on socket interface.
+  It will give us some timestamping points in the kernel (either by
+  software or hardware);
+  1.sender side: "when data leaves the kernel. ...  generated in
+    the device driver as close as possible"
+  2."tx timestamps prior to entering the packet scheduler"
+  3.receiver side: "just after a device driver hands a packet to the
+    kernel receive stack"
+
+  So, according to [1],
+  (2) - (userspace timestamp) = protocol processing overhead
+  (1) - (2) = driver (queing) delay
+
+  I don't know yet what the timing of (3) is.
+
+[1] Documentation/networking/timestamping.rst
+    tools/testing/selftests/net/[tx|rx]timestamp,timestamping
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+  Alex suggested that he didn't have an issue with the latest software.
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+  Jean suggested that trampoline support wouldn't be needed by XDP.
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  no progress
+
+ Francois may be interested in virtio-net.
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration, RFCv2[2]
+  Simon gave me his ack's to two thirds of my patches.
+  This only thing he asked me to do is to add a test for new features.
+
+[TS-102]
+- mkeficapsule revamp v7[3]
+  I made a second ping to Heinrich and have received no comments. Sigh.  
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+  No progress
+  This task somehow depends on the issue below.
+
+* Device path creation improvement for USB device[5]
+  No progress
+  One of issues that Mark raised is how we should handle *pci bridges*
+  between the root complex and end points.
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-December/469416.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ rfc2: submitted on 12/10
+    uboot/cap auth v7: submitted on 11/16
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* I need boards (MachiatoBin) for network measurements.
+
+=== Travel&Holiday&Event ===
+Dec 28 - Jan 5: off for New Year (maybe)
+Jan 10: Coming-of-Age Day (public holiday)
+

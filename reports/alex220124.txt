@@ -1,0 +1,41 @@
+topics
+* network latency measurements
+  - experimentally trying network confguration on my desktop PC:
+      
+#      1.ip-fowarding/NAT
+#      2.tap+bridge
+#        echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
+#      3.macvtap
+#        ip link add link eth0 name macvtap0 address 52:54:00:b8:9c:58 \
+#		type macvtap mode bridge
+#	qemu ... -netdev tap,id=net0,fd=3 ... 3<> /dev/tap12
+
+      4.open vSwitch (w/ or wo AF_XDP)
+      5.XDP as a simple bridge
+	-> don't want to run it on my PC
+
+      * Please make sure this is XDP not AF_XDP
+        (You and Mike sometimes suggested AF_XDP in test scenario/autmotive
+	 demo, but I don't know what he meant by AF_XDP.)
+
+  - a small write-up for my trial
+    Please review, especially XDP usage.
+
+  - One of my concerns is the performance really depends on
+    network requirements/configuration.
+
+      * macvtap, except a simple XDP, can perform best in a simple case.
+	It, however, has some restrictions. 
+
+  - Next
+    Investigate tools for measuring *latency*
+
+    Do we need to analyse details of overheads?
+    You mentioned, in your "initial thoughts", xdp_xmit/xdp_redir/xdp_pass,
+    saying,
+	"For each experiment we need to measure the latency of 3 different
+	 packet reflectors."
+
+
+* MACCHIATObin
+  - No update for a new delivery date

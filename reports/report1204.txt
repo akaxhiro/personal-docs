@@ -1,0 +1,77 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-12-04
+Reply-To: 
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- Submitted v10[1]
+  And now it got merged (which will appear in the coming -rc4).
+
+- capsule authentication[2]
+  I took a quick look at it and didn't like his approach.
+  But I don't have enough time yet to make comments.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-November/433805.html
+  [2] https://lists.denx.de/pipermail/u-boot/2020-November/433553.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[3]
+  Addressed most of all Adrian's first comments, will yet have to
+  take care of the additional ones.
+
+  Meanwhile, I asked Ben when he expected that he would be able to
+  get back to his uhs2 task, but haven't got any answer.
+
+  [3] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+[LBI-40] / [STR-21]?
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+  Adding block IO code, I think that the coding was done, at least,
+  as prototype work.
+  Now I started debugging on 'Xen with IOREQ patch'[4] on qemu.
+
+- Continued to discuss about GIC-related issues on Zephyr with Stefano
+  and Julien.
+  The patch is ready, but I had no time to submit the patch this week.
+
+- Zephyr on Xen[5]
+  No progress, at least, on my side.
+
+  One person (Nataliya, personal?) promoted herself to taking STR-11.
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  No progress
+
+  [4] https://marc.info/?l=xen-devel&m=160278030131796
+  [5] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+- Attended some seesions in Open Source Summit Japan + Automotive Linux Summit
+
+=== Patch status ===
+    uboot/capsule  v10: submitted on 11/30, and merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+None

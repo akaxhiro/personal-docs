@@ -1,0 +1,89 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-09-18
+Reply-To: 
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- No updates on Bugzilla[1].
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+# No updates since last week.
+
+- I have closed this card.
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- patch v6[2]
+  See no new comments.
+
+  I pinged again, and finally Tom said that he would review DFU part
+  on behalf of Lukasz.
+
+- Heard nothing from Sughosh on capsule authentication[3]
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-September/425675.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3[4]
+  Continued to work on v4, in particular, sdhci controller side.
+
+  During refactoring the code, I found many redundant, inconsistent or
+  ambiguous, and so dubious, code in UHS-II support.
+  So while Adrian's comments are rather trivial at the first glance,
+  it will take more time to morph and refactor the code.
+  (and it was not so "straight-forward" to convert the code as a module
+  as Adrian doesn't like my current approach.)
+  I'm going to take a step-by-step approach by confirming one change
+  at a time in ML.
+
+- Ben occasionally replies to my comments on ML, but has not informed
+  me of his current status.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+- Blog write-up on UEFI secure boot (LBO-19)
+  Finished the draft[5] and asked some folks for review.
+
+  [5] https://drive.google.com/file/d/16NNhPo5yS18fupwL19AsKH0S2HXNDhA_/view?usp=sharing
+
+=== Patch status ===
+    uboot/capsule  v6: submitted on 9/7
+    uboot/virtio   v1: merged
+    uboot/multi-sig fix v1: merged
+    uboot/secure-state fix v1: merged
+    uboot/int_ca   v5: merged
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+Sept 21-22: National Holidays
+Sept 22-24: Linaro Connect Virtual
+

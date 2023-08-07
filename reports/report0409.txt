@@ -1,0 +1,52 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-04-09
+Reply-To: 
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[4] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+- Did some cleanup work just in case that someone inside Linaro
+  may want to take a look at my code of BE app.
+  (There are still bunch of hacky code though.)
+
+- Started to examine *my* code, particularly usages of Xen
+interfaces in the device initialisation. The purpose is to study
+the possibility of isolating Xen-specific code from the rest of
+generic code by defining some sort of shim layer or moving some of
+Xen-specific initialisation steps from BE itself to Xen toolstack
+(that is "xl" command) or Xen itself (IOREQ framework).
+
+- discussion on Xen side
+I raised those issues below and started some discussion with Stefano
+(and others):
+  1) xenstore dependency
+  2) gic issue (but it was caused by my wrong configuration.)
+  3) license terms of Xen libraries/toolstack
+
+Regarding (3), I saw positive comments from other folks and it will
+hopefully be discussed in Xen community, quoting
+"Both of these are probably something we should discuss at the next
+community call; and almost certainly something that would be good
+for a XenSummit talk or design session."
+
+It will be beyond my ability to follow (and certainly lead) the discussion :)
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+April 29 to May 5: Golden week (long-last national holidays)

@@ -1,0 +1,184 @@
+===========================================
+Network Latency with TSN on Virtual Machine
+===========================================
+
+This blob series will describe our experiments in evaluating network latency with
+IEEE802.1 TSN (Time Senstive Networking)[1] technology, especially under virtual
+machine (hypervisor) environment.
+
+Preface or Background
+=======
+Nowaday, Software Defined Vehicle (SDV) has been getting momentum in automotive
+industry. As a modern vehicle is equiped with highly-sophisticated functions from
+powertrain/chassis control to infortainment and ADAS and connected to outside
+world via cloud infrastructure for supporting value-added services, more and more
+software components have been integrated in building and creating a modern vehicle.
+
+Linaro's white paper[2] surveys this trend, summarises architectual transformation
+along with standardized technologies being deployed in this segment and illustrates
+challeges that we are facing now and in the future.
+
+One of areas being evolved is a connectivity in a car or CANbus:
+"The effort to simplify the complexity and amount of wiring in a car and reduce
+its manufacturing cost has led to the definition and adoption of a single unified bus
+in the car, also known as Audio Video Bridging (AVB), Time Sensitive Networking
+(TSN) or Automotive Ethernet."
+
+<fig-1 zonal architecture>
+
+TSN and Performance
+===================
+
+"the best effort nature of the Ethernet
+protocol is not a good match. Moreover the traditional
+protection mechanisms for packet delivery (e.g TCP/IP)
+fail to meet the strict requirements of the automotive
+industry."
+
+TSN is known as a collection of standards defined by IEEE801.2, which provide
+the foundation for real-time communications to meet network requirements, delivering
+particular packets within a specific time with minimum jitters whereas other
+low-priority traffic are also transmitted at best-effort basis.
+
+TSN feature includes components like:
+- clock synchronization (Precision Time Protocol, or PTP)
+  all the clocks on connected devices, including NICs and routers, across the network
+  must be synchronized to behave in a timer manner to meet the time contraints.
+- various network schedulers/shapers
+  Credit-based scheduler (cbs or Qav) provides fair shceduling, allowing managed
+  bandwidth for each traffic, while time-aware shaper (tas or Qbv) enforces
+  determinisic delivery under strict packet gate controls.
+  They are well known schedulers but there are more related technologies.
+- path control and redundancy
+  for managing network resources and preventing network congestion/packet loss.
+
+With those technologies combined and properly configured, some level of determinism
+in packet delivery is guaranteed. This determinism is, however, limited at hardware
+or mac layer as more components in software stack, along with kernel or hyervisor
+actitvies, get involved both on sender side and receiver side and may play
+a significant role in increasing end-to-end latency in specific use cases.
+
+Linaro has been getting involved in TSN related activities and contributed to
+enhancing user experiences in time sensitive system/environment. In the past
+Linaro Connect, we also presented our experiments[3] to improve/minimize
+the software overhead in kernel network stack utilizing AF_XDP technology as
+a fast data path.
+
+Here we have the goal in this series of blob's,
+"The next step is to deliver packets to the same software layers but running
+inside a VM. This implies measuring and coping for the added latency of
+the hypervisor and the guest operating system in addition to the host OS.
+The ongoing work in Project Stratos will lead the analysis and definition
+of the right virtio interfaces to enable the same fast path performances
+across the VM boundaries."
+
+Latency Evaluation
+==================
+
+Simple scenario
+---------------
+To start with planning latency measurement and analysis, 
+let's look at and discuss about expected nature of real-time
+applications and acceptable criteria against network requirements, both
+of which effectively governs/moderates our approach in evaluation process.
+
+ECU server may host a huge number of applications on guest VMs to provide
+a variety of automotive functionality like engine mangaement, climate
+control, instrumental cluster, infortainmaint and ADAS. Those applications
+have its own requirements on networking and all the traffic generated should
+be well coordinated to meet their criteria. To be frank, we don't know much
+about those details and then we would like to start with a simple use case:
+ - one time-sensitive application
+ - non-critical network load in background
+
+An application may be a streaming from back-camera or a sensoring of
+environmental factors. Data may be in a small or large packet but it is
+expected to be delivered to the app within a bounded latency and in
+a forecastable period of interval, whereas bulk tranfer of data will be
+allowed at best-effort and yet acceptable data rate.
+
+We have two evaluation boards with TSN-capable NIC cards.
+One node works as a source of data, running a client benchmark app.
+The other board hosts a guest VM, which works as a consumer of data stream.
+
+The benchmark client application will try to send out a short packet in a fixed
+interval in Private VLAN while the background network traffic is generated
+in another subdomain of LAN at the same time. So TSN, especially on sender side,
+should be properly configured to manage both traffic.
+
+<fig-2 board setup>
+
+This setup fits to emulate a centerized ECU server in automotive system,
+where a VM for a particular service is serving in parallel with other VMs.
+
+Virtual Network Interface
+-------------------------
+We use kvm as our first choice of hypervisor since there are several choices
+for virtual network configurations available to test.
+
+Another advantage of using kvm is that, as it is integrated in Linux kernel,
+we will be able to make use of built-in instrument tools to examine and analyze
+behaviors around networking in the system later on.
+
+On a geust VM side, we always use virtio-net as a virtual network device
+since it is a standard device used in virtual environment and performs
+much better than a legacy device fully-emulated by qemu.
+
+On the other hand, we intend to examine various configurations for host
+(backend) implementation. We also always enable vhost-net module so that
+we can avoid additional cost due to context switches and data copy.
+
+a) virtual bridge
+b) macvtap
+c) offload to userspace (vhost-user)
+
+In addition, we will use the following systems as reference performance for
+comparison:
+d) NIC pass through (of physical device or SR-IOV virtual function)
+
+
+tap
+~~~
+A packet that arrives at a physical network interface is forwarded to a tap interface
+which represents a VM interface on host side by kernel bridge.
+
+Then it is acceralated by vhost-net module to emulate backend in kernel layer as
+a fast data path while virtio-net interface still is maintained.
+
+We think of following bridge implementation:
+a-1) kernel bridge
+a-2) Open VSwitch
+a-3) XDP-based bridge
+
+macvtap
+~~~~~~~
+Macvtap is a combination of macvlan and tap interface. Each macvtap interface has
+its own mac address on an assocated physical network interface and all the packets
+destined to this address are directly redirected to a guest VM at the low layer
+of kernel network stack.
+
+NIC pass through
+~~~~~~~~~~~~~~~~
+Some NICs have virtual functions of network interfaces, which are directly exposed
+to guest VMs and work as dedicated network ports. With support of PCI's SR-IOV
+and IOMMU, guest VM will see them as if they were physical devices passed through
+via PCI by host OS.
+
+Connecting a dedicated device to a guest VM in (e), we will skip most of
+overhead imposed by host or hypervisor, and we expect an optimal performance
+in VM environment. 
+
+
+Trailer
+=======
+In this particle, we explained our planned methodology for latency evalution.
+If you have any comments or suggestions on our approach or about assumption on
+system configuration, please let us know promptly so that we will perform
+more useful analysis and develop effective practices in building a production system.
+
+
+[1] https://1.ieee802.org/tsn/
+[2] https://static.linaro.org/assets/automotive_white_paper_0921.pdf
+[3] https://resources.linaro.org/en/resource/F6xXMMdkS6BjHdqri8Yy76
+    https://resources.linaro.org/en/resource/TG82UyhpmJafAmEfiaWXP4
+[4] https://linaro.atlassian.net/browse/STR-68

@@ -1,0 +1,20 @@
+build dpdk
+https://doc.dpdk.org/guides-21.11/linux_gsg/build_dpdk.html
+
+
+build ovs
+autoreconf --install ...
+
+configure --prefix=/ --enable-afxdp --with-dpdk=shared
+
+
+
+Hugepages:
+sudo sysctl -w vm.nr_hugepages=512
+mount -t hugetlbfs none /dev/hugepages
+
+ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=try
+ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-hugepage-dir=/dev/hugepages
+ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem=512
+# check
+ovs-vsctl --no-wait get Open_vSwitch . dpdk_initialized

@@ -1,0 +1,17 @@
+/var/log
+--------
+$ logrotate
+$ cat /ar/lib/logrotate.status
+
+/var/log/journal
+----------------
+$ journalctl --vacuum-time=10d
+             --vacuum-size=100M
+for permanently, edit
+/etc/systemd/journald.conf
+    SystemMaxUse
+    SystgemMaxFileSize
+
+/var/cache/apt
+--------------
+$ apt clean|autoclean

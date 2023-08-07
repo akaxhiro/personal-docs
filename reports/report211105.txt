@@ -1,0 +1,88 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-11-05
+Reply-To: 
+
+Stratos
+=======
+* Alex suggested that I might take STR-66, "Research hypervisor mediated
+  copy approaches including Argo.
+  He pointed out another work, hypervisor-less virtio, by WindRiver.
+
+  I think that such kind of research work should cover a wider (not
+  exhaustive :) list of implementations available now, including ivshmem.
+
+[STR-21]
+  Some guy (Dmytro) reported his *current* work on this card.
+  I believe that most of his work is duplicated tasks I have already done
+  in my virtio-proxy study.
+  Since my goal was to provide hypervisor-agnostic solution (on Zephyr),
+  I didn't want to upstream Xen-related interface support, like
+  event channel/xebus/Xen hypercalls.
+
+  I wonder why this card has not been closed while we agreed to do so
+  almost one month ago.
+
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[1]
+  Simon and Heinrich still insisted that we should a special node (device)
+  of 'partition table' in DM tree:
+    BLK(whole disk) -> PARTITION_TABLE -> PARTITION -> BLK(partition)
+
+  But I don't understand what is the benefit behind their idea.
+  We still have some gap before reaching some consensus.
+
+U-Boot support
+==============
+[TS-102]
+- Ilias assigned me to this card.
+- mkeficapsule
+  I submitted v6[2].
+  While I expected that most of all patches were now accepted (at least,
+  acked by Simon), two new issues arose:
+  - The tool fails to build on *OpenBSD* host.
+    The problem is that this host tool includes some efi header from
+    U-Boot tree, but it contains a target(and OS)-dependent type definition
+    (kernel_size_t).
+  - Simon wants the feature provided by this tool to be implemented
+    (or at least, integrated) in binman utility.
+    Binman is a tool for packaging various type of binaries and data
+    into a distribution package although it is not quite popular
+    outside U-Boot build&CI process.
+
+* preparing a patch for "removable media" support on UEFI bootmanager
+  UEFI specification requires that, if the path specified in "BootXXXX"
+  variable doesn't contain a path to a binary file on that device,
+  boot manager should look for the default file, /EFI/BOOT/bootaa64.efi.
+
+  Currently this feature is not implemented by boot manager, but
+  some how managed by distro_bootcmd script.
+  This situation has raised some concern/confusion in the discussion
+  about Simon's bootflow idea.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[2] https://lists.denx.de/pipermail/u-boot/2021-October/465244.html
+
+(MISC)
+- MMC UHS-II support
+* Genesys (Jason) posted v3.2[3]
+  no progress
+
+[3] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v6: submitted on 11/02
+    uboot/disk_integ rfc: submitted on 10/01
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Nov 23: Labor Thanksgiving Day (national holiday)
+
+

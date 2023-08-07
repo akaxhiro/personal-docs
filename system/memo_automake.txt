@@ -1,10 +1,22 @@
 See http://www.02.246.ne.jp/~torutk/cxx/automake/automake.html
 
+# ltmain.sh
+$ install libtool
+$ libtoolize
+
+# optional?
 $ autoheader
+
+# m4 macros
 $ aclocal
-$ automake --add-missing
-$ cp /usr/share/libtool/build-aux/ltmain.sh .
-$ automake --add-missing
+
+# configure.in & configure
 $ autoconf
+
+# Makefile.am to Makefile.in
+$ automake --add-missing --copy
+if you didnt libtoolize, instead
+  $ cp /usr/share/libtool/build-aux/ltmain.sh .
+  $ automake --add-missing
 
 $ ./configure 

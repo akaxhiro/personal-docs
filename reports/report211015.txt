@@ -1,0 +1,73 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-10-15
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1],[2]
+
+  I'm waiting for any feedback from Mike or Alex.
+
+- In my spare time, I'm learning to how to write Rust library on
+  Zephyr. Since there is no "standard" library available, we will have to
+  have wrappers (or language bindings) either Rust -> C(Zephyr APIs) or
+  C -> Rust.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+
+[TS-118]
+- UEFI-DM(U-Boot's device model) integration[3]
+  I'm trying to address comments from Simon, one-by-one.
+  Since there are quite a lot of comments, I'm afraid that I might
+  miss out some of them.
+
+  The main topic that we are now discussing is how partitions are
+  *modelled* in U-Boot driver model. DM consists of class, driver
+  and device and each device (or class) has its parent device.
+
+  In the current U-Boot driver model, partitions don't have their own
+  device class, but in my RFC, they are recognized as device objects.
+
+  Simon suggested that a partition should have a *child* block device
+  which is to be used to access data, while my RFC assumes that
+  a partition is neither a block device nor has a child device, but yet
+  exposes block io interfaces as a block device (a whole disk) does.
+
+  What makes things even confusing is that we will have to handle
+  "hardware" partitions as well as table-based (software) partitions.
+  Different devices (MMC, NVMe and UFS) have different type of hw partitions
+  and they are handled in different ways on U-Boot, in particular, MMC.
+  (MMC hw partitions on a single device internally share one udevice.)
+
+(MISC)
+- U-Boot support
+* mkeficapsule
+  There are a comment from Simon on reverting his "revert" commits.
+  I hope that he now understands why it is needed.
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-October/462754.html
+
+- MMC UHS-II support
+* Genesys (Jason) posted v3.2[7]
+  no progress
+
+[7] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v4: submitted on 10/07
+    uboot/disk_integ rfc: submitted on 10/01
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Oct 15-22: my *summer* holidays
+
+

@@ -1,0 +1,133 @@
+From takahiro.akashi@linaro.org Fri Apr  8 18:18:36 2022
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:3d72:1d21:ddd7:9358])
+        by smtp.gmail.com with ESMTPSA id 34-20020a17090a0fa500b001cabffcab2csm11284528pjz.55.2022.04.08.02.18.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 08 Apr 2022 02:18:36 -0700 (PDT)
+Date: Fri, 8 Apr 2022 18:18:33 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2022-04-08
+Message-ID: <20220408091833.GA56251@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 4036
+Lines: 110
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* Added STR-74 to "Sprint 1".
+* Closed STR-75 as I've got an initial result.
+
+* latest result of latency measurement
+  (There is no update in this table.)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: under investigation
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* enabling VFIO for NIC
+  - I added the code for configuring stream id's for the NIC device in the kernel's
+    ethernet driver (mvpp2) as a temporary hack.
+    The SoC has three ports (10G, 2.5G, 1G) per controller, but it seems that
+    we can only assign the whole device, not a specific port, to a guest unless
+    we will, according to a Marvell guy, re-write the whole driver.
+  - After struggling to re-build the kernel and (driver) modules, I finally
+    succeeded to boot the kernel.
+  - Then I tried to assign the NIC to a guest;
+        echo f2000000.ethernet > /sys/bus/platform/drivers/mvpp2/f2000000.ethernet/driver/unbind
+        echo vfio-platform > /sys/bus/platform/devices/f2000000.ethernet/driver_override
+        echo f2000000.ethernet > /sys/bus/platform/drivers/vfio-platform/bind
+
+    but kvm failed to start the guest;
+          kvm: -device vfio-platform,host=f2000000.ethernet: vfio f2000000.ethernet:
+            failed to setup container for group 0:
+              Failed to set iommu for container: No space left on device
+
+    It seems that arm_smmu_attach_dev() fails in the middle of ioctl(VFIO_SET_IOMMU).
+    What does "ENOSPC" mean here?
+
+* enabling VFIO for PCIe devices
+  - A Marvell guy gave me a small patch for the kernel's PCIe driver (pcie-armada8k) which
+    allows the hardware to map a PCI's requester ID to a stream ID.
+    (Again, this code should go into the firmware/TF-A.)
+  - Then I tried it, but strangely, the driver (probe function) is never called.
+    I have no idea about why.
+
+* I and Alex discussed the current status on VFIO support and agreed that we should
+  discontinue the trial of VFIO configuration if we can't let the network up in passthrough mode
+  even after my one-week efforts.
+  I will spend, at least, a few more days as I might get any useful feedback from Marvell guys.
+
+[STR-74] Setup for Open vSwitch
+* No progress
+
+[STR-75] (Set up for eBPF-based bridge)
+* The program is based on David's work[1].
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+[STR-76] Break down the latency
+
+* No progress
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-118]
+* Ilias closed this card and created TS-219 for follow-up of upstreaming
+  the patch[2].
+
+(MISC)
+* No update from Kojima-san on his bootmenu v4[3]
+  It contains (part of) my removable media patch[4].
+
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-March/477141.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-March/478891.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v3: submitted on 3/8
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: integrated into Kojima-san's patch series
+
+=== Issues ===
+It takes a lot of time to build the kernel on MacchiatoBin with a HDD (not a SSD).
+
+=== Travel&Holiday&Event ===
+Apr 29 - May 5: Golden week (public holidays)
+

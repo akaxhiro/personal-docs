@@ -1,0 +1,127 @@
+From takahiro.akashi@linaro.org Fri Nov  6 17:05:36 2020
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p784a66b9.tkyea130.ap.so-net.ne.jp. [120.74.102.185])
+        by smtp.gmail.com with ESMTPSA id j15sm995085pfn.43.2020.11.06.00.05.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Nov 2020 00:05:36 -0800 (PST)
+Date: Fri, 6 Nov 2020 17:05:33 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Subject: [Weekly] Week ending 2020-11-06
+Message-ID: <20201106080533.GA29630@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- Bugzilla[1].
+  No comment from Samer (Arm).
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+- I wonder what are planed tasks for dependable boot in the current
+  development cycle.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- v7[2]
+  Heinrich indicated that we hade test failures on Travis CI.
+  The error looks weird and I have not reproduced it in my local
+  environment. Moreover, It is actually on secure boot test, not
+  on capsule update test.
+  While I didn't find out the *root cause,* I managed to fix it
+  after several "cut and try" attempts.
+
+  Meanwhile, Tom also mentioned another issue on Travis CI. He requested
+  that all tests should pass or be skipped, instead of failure, if there
+  is a missing or not-working component on CI environment.
+  (Namely, virt-make-fs command in some python scripts doesn't
+  work as it is installed by Ubuntu.)
+
+  We have been discussing about this issue for some time. I can add
+  a kind of fail-safe handling using sudo command. The issue is that
+  Heinrich has rejected such a solution in the past and will not.
+
+  So far, I have seen his comment on this.
+
+- capsule authentication[3]
+  I haven't seen any post from Sughosh this week.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-October/431097.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support
+  Although I didn't get Ben's final test result, I posted the new version
+  as RFC v3.1[4],[5].
+
+  This version contains only my changes on 'sdhci' side as Ben is still
+  working on 'host' side and have not finished his work.
+  The aim is to get early feedback from Adrian regarding modularising
+  sdhci-uhs2 component as extensive rework has already been made on code
+  structure.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [5] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+(Misc)
+[LBI-40] / Stratos (?)
+- Trial of Xen guest vm
+  Now I successfully ran my Open-AMP application on Zephyr.
+  Two threads talk with each other using rpmsg interfaces which
+  communicate via virtio channels.
+
+  The next steps that I have in my mind are:
+  * Run two Open-AMP apps on two guest vm's to talk to each other.
+    (First of all, I have to learn how we can set up "shared memory"
+    between vm's and how we can signal an interrupt from one vm to another.)
+  * Implement a real virtio frontend driver with Open-AMP (virtio).
+    I started to look into linux implementation of virtio-mmio.
+  * Study how we can directly build up a virtio device backend on zephyr.
+    (Alex seems to have started his study with vhost-user library on linux.)
+
+- Continued to discuss about GIC-related issues on Zephyr with Stefano
+  and Julien.
+  No progress, but Julien (Arm) is now trying to reproduce the issue
+  in his environment.
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  No progress
+
+- Submitted sbsa-uart driver for U-Boot[7]
+  This is also an RFC since there is some weird workaround necessary;
+  Data cache must be turned off on U-Boot. Apparently, caching has
+  nothing to do with uart emulation (which is nothing but memory-mapped
+  registers), but U-Boot will hang at early boot stage without this tweak.
+
+  [6] https://lists.denx.de/pipermail/u-boot/2020-October/429431.html
+  [7] https://lists.denx.de/pipermail/u-boot/2020-November/431788.html
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/capsule  v7: submitted on 10/30
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+Nov 23: Labor Thanksgiving Day

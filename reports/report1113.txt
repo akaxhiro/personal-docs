@@ -1,0 +1,116 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-11-13
+Reply-To: 
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- Bugzilla[1].
+  No comment from Samer (Arm).
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+- I'm going to review the existing secure boot related JIRA cards
+  aiming to close some of them if appropriate.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- Submitted v8[2]
+  Added minor updates, in particular, against test failures.
+  I don't see any blocking factors for upstream other than "virt-make-fs"
+  issue.
+
+- capsule authentication[3]
+  I haven't seen any post from Sughosh yet.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-November/432680.html
+  [3] https://lists.linaro.org/pipermail/boot-architecture/2020-August/001369.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support[4],[5]
+  No comments so far and I don't anticipate any comments in the coming
+  few weeks given such an extensive rework.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [5] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+
+(Misc)
+[LBI-40] / Stratos (?)
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+  I started to implement (or at least, prototype) a virtio frontend
+  driver on Zephyr using Open-AMP library.
+  Here the virtio device is a block device since it is the only available
+  device type supported with Xen's IOREQ patch that is under review in
+  Xen-dev ML.
+
+  In this effort, I hit a problem that any read/write to a "configuration"
+  space of a virtio device fails, resulting in data abort.
+
+  After many 'cut and try' changes, I found that the mmio region needs to
+  be "memory-mapped" on a guest vm so that Xen can trap such an access
+  and emulate the device.
+
+  But it sounds weird, and I am discussing this issue with Stefano
+  and Julien. I think of an possibility of a qemu bug, considering
+  all the evidences I have.
+
+  I spent almost three days in investigating this issue, with no
+  good progress in implementing a virtio driver itself. I hope, however,
+  that finishing the experimental code will not take more than one week.
+
+  Debugging is a different issue :)
+
+- Continued to discuss about GIC-related issues on Zephyr with Stefano
+  and Julien.
+  Julien has proposed a fix (or workaround) as he observed a "spurious"
+  interrupt around a normal interrupt occurrence.
+
+  He also hinted there may be another problem around interrupt injections
+  by qemu. No details yet.
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  No progress
+
+- sbsa-uart driver for U-Boot[7]
+  I mentioned a "cache" issue in my last week's report.
+  I'm almost certain that it is directly linked to the problem mentioned
+  above (Xen's mmio emulation).
+
+  [6] https://lists.denx.de/pipermail/u-boot/2020-October/429431.html
+  [7] https://lists.denx.de/pipermail/u-boot/2020-November/431788.html
+
+=== Patch status ===
+    uboot/capsule  v8: submitted on 11/13
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+Nov 23: Labor Thanksgiving Day

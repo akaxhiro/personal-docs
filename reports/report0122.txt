@@ -1,0 +1,96 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-01-22
+Reply-To: 
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1]
+  No progress on my side
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+[STR-21]
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+- continued to work on porting/implementing 'virtio-disk'[2] (backend server) on zephyr.
+
+     1.implement hypercall routines (based on linux, done)
+     2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+       (drivers) from mini-os/unikraft tree. (done)
+     3.fix any compiling problems in Xen libraries
+       (this may require additional code to be developed.)
+
+  Done (1) and (2), adding a bunch of hacky code to minimise
+  the necessary changes to the files imported from unikraft.
+  They include
+    * wrappers to convert unikraft's api's to Zephyer's, for example,
+		#define uk_waitq_wait_event(wq, condition)      \
+			while (1) {                             \
+				k_sem_take(wq, K_FOREVER);      \
+				if (condition)                  \
+					break;                  \
+			}
+    * a function to dynamically add/map one 'page' of memory which is required
+      to communicate with xenbus/xenstore
+      This feature is quite unusual as Zephyr basically doesn't support
+      any hot-plugging (either cpu, memory or devices) and all the pages in memory
+      space are set to be P==V mapped at boot time.
+
+  I'm going to tackle "linking" problems (3) next week. Some adjustment of interfaces
+  between (2) and Xen user libraries will be needed.
+
+- continued studying FF-A (Firmware Framework for Armv8-A) specification.
+
+- GIC-related issues on Zephyr
+  No progress.
+
+- IOREQ on Arm[3] by EPAM
+  v4 is now under review in ML
+
+- Zephyr on Xen[4]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [2] https://github.com/xen-troops/virtio-disk.git
+  [3] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [4] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+[U-Boot]
+- Submitted trivial patches to fix coverity errors on capsule update code.[5]
+
+  [5] https://lists.denx.de/pipermail/u-boot/2021-January/438311.html
+      https://lists.denx.de/pipermail/u-boot/2021-January/438312.html
+      https://lists.denx.de/pipermail/u-boot/2021-January/438313.html
+
+- U-Boot's regular video call started.
+  I didn't attend the first meeting as it was held at 1:30am(!) in local time.
+
+- Capsule update is now a requirement in EBBR according to Grant's e-mail.
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day
+Feb 23: Emperor's Birthday (holiday)
+

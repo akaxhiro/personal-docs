@@ -24,3 +24,7 @@ $ vi /etc/ssh/sshd_config
   UseDNS=no
   GSSAPIAuthentication no
   AddressFamily inet
+
+
+# default gateway
+# ip route add default via 192.168.1.1 dev enp0s3

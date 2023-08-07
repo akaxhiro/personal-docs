@@ -1,0 +1,124 @@
+Takahiro AKASHI
+174-1-202 Higashi-naganuma,
+Inagi-city, Tokyo, JAPAN
+mobile: +81-90-9382-0048
+e-mail: takahiro.akashi@linaro.org (office)
+        akashi.takahiro@socionext.com (office)
+        akax.hiro@gmail.com (home)
+
+Summary:
+Linux software engineer with 15+ years of experiences in a semiconductor
+company after working on various OS-related research works in
+a computer company. Last 10 years dedicated in contributing to
+the development of OSS, linux kernel and firmware.
+
+Seek for a new challenging job where I can leverage my experiences
+in Linux kernel and related software in order to continue
+to contribute to OSS as well as to foster my own skill in emerging
+technology areas, among others, interested in virtualization,
+security or adaptation of new cpu architecture like Risc-V. 
+
+If possible, find a position who is allowed to work from home
+remotely (Japan). Otherwise think of moving near to on-site
+office.
+
+
+Work experience:
+Linaro limited, Tokyo (remote),          Mar 2013-present
+---------------------------------------------------------
+* Working for kernel WG as an full-time assignee dispatched
+  by Socionext
+  - Developing arm64 linux kernel,
+    features I implemented are ftrace and kexec/kdump
+    (partially involved in kgdb and livepatch as well)
+  - Developing U-Boot UEFI subsystem, including secure boot and
+    capsule (firmware) update
+  - Lot more contributions in improving and bug fixing on U-Boot
+  - Study on a hypervisor-agnostic virtio backend framework,
+    developing a PoC on zephyr under Xen
+  - Analysis on network latency on guest VM under Time Sensitive
+    Network (TSN) environment [1]
+  - Most recently, developing U-Boot SCMI support
+
+Socionext Inc, Yokohama,                 2003-present
+-----------------------------------------------------
+(previously part of Fujitsu Limited's Semiconductor Division)
+* Software Development Division (2010-2013)
+  as a tech lead of Linux development team,
+  - Responsible for delivering Linux BSPs for Arm-based ASIC
+    evaluation boards
+  - Worked on bringing up boards and developing device drivers
+    across a few generations of platforms
+* Software department of FR-V(ASSP) Division            (2003-2010)
+  - Engaged in product planning of new SoC's (32-bit
+    micro-controllers with VLIW) and software platform, also
+    got involved in marketing toward ISVs and customers
+
+Fujitsu Limited, Kawasaki,               1988-2003
+--------------------------------------------------
+* Remote service group of Computer System Division (2000-2003)
+  - Engaged in planning and establishing the infrastructure
+    with System Engineering Group to provide remote (servers
+    and devices) monitoring services
+  - Responsible for promoting and expanding the service areas
+    to USA, EU (Germany) and Korea
+  - Lead in developing agent software for servers
+* Planning & Research group of UNIX Server Division (1988-2000)
+  Engaged in various research works on pre-production
+  technologies for Unix-based server clusters & host-standby
+  systems, including
+  - Study on coherent interconnect (infiniband)
+  - Study on Oracle's parallel database option
+  - Performance tunings for database benchmark (TPC-C)
+  - PoC of microkernel-based Unix system for SPARC with
+    fault-tolerance
+  - Study on a single system image of clustering servers
+
+Unix System Laboratories, New Jersey,    1990-1992
+--------------------------------------------------
+* worked as a full-time software engineer dispatched by Fujitsu
+  - Improving commercial Unix system, SVR4 ES/MP, for
+    multi-core systems, being responsible for delivering
+    SMP-capable file systems and thread-safe libraries
+
+
+Education:
+Master of Information Engineering, Tokyo University (1988)
+Bachelor of Electronic Engineering, Tokyo University (1986)
+
+
+Qualifications & Skills:
+(Programming languages and Technologies)
+* Strong programming skill in C & Shell, working knowledge
+  in Python & Rust
+* Experienced for 15+years in developing Linux kernel, device
+  drivers and low-level firmware, including TF-A, U-Boot and EDK2 
+* Experienced one year in developing Zephyr + Xen
+* Knowledgeable with Arm architecture (v8) and Arm assembly
+* Knowledgeable with hypervisors (kvm, xen)
+
+(Development tools and Process)
+* Proficient in version control tools (git, github)
+* Proficient in agile development practice (JIRA, Redmine)
+* Experienced in utilising ftrace and other performance tools
+  to analyze the system performance and the bottlenecks.
+* Experienced in utilising a simulator for development and
+  debugging (qemu, Arm FVP)
+* Experienced in utilising a jtag debugger for debugging
+  (Arm's RealView ICE)
+* Lots of experiences in upstreaming software patches (mostly
+  linux and U-Boot) and cod reviews patches in the communities
+
+(Personal traits and Communication)
+* Strong commitment to task completion with many track records
+  of contributions to upstream software
+* Self motivation with an aptitude for acquiring skills and
+  knowledge of new technologies
+* Willingness in collaborating with inside and outside people alike
+* Good leadership in managing a small group of engineers (~10)
+* Ability of technical documentation and presentation skills
+  in English. See [1]
+* TOEIC 845 (2018)
+
+[1] https://resources.linaro.org/en/resource/jfTURCDTat6faXFK8PwqwK
+    https://www.linaro.org/blog/network-latency-with-time-sensitive-networking-on-virtual-machine/

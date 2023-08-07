@@ -1,0 +1,73 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-02-04
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to study how we can do a breakdown of measured latency,
+  particularly using a socket's timestamping (there exist HW timestamp and
+  SW timestamp). Some application, pktlatency, from David's bpf sample[1]
+  also makes use of this feature.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration
+  I submitted v1[2].
+  One comment from Heinrich; a problem in creating html documents
+  from the source?
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication)
+  To fix a license issue, I adopted:
+>  3) use another crypto library like gnutls
+
+  Then, I submitted v10[3]. It was once pulled in Heinrich's repository,
+  but was reverted due to a build error (on Windows and MacOS!).
+
+(MISC)
+* I will yet have to review some patches from Ilias on secure boot
+  authentication algorithm.
+
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-February/473941.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/473858.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ rfc2: submitted on 2/2
+    uboot/cap auth v10: submitted on 2/1
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* boards (MachiatoBin)
+  I've got the delivery at the end of December, but the order
+  was wrong; the package contained only one SingleShot board.
+  I asked Shimada-san to re-order the boards. A new delivery
+  date would be early February.
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day (public holiday)
+Feb 23: Emperor's Birthday (public holiday)
+

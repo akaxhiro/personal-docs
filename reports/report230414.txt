@@ -1,0 +1,73 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-04-14
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+
+[STR-76] Break down the latency
+* No progress
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[1]
+* I got a reply from Ebba on my draft[2].
+  Anyhow the post will be made next week.
+
+* Continued to improve the presentation slides[3] for Linaro Connect Talk.
+  As I have repeatedly said that the result might vary from test to test, 
+  I performed the tests for all the bridge types once again.
+  Probably I will do once or twice again next week to confirm the errors
+  among tests.
+
+  One of major changes I'm trying to made is the description about result
+  analysis. I felt it difficult to explain my findings simply from the table
+  (See page 20 in [3]) and going to add more specific explanation from
+  some different POVs,
+  say:
+  - app only vs. w/ netperf
+  - kernel bridge vs. XDP bridge
+  - OVS vs. OVS+AF_XDP
+  I hope it will be more understandable for those who take a first look
+  at my results. (See pages 22-26)
+
+  I'm also trying to run ftrace again to examine big spikes and PTP disorders.
+  At least, I want to address possible reasons, making clear that those problem are
+  not linked to any specific bridge implementation, and that finding the root
+  cause is beyond the scope of my current study.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [2] https://docs.google.com/document/d/1lJgIb8aoTg49CqxlfQUmFzfDDb0Jlln4Er_2AW6FtAc/edit?usp=sharing
+  [3] https://docs.google.com/presentation/d/1BWuNTfzFsezwv-_zywgkEbEqWhAoRMNd1LXMhYhRLHY/edit?usp=sharing
+
+U-Boot support
+==============
+* SCMI on U-Boot[4]
+  I asked Etienne about the reason why SCMI with a device tree (on U-Boot)
+  doesn't allow *multiple* agents.
+  The direct reason is the DT binding of SCMI node requires that the node name
+  should be a constant, 'scmi'. But there seems to be no deep discussion about
+  why this restriction was introduced in the past.
+
+  [4] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Apr 25-30, Linaro Connect
+May 1-5, Golden Week (public holidays)
+

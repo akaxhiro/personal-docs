@@ -1,0 +1,165 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-05-19
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* Closed this card after I talked to Alex.
+
+[STR-76] Break down the latency
+* Closed this card after I talked to Alex.
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[1]
+* Now the article appeared on the web[2].
+
+  [1] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [2] https://www.linaro.org/blog/network-latency-with-time-sensitive-networking-on-virtual-machine/
+
+Orko
+====
+[virtio-gpu]
+* Preliminary setup for test environment
+  I started with qemu's vulkan support v3 which was posted in last September.
+  Then when I contacted Dmitry (Collabora), who seems to have taken over v3
+  from Antonio, he gave me kind instructions for building the software stack,
+  including his v4 WIP patches.
+
+  So I'm trying to switch over to v4 and construct my test environment:
+  Platform: my desktop PC with nvidia GTX1050 (is quite old, but supports vulkan)
+
+  Host software:
+    OS: Ubuntu 22.04
+    kernel: v6.3.2+ from Dmitry's v4
+            (I didn't want to update my PC's kernel but he strongly demanded it.)
+    virglrenderer: Dmitry's v4
+    qemu: v7.2 from Dmitry's v4
+
+  Guest software (kvm):
+    OS: Ubuntu 22.04.2
+    kernel: v6.3.2 from Ubuntu's mainline kernel package
+    mesa: 32.1.0 with virtio-experimental on
+          (latest official release, but Dmitry demanded the very *latest*
+           one from the main branch.)
+
+  Under this environment, the guest fails to boot.
+  After the splash screen, the display got into the black blank screen.
+  Qemu prints out error messages:
+    timeout (5s) waiting for renderer poll() to finish.
+    (repeated this message)
+
+  Without enough knowledge of the graphics system, it can be difficult
+  to look into this problem.
+
+* Preliminary performance measurement
+  In our sync-up meeting, I listed possible benchmark programs,
+  - glmark2
+  - vkmark
+  - GFXBench
+  - Basemark
+  Since Alex seems to prefer glmark2, and now vkmark, all what I plan to
+  execute in this study is those two only.
+
+  As I said above, v4 environment doesn't work yet.
+  I tried to capture the benchmark core under my own v3 environment.
+
+  On X11 server,
+  (qemu setup: -m q35 -smp 1 -mem 4G -device virtio-vga-gl -display sdl,gl=on) *1
+			    guest       native
+                            -----       ------
+  glmark2 (OpenGL)          1456        8724
+  vkmark (Vulkan)           DNF *2      DNF *3
+
+  On wayland server,
+  (qemu setup: -m q35 -smp 1 -mem 4G -device virtio-vga-gl -display gtk,gl=on)
+			    guest       native
+                            -----       ------
+  glmark2 (OpenGL)          not yet     not yet
+  vkmark (Vulkan)           70 *2       DNF *4
+
+  NOTE:
+    *1: "-display gtk" doesn't work
+    *2: not vulkan driver, but software renderer (llvmpipe)
+    *3: [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+    *4: vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+
+SCMI
+====
+Still waiting for a new Spint being created.
+
+[SCMI-54] (Setup dev/test environment)
+* I think of two possible test environments.
+  - qemu-system-aarch64 with OPTEE as SCMI server
+  - U-Boot's sandbox with SCMI dummy(stub) drivers
+
+  I prefer to use sandbox framework as we only need to test API invocations
+  as U-Boot agent. (We don't care how SCMI server behaves in most cases.)
+  Anyhow, U-Boot maintainers (especially Simon) will ask for adding "unit tests"
+  which would be self-contained in U-Boot CI.
+
+  In sandbox environment, local dummy drivers are called without accessing
+  external entities (like OPTEE) in order to mimic SCMI protocols.
+  I need some time to investigate how the existing SCMI drivers (clock, reset and
+  voltage domain) are implemented there.
+
+* I have already finished to setup the qemu environment, and confirmed
+  that SCMI messages were successfully exchanged between U-Boot and OPTEE by
+  executing "clk dump" command.
+
+[SCMI-47] (Add scmi base protocol support)
+* This card should be divided into a couple of sub tasks.
+  I will take several steps.
+  - rebase my prototype code of the base protocol[3] that I wrote a few weeks ago
+    and check if it works (i.e. talk to OPTEE) on qemu
+  - refactor the code, especially
+     * strictly conform to the standard error code being returned
+     * put the initialization code at the appropriate place
+       (This may have some impact on other scmi drivers.)
+  - write a small U-Boot command ("scmi base") similar to other devices' utilities
+    to manually invoke the api's
+  - write sandbox scmi drivers and ut test cases
+    (This will be a straight-forward but yet time-consuming task.)
+  - (and try to upstream the code)
+
+* Any work on improving SCMI implementation by adding the base protocol support
+  should go into SCMI-46 (or yet another sub-task).
+
+  [3] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+[SCMI-46]
+* The card says "help for device configuration at boot, improve robustness and
+  help detecting mismatch configuration between uboot and scmi firmware" without
+  any details.
+
+　What I have in my mind are:
+  - enumerate the available protocols from SCMI server ("list_procotols" API) and
+    prevent any devices from being initialized if it is not listed there even if
+    it is described in DTB
+  - In each driver's initialization code, check the version number from SCMI
+    server ("protocol_version" API) against the U-Boot's implementation version.
+    (Not sure how meaningful it is, though.)
+
+  # I don't know what "robustness" mean.
+
+  If I have much time, I will work on refactoring the current drivers.
+  What I don't like here is SCMI protocol layers, which should strictly
+  conform to the standard APIs, and U-Boot device drivers, which should implement
+  U-Boot driver model, are not clearly separated but put together
+  into the driver code.
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+

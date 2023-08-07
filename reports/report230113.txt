@@ -1,0 +1,121 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-01-13
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  As of the last week, I observed two issues:
+  1. PTP clock may get disordered and not converging to the master clock
+  2. Latencies can surge sparsely but periodically (at every 20-25 seconds)
+  (See the page 21 in [1].)
+
+  Looking into the log by ptp4l app (which implements the PTP protocol to
+  synchronise PTP clocks on NICs), I found a strange behavior:
+  - Once netperf is started, the slave (i.e. the host hosting a guest VM)
+    seems to lose the remote master node and switch the master to the local
+    clock
+  - The app waits about 2^4 (=16) seconds, expecting that the network
+    link is *reset* and gets back to the normal.
+  - Then, restart selecting a new master clock.
+
+  This process was repeated one after the other and as the time (of
+  executing netperf) went on, the delta between the master and the local clock
+  seems to get large to unmanageable level, leaving the local clock disordered.
+
+  PTP has a mechanism to settle this kind of divergence by adopting
+  "PI(Proportional Integral) control" against the local clock's frequency,
+  but it seems that it eventually failed to do so under my current configuration.
+
+* After many trial-and-error's, I somehow managed to solve the problem #2.
+  (See the graphs on the right side in the page 21).
+
+  What I did on the slave (the host hosting the guest VM) were:
+  - added/modified parameters on ptp4l (& phc2sys) app
+      socket_priority=7         send PTP packets with higher priority
+      step_threshold=1          jump the local clock instead of adjusting
+                                   the clock frequency
+      tx_timestamp_timeout=5    avoid timeout of not seeing tx timestamps
+      BMCA=noop                 -+
+      slaveOnly=1                |- enforce the slave role
+      inhibit_announce=1         |
+      ignore_source_id=1        -+
+      follow_up_info=1          ??? (but no doubt it has a big impact)
+  - set up *mqprio* (but not taprio) on the NIC to prioritise PTP packets
+  - changed the scheduling class and the priority of ptp4l
+    to SCHED_FIFO with priority 90 (i.e. under real time scheduler)
+
+=== update Jan 16 ===
+I'm trying "automotive profile of PTP", which includes most of
+parameters above.
+=== ===
+
+  To be honest, I don't yet know exactly which factors/changes helped
+  improve the situation.
+
+* There exist a couple of outstanding issues though.
+  2a. Latencies still surge sparsely but periodically (at every 60 seconds this time)
+  3. The average latency increases gradually and steadily as the time goes on
+     (the page 21 in [1])
+  4. The average may not always be low enough (due to the fact (3)?)
+     (the page 22)
+  5. Without follow_up_info option, we see some ripples periodically
+     (the page 23)
+  6. If the netperf workload is TCP (i.e. TCP_STREAM), the result looks
+     a bit different.
+     (the page 24)
+
+  As the situation is improved, more issues emerge :)
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No update after the first blog post[2].
+
+  The meeting with Continental will be held either on 18th or 23rd of January.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday

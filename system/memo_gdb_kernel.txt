@@ -1,0 +1,12 @@
+Debugging kernel modules
+------------------------
+
+$ cd /proc/module/virtio_gpu/sections
+$ sudo cat .text .data .bss
+0xffffffffc0439000
+0xffffffffc0447620
+0xffffffffc0448f40
+
+On gdb,
+(gdb) add-symbol-file /media/akashi/9c294da6-3517-431a-9c23-057662ab07b6/build//kernel_digetx_v4/drivers/gpu/drm/virtio/virtio-gpu.o -s .text 0xffffffffc043a8a0 -s .data 0xffffffffc0447620 -s .bss 0xffffffffc0448f40
+

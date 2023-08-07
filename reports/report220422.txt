@@ -1,0 +1,130 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-04-22
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: under investigation
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* enabling VFIO for NIC (mvpp2)
+  - After discussions, I and Alex agreed to hold further efforts for pursuing
+    possibility of using on-chip NIC in pass-through mode.
+
+* enabling VFIO for PCIe devices
+  - no progress
+  - I want to close STR-73 and create another sub-story (card) for vfio-pci
+    (and SR-IOV) trial.
+  - Then, I will suspend the task until I will get a NIC pcie card.
+    I'm now asking Alex if Linaro will buy some NIC cards (with SR-IOV support
+    and/or TSN support) for me.
+
+[STR-74] Setup for Open vSwitch
+* closed the card.
+
+[STR-76] Break down the latency
+* I and Alex discussed the emulation of automotive application (in terms of
+  system load/network traffic) under latency measurement environment.
+      a. one task for streaming from a back-view camera (latency-conscious)
+      b. another task for car navigation with massive map data (bulk net traffic)
+
+  Then, I created a simple test scenario:
+      A. netperf latency test (TCP_RR, VM -> host -> VM)
+      B. netperf burst-transfer test (TCP_MAERTS, host -> VM)
+
+    We *don't know* how many VM's are there and how much impact they might have
+    on CPU load/scheduling/memory pressure/interrupts and so on.
+    So take a measurement for host-to-host first.
+
+    host-to-host (not VM) latency (us):
+
+                           min    avg      max  stddev
+                           ---    ---      ---  ------
+        A only             178    200      433      9.14
+        A+B on diff cpus   236    968   207847   9249
+        A+B on same cpu    214   1146   207362  13053
+
+    Apparently, we see a very bad worst-case latency.
+
+* Please note that these measure values are a round-trip time, not an uni-directional
+  delay to be observed in (a).
+  To get more precise data for one-way trip latency, IEEE-1588 support
+  (PTP: Precise Time Protocol) will be required and we will have to develop
+  a dedicated benchmark program.
+
+* I also wonder: if a guarantee of a worst-case latency is a mandatory requirement,
+  we have no other choice than using a TSN-capable NIC via VFIO at a guest VM.
+  Why do we want to try/investigate other network configurations as I have been done now. 
+
+  I think we should re-assure ourselves what is the ultimate goal and what assumptions
+  & requirements we can/should assume in this trial.
+	-> Mike, Alex
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* I submitted v5[1].
+  I had to make a small change to v4 to align with a change in another patch[2] which is
+  a reworked version of patch I sent as an RFC last week.
+  Then, I also posted a follow-up patch[3].
+
+(MISC)
+* No update from Kojima-san on his bootmenu v4[4]
+  It contains (part of) my removable media patch[5].
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+* reviewed Ilias' patch for sha384/512 support.
+
+[1] https://lists.denx.de/pipermail/u-boot/2022-April/481753.html
+[2] https://lists.denx.de/pipermail/u-boot/2022-April/481745.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-April/482148.html
+[4] https://lists.denx.de/pipermail/u-boot/2022-March/478891.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v5: submitted on 4/19
+    uboot/uefi removable rfc: integrated into Kojima-san's patch series
+
+=== Issues ===
+* I need a PCIE card for VFIO/TSN/SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Apr 29 - May 6: Golden week (public holidays)
+
+

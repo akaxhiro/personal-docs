@@ -1,0 +1,107 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-08-20
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Waiting for any comments on ML[2], but nothing after two weeks.
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  I saw several comments and tried to reply to them one-by-one.
+
+  A couple of interesting topics that I have not been aware of:
+  1) Arm guy (Wei Chen) is also trying to build
+     a hypervisor-agnostic BE (library?) based on kvm-tool[4].
+     (I think that I and he have a similar solution in mind.)
+  2) a proposal for kvm to add "MMIO/PIO dispatch" mechanism[5]
+  3) Matias talks about his experience about his hypervisor-agnostic PoC
+     (I don't know who he is.)
+
+  There seem to be independent activities around the community.
+
+- Investigated vhost-user implementation
+  Especially, how the payload from FE driver is mapped and shared in
+  BE's address space in advance, by which 'mmap'ing the data region
+  can be skipped at every request handling on BE.
+
+  I don't think that the approach here in qemu/kvm is quite
+  kvm specific partly because kvm is a type2 hypervisor and
+  partyly because the implementation highly relies on linux/vm
+  (not virtual machine, but virtual memory) capabilities.
+
+- I'm still trying to contact some engineers:
+  no progress
+
+  Intel: who has proposed msi-x support for virtio-mmio at linux kernel
+  a year ago, aiming to improve the performance under multiple virt queues.
+  Another Intel guy: who implemented ivshmem driver on Zephyr. I'm asking
+  about their future plan, especially virtio implementation on top of it.
+  Siemens: keep discussions with Jan
+  Qualcomm: I'm asking for any comments on my proposal
+
+- Stratos internal review
+  What's this?
+  When I proposed Mike that we should have a *regular* internal
+  meeting to share the status/goal, he declined it. So now?
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+[4] https://marc.info/?l=xen-devel&m=162373754705233&w=2
+[5] https://lore.kernel.org/kvm/cover.1613828726.git.eafanasova@gmail.com/
+
+(MISC)
+- U-Boot capsule update support
+* mkeficapsule v2[6]
+  Since Ilias seems to be on vacation this week, there is no progress
+  on the discussion about where to save a public key in capsule
+  authentication.
+
+- U-Boot UEFI
+* tried to identify the cause of the problem[7]
+  This is fundamentally the same problem that I have been working
+  to address; The EFI subsystem recognises/identifies all the block
+  devices only once at the initialization. So the system has no way
+  to detect a device being added or removed at later time.
+
+  I see it as a "removable media"-related issue, but the problem
+  also happens when probing devices, say "scsi rescan", takes place
+  more than once.
+
+  Let's assume that we've done "probing" and then executed UEFI
+  initialization with some U-Boot UEFI command. Then, at the second
+  "probing", all the existing "blk_desc" structures, which are
+  internal device-model objects of block devices, will be destroyed
+  and re-created.
+  But UEFI still holds/maintains the binding between a UEFI block device
+  (block io protocol) and an *old* blk_desc structure.
+  So succeeding read/write operations will lead to the system hang.
+
+[6] https://lists.denx.de/pipermail/u-boot/2021-July/456293.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-August/458287.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[8]
+  No discussions seen in ML
+
+[8] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v2: submitted on 07/27
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+I will take one-week vacation at the beginning of September
+(the week of Aug 30th or Sept 6th) unless the period of the state
+of emergency in Tokyo will be extended after end of August.
+
+But it is quite likely thanks to recent surge of covid cases.
+

@@ -1,0 +1,7 @@
+# avoid "permission denied" error by appArmor,
+         ^^^^^^^^^^^^^^^^^
+$ sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.tcpdump
+
+# For permanent change,
+$ sudo ln -s /etc/apparmor.d/usr.sbin.tcpdump /etc/apparmor.d/disable/
+$ sudo /etc/init.d/apparmor restart

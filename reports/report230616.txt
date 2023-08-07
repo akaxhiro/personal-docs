@@ -1,0 +1,139 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-16
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* This task has been put into "blocked" state due to hardware unavailability.
+
+* v4 WIP environment
+  I've got a response from Anmar as he suggested a couple of possible options
+  for test platform. No further discussion, especially from Alex, yet.
+
+* Collaboration with other activities?
+  Alex started some discussion with Xilinx(AMD) guys (Stefano and else) to
+  follow them up on their virtio-gpu support (on Xen).
+
+  I asked for some feedback about performance evaluation on their side,
+  and they seems to have had extensive tests already and one guy said,
+  "the performance rate that domU/dom0 (virtgpu/native) is about 50% ~ 80%
+  at current testing for vulkan."
+
+  The rate looks a bit bigger than my experiment with glmark2
+  (for opengl though).
+  So apart from measuring on Arm platform, does it make sense for us
+  to continue this task (Orko-27)?
+
+* Nvidia just released its own new graphic driver (535.54.3) yesterday.
+  It contains some additional supports for vulkan-related extensions
+  as well as a swapchain-related bug fix, but none of them seems to
+  be related to the issue I reported.
+  As it doesn't yet show up as a ubuntu package, I have not applied it
+  to my PC.
+  (I can do that manually with a directly downloaded binary though.)
+
+* Other issues with my v3 environment
+  (no progress)
+  I had no time to dig into those issues yet.
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+[ETC]
+- I re-learned Rust by reading "The Rust Programming Language".
+- I gave it a try of using crosvm with virtio-gpu, but got an error when
+  starting X-window server(?):
+  ---
+[2023-06-16T03:14:19.253515720+00:00 ERROR crosvm::crosvm::sys::unix]
+	child pcivirtio-gpu (pid 11945) exited: signo 17, status 31, code 2
+[2023-06-16T03:14:19.257370306+00:00 ERROR devices::proxy]
+	failed write to child device process pcivirtio-gpu: failed to
+	send packet: Broken pipe (os error 32)
+[2023-06-16T03:14:19.257436135+00:00 ERROR devices::proxy] failed to read
+	result of Shutdown from child device process pcivirtio-gpu:
+	tube was disconnected
+[2023-06-16T03:14:19.439817197+00:00 INFO  crosvm] exiting with success
+  ---
+
+  I have no idea about what happened.
+
+
+SCMI
+====
+[SCMI-47] (Add scmi base protocol support)
+steps:
+  1.check my prototype code of the base protocol
+* 2.refactor the code
+* 3.write a small U-Boot command ("scmi base")
+* 4.write sandbox scmi drivers and ut test cases
+  5.(and try to upstream the code)
+
+  I basically finished to finalize APIs, including a change against a variable
+  length of return values (i.e. LIST_PROTOCOLS API).
+  Then all the code looks in a good shape now and is ready for further testing;
+  I should say that (2) and (3) are done.
+
+  At the same time, I tried to examine how scmi test on sandbox works on
+  sandbox by writing an initial test case for base protocol.
+
+* What I haven't implemented here in base protocol is NOTIFY_ERROR API and
+  notification callback framework (or BASE_ERROR_EVENT).
+  I will not implement those features for now because
+  - U-Boot doesn't support interrupts in general
+  - the current scmi transport implementation doesn't assume that any
+    asynchronous messages like error events may be received when waiting
+    for a response against the command.
+  - IICU, the current SCP-firmware itself doesn't implement the features yet.
+  I would expect no urgent demand.  
+
+* So, I can close this card.
+  Remaining work will be done under [SCMI-58] or a new card which should be
+  created for upstreaming efforts.
+
+[SCMI-46] (improve scmi suport on U-Boot)
+* During [SCMI-47], I found a couple of issues in the current implementation,
+  then submitted patches.
+  - scmi_clock has dependency on CONFIG_CLK[1]
+  - return a right errno for SCMI status code [2]
+
+[1] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-58] (Add base protocol test)
+* just started.
+  So moved this card to "in progress" state.
+
+[SCMI-49] (Add pinctrl protocol support)
+* SCMI pinctrl support patch for linux, v3
+  I looked at this newly submitted patch, but there was nothing
+  new or interesting in this version.
+  Give the comments posted, it will take another couple of rounds
+  until it is finally merged.
+
+  No gpio support patch has been submitted.
+
+[3] https://lkml.iu.edu/hypermail/linux/kernel/2306.0/06476.html
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+u-boot dm bugfix: acked
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+July 12-13: AGL all member meeting

@@ -1,0 +1,124 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-05-26
+Reply-To: 
+
+Stratos
+=======
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* My blog article[1] was mentioned in the latest Linaro insights.
+
+  [1] https://www.linaro.org/blog/network-latency-with-time-sensitive-networking-on-virtual-machine/
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* v4 WIP environment
+  - The guest OS failed with an error: "timeout (5s) waiting for renderer poll()
+    to finish." (when trying to start the wayland server).
+
+    After debugging virtio-gpu module in qemu, I found that this happened
+    when the guest waited for the response to the release command
+    (CMD_RESOURCE_UNREF) of some resource which had been created by
+    CMD_RESOURCE_CREATE_2D. 
+    With Collabora's patch applied, any command issued by a guest is set to
+    be processed asynchronously. So I temporarily disabled this behavior
+    as a workaround.
+    While this might have some impact on the performance, I have no way
+    to move forward without fixing the issue.
+    I reported this issue to Collabora guy (Dimtry) and he said he would
+    look at it as somebody else has also reported a similar problem.
+
+  - With the tweak above, the guest can now successfully be started.
+    Vkmark can, however, run only with "llvmpipe" or soft rasteriser,
+    while we should expect "virgl" in venus configuration.
+
+    Enabling the debug option (VK_LOADER_DEBUG) in libvulkan (or Vulkan-
+    Loader) on the guest generated a log in which I found an error message:
+    ===
+    ERROR: loader_validate_device_extensions: Device extension VK_KHR_swapchain
+        not supported by selected physical device or enabled layers.
+    ERROR: vkCreateDevice: Failed to validate extensions in list
+    ===
+
+    I also reported this issue to Dimtry and he pointed that the host GPU
+    might be too old and it would not support "VK_KHR_swapchain".
+
+    However, "vulkaninfo" command on the host shows that the gpu (my
+    nividia GTX1050) supports this extension.
+
+    So I'm going to have to debug the qemu on the host as well as mesa library
+    on the guest to find out where this extension is dropped when
+    vkCreateDevice API is invoked by vkmark.
+
+* Other issues with my v3 environment
+  I had no time to dig into those issues yet.
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+
+SCMI
+====
+[SCMI-54] (Setup dev/test environment)
+* U-Boot's sandbox with SCMI dummy(stub) drivers
+
+  All the existing "unit test" under sandbox architecture failed
+  with my prototype patch applied.
+  There seems to be some conflict in initializing SCMI 'uclass'es as my
+  prototype code modified the sequence a bit to be well aligned with
+  U-Boot's driver model.
+
+  I will look into the issue next week.
+
+[SCMI-47] (Add scmi base protocol support)
+steps:
+* 1.check my prototype code of the base protocol[2]
+  2.refactor the code
+  3.write a small U-Boot command ("scmi base")
+  4.write sandbox scmi drivers and ut test cases
+  5.(and try to upstream the code)
+
+  After some changes, I confirmed that most of interfaces in the base
+  protocol in my prototype code worked well.
+  I have already implemented some portion of "scmi" command to verify
+  the behaviors.
+  ===
+	=> scmi base info
+	SCMI device: scmi
+	  protocol version: 131072
+	  # of agents: 3
+	    00: platform
+	    01: OSPM
+	    02: PSCI
+	  # of protocols: 4
+	    0x11:
+	    0x13:
+	    0x14:
+	    0x15:
+	  message attributes: 0x00000304
+	  vendor: Linaro
+	  sub vendor: PMWG
+	  impl version: 34275328
+  ===
+
+  [2] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+[SCMI-46]
+* No activities
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+

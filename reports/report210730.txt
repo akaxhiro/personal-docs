@@ -1,0 +1,62 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-07-30
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Looked into more details of virtio-pci specification and
+  investigated pci and ivshmem support in Zephyr.
+  Interestingly, ivshmem driver was added by Intel folk and
+  it implies that virtio-ivshmem can potentially be implemented on Zephyr.
+
+  Meanwhile, I have not received any response from Gunyah folk yet.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+
+(MISC)
+- U-Boot capsule update support
+* my follow-up patches v2[2] was merged.
+
+* Submitted mkeficapsule v3[3]
+  In this patch set, I did lots of things:
+  - add signing feature to mkeficapsule command
+  - add "--guid" option to mkeficapsule (for arbitrary FMP driver)
+  - add man page/update UEFI document
+  - add pytest test cases for capsule authentication
+
+  I managed to add and run pytest on sandbox by adding a customized
+  U-Boot configuration otherwise there is no way of embedding a key
+  in the binary at pytest setup time.
+
+[2] https://lists.denx.de/pipermail/u-boot/2021-July/455404.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455405.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455406.html
+    https://lists.denx.de/pipermail/u-boot/2021-July/455407.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-July/456293.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[4]
+  As there is no detailed description about changes, I don't know
+  what changes he really made. The way how the patch set is organized
+  looks odd any way.
+
+[4] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v2: submitted on 07/27
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+* So a big question here is whether my approach can be applied/deployed
+  to other hypervisors (to meet the goal of STR-7)?
+  Who will be able to take care of it at this point?
+
+=== Travel&Holiday&Event ===
+Aug 11: Mountain Day (Olympic Closing Ceremony) 
+

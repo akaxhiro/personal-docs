@@ -1,7 +1,9 @@
 # Installation
-# install binaries to $HOME
+# install rustup & binaries to $HOME
 curl https://sh.rustup.rs -sSf | sh
 
 # Add target support (cross-compling)
 rustup target list
 rustup target add ...
+rustup show
+rustup override ; to change to a specific version

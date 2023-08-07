@@ -1,0 +1,24 @@
+Topics:
+* Virtio over Argo
+  - Started to try to run argo
+  - Benefits of argo-based approach?
+
+  - Talk with Christopher (no response yet)
+  - Need detailed design to estimate "efforts"
+
+* Hypervisor-less virtio
+  - shared-memory regions + platform-specific event notification
+  - apply it to fat-virtqueue approach?
+
+* XDP
+  - hopefully we should have a bunch of past survey works
+    on vm network performance. Differences?
+    - embedded/automotive-related hw restriction
+    - Focus on 'latency'
+
+  - how we should drive the work?
+  - collaborate with Francois (business development)?
+
+* My next assignment
+
+* 'Sprint' in Stratos porject?

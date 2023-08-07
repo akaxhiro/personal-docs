@@ -1,0 +1,159 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-03-11
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* created issues (subtasks) on JIRA
+  Alex said that he would move Stratos to Sprint process and asked me
+  to create as many cards as I need/want for this EPIC.
+  I didn't add cards for tap and macvtap as I have already done basic setup
+  successfully in the last few weeks.
+
+  STR-73: Setup for passthrough NIC
+  STR-74: Setup for Open vSwitch
+  STR-75: Set up for ePBF-based bridge
+  STR-76: Break down the latency
+
+  Those cards are not put under Stratos Sprint 1 yet. I'd defer to Alex.
+
+* latest result of latency measurement
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: in progress
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: not tried yet
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0   <=  (*)
+
+  (*) updated after "vhost=on" was added to "-netdev" option
+
+[STR-73] (Setup for passthrough NIC)
+* I was trying to figure out how I can configure the NIC in passthrough mode.
+  Actually there are a few issues.
+
+  - NIC interfaces are on a platform bus and we need vfio-platform module,
+    but Debian kernel doesn't provide it (under /usr/lib/modules/...).
+  - Debian kernel (more specifically the board's device tree)
+    doesn't enable IOMMU by default.
+  - Yet the board's device tree doesn't assign an IOMMU domain (stream ID)
+    to NIC interfaces.
+
+  I found that there is a commit in the kernel:
+  ===8<===
+  commit f43cadef2df2
+  Author: Tomasz Nowicki <tn@semihalf.com>
+  Date:   Thu Nov 5 12:26:02 2020 +0100
+
+    arm64: dts: marvell: keep SMMU disabled by default for Armada 7040 and 8040
+    
+    FW has to configure devices' StreamIDs so that SMMU is able to lookup
+    context and do proper translation later on. For Armada 7040 & 8040 and
+    publicly available FW, most of the devices are configured properly,
+    but some like ap_sdhci0, PCIe, NIC still remain unassigned which
+    results in SMMU faults about unmatched StreamID (assuming
+    ARM_SMMU_DISABLE_BYPASS_BY_DEFAUL=y).
+    
+    Since there is dependency on custom FW let SMMU be disabled by default.
+    People who still willing to use SMMU need to enable manually and
+    use ARM_SMMU_DISABLE_BYPASS_BY_DEFAUL=n (or via kernel command line)
+    with extra caution.
+  ===>8===
+
+  Unless I can get a non-public firmware image which would allow for
+  an IOMMU capability for NIC, I will not be able to test passthrough mode
+  on MACCHIIATOBin.
+  
+  I'm now asking the commit authors if I can get that firmware.
+
+[STR-75] (Set up for eBPF-based bridge)
+* The program is based on David's work[1].
+
+* Just started to load and set up the bridge on MACCHIATOBin.
+  After modifying a setup script, I was able to load ePBF programs
+  without any errors.
+  But the network on guest doesn't work yet.
+
+  How can I debug the eBPF code efficiently?
+  printk (ie. bpf_trace_printk) will be still a valid tool.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration
+  After rebasing my code to Simon's event patch v2, all the failures
+  in UT (U-Boot unit tests) have gone.
+  Then I submitted v3[2].
+
+  Basically, all the existing test have passed, but a few build tests
+  on some boards fail because the resulting image size exceeds board's
+  limit (of ROM).
+
+  As a matter of fact, this can happen even without my patch because
+  Simon's patch already adds extra bytes. So it is not a fault in my patch,
+  but U-Boot maintainers don't want to accept this type of errors.
+
+  Since UEFI code is getting bigger and bigger, it won't make sense
+  to enable UEFI by default for (most of) all architectures/boards.
+
+  I may have to think of adding a configuration option which turns off
+  dynamic enumeration feature provided by my patch.
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication) v11[3]
+  Since the patch[3] has been merged, I closed the card.
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+* reviewed Kojiima-san's bootmenu RPC[6].
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-March/477141.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/474721.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+[6] https://lists.denx.de/pipermail/u-boot/2022-March/477193.html
+
+=== Patch status ===
+    uboot/disk_integ v3: submitted on 3/8
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* Unless I can get a non-public firmware image which would allow for
+  an IOMMU capability for NIC, I will not be able to test passthrough mode
+  on MACCHIIATOBin.
+
+  => Can anyone in Linaro help me or know any contact person in Marvell?
+
+=== Travel&Holiday&Event ===
+Mar 21: Spring Equinox Day (public holiday)
+(I may have one-week vacation in March.)

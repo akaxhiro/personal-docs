@@ -1,0 +1,11 @@
+agenda:
+- Virtio-proxy work
+  estimated efforts: 20-22 weeks ,including
+		rewriting (part of) Xen libs (1-3w)
+		modifying Xen hypercall interaces (4w)
+
+  If efforts are not justified, what's next for me to do?
+
+- Any topics from last Stratos Call?
+  - permissive license on Xen libs (libxl)
+  - rest-vmm (I didn't see any update)

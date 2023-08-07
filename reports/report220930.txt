@@ -1,0 +1,174 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-09-30
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update. See [1].
+
+  - mqprio + etf
+  - sample-app-taprio[2] with 3 instances of netperf
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host1-to-host2          39.3   46.8   49.8    1.6
+  host1-to-vm
+    VFIO                  57.0   62.7  100.4    4.0    (NOTE: no netperf)
+    macvtap               92.5  139.1  275.4   35.6
+    tap                  107.4  228.8  434.4   70.4
+    OVS                  212.6  344.0  612.8   66.3
+    eBPF (XDP)          5598.0 6586.0 7659.0  390.3
+
+  TODO: investigate eBPF case
+
+  TODO: find out a generic configuration of bridge to fix multicast issue
+  (although this won't have any impact on measured results).
+
+  TODO: With my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[STR-76] Break down the latency
+* After the discussion with Vincent, he questioned the sender side in my
+  current TSN configuration. He believes that "taprio+etf" is the only
+  solution that we should use and that my "mqprio+_etf" cannot give us
+  the guarantee of latency.
+
+  So I spent most of my time in this week to consult the datasheet (not i225,
+  but i210) to figure out how the hardware would behave with my configuration.
+  So far I'm certain that we can deliver packets in latency-aware way because
+  the order of packets to be transmission is determined strictly based on
+  HW's logic (queue#0 is the highest, #3 is the lowest.)
+
+  I don't know whether he agrees or not.
+
+* I don't fully find out the solution to isolate interrupts by packets from
+  the benchmark app from the rest of background traffic (i.e. netperf).
+  Neither I don't still understand why interrupts are scattered across rx
+  queues if rx filters are correctly configured.
+
+  Nevertheless, I tried to achieve it with all techniques that I now know.
+  - Use NIC's mac address filtering to redirect benchmark packets
+    to queue #2
+  - Use NIC's RSS to redirect all other packets to queue #0 or #1
+  - Use kernel's irq affinity, queue#2 to cpu#2, queue#0/#1 to cpu#0, #1
+  - Bind vhost kernel thread to cpu#2 (suggested by Vincent)
+  - Bind kvm process (hence benchmark app on VM) to cpu#3
+  - (I forgot to bind netserver processes to cpu#0/#1, but it seems okay now.)
+  - Use UDP_STREAM at netperf
+
+  This way, cpu#3 is fully dedicated to VM guest, and expectedly no context
+  switch required. cpu#2 will handle interrupts for packets from benchmark app
+  and hosts vhost thread without any intervention by other interrupts.
+
+  The result:
+                latency                               lost packets (of 1000)
+                min/avg/max/stddev (usec):
+  1st leg      85.210/107.127/394.049/19.787         15
+  2nd leg      82.209/110.464/791.435/39.800         19
+
+  IRQs      cpu#0   cpu#1   cpu#2   cpu#3
+  TxRx-0:     196       0       0       0
+  TxRx-1:   63723       0       0       0
+  TxRx-2:       0       0    1996       0       (<= 1000 packets * 2 legs)
+  TxRx-3:      68       0       0       0
+
+  So all the interrupts are managed as expected, and the latency is
+  now improved much. (Since UDP_STREAM is used, the data can not be
+  compared with ones in the past (page 14 in my doc[1]).)
+
+  I guess that packet lost takes place on sender side due to unavailability
+  of memory (data buffer or descriptors in queues). Not sure though.
+
+  Just in case, with TCP_STREAM,
+                latency                               lost packets (of 1000)
+                min/avg/max/stddev (usec):
+  1st leg       104.244/139.175/264.523/30.119        0
+  2nd leg       102.589/136.976/266.706/27.697        0
+  3rd leg        94.739/131.017/253.739/23.999        1
+
+  IRQs      cpu#0   cpu#1   cpu#2   cpu#3
+  TxRx-0:  212276       0       0       0
+  TxRx-1:  240725       0       0       0
+  TxRx-2:       0       0    3025       0
+  TxRx-3:  164597       0       0       0
+
+  We still see improvement, but also see expected interrupts in queue#3.
+  (So interrupts can happen in queue#2.)
+
+* Please note, however, that the configuration that I made above is
+  far from practical as we need dedicated cpus for vhost and kvm.
+
+* Anyhow, now I believe that the best solution is that we should use
+  NIC with VF's (SR-IOV enabled) so that all the interrupts are directly
+  dispatched to VM guests. We will have no worry about disturbing interrupts
+  that I'm looking at above.
+  If I were a car maker, I would buy such an IP :)
+
+* TODO: I don't know yet how we can remove arch-timer interrupts.
+   NO_HZ?, but the benchmark program calls select/poll() to wait for
+   incoming packets and so we will need a timer on guest VM.
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[LBO-293] (Talk abou tthe Stratos work on characterising the impact of VMs ...)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/1zxxHVKgzMAcgB6_RIJ8i0v6yzqAff6gml7XuS5Xsyk8/edit?usp=sharing
+      (This link was updated to revision 2.)
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+  [3] kernel's Documentation/networking/scaling.rst
+  [4] https://archive.fosdem.org/2021/schedule/event/network_performance_in_kernel/attachments/slides/4433/export/events/attachments/network_performance_in_kernel/slides/4433/chevallier_network_performance_in_the_linux_kernel.pdf
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[5]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Some discussion with Heinrich and Simon regarding "MediaId" in block devices
+  Relating to this discussion, Simon asked me if I'm planning to do something
+  regarding DM-UEFI integration. I said no.
+
+* Review of secure boot test spec
+  TODO: Yet to review the updated test spec[6].
+
+* Device path creation improvement for USB device[7]
+  No progress
+
+[5] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[7] https://github.com/stuyod01/edk2-test/blob/secure-boot/uefi-sct/Doc/UEFI-SCT-Case-Spec/SCT_Secure_Boot.md
+[8] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+* Datasheet of Intel i225
+  To obtain the document from Intel, we need CNDA (Corporate Non-Disclosure
+  Agreement). I'm asking Vincent and Alex whether Linaro has it or is
+  willing to sign up for it.
+
+=== Travel&Holiday&Event ===
+Oct 10: Sports Day (public holiday)
+
+

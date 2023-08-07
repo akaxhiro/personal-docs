@@ -1,0 +1,85 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-02-10
+Reply-To: 
+
+We have snowfall in Tokyo today.
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to study how we can do a breakdown of measured latency,
+  particularly using a socket's timestamping (there exist HW timestamp and
+  SW timestamp).
+  No progress due to U-Boot related tasks below.
+
+  I'm going to get back to Stratos tasks next week as I will get
+  MACCHIATObin boards in next two weeks.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration
+  I submitted v2[2].
+  In v1, I found a potential problem particularly when we use
+  file-based variable storage (default configuration). Non-volatile
+  variables are not restored from EFI system partition during
+  the boot time.
+  This issue was uncovered by capsule pytest failure during Azure CI.
+  I have fixed it by breaking EFI subsystem initialization into
+  two stages. Otherwise, the code should work well.
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication)
+  v10 has faced build errors on Windows and MacOS in Azure CI.
+  (In U-Boot CI loop, only host tools are tested for compiling
+  on Windows/MSYS2 and MacOS/brew.)
+
+  I submitted v11[3] after modifying a azure setup file to install
+  necessary packages on both OSs.
+
+(MISC)
+* reviewed some patches
+  - Ilias' bugfix on secure boot authentication algorithm
+  - Sughosh's "FWU Multi Bbank update" v4.
+
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-February/474844.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/474721.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v2: submitted on 2/10
+    uboot/cap auth v11: submitted on 2/9
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* boards (MachiatoBin)
+  The local dealer of MACCHIATOBin in Japan have confirmed that
+  the boards have been shipped out from the home country (Isreal).
+  He expected that he would send me the package by the *end of next week*.
+
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day (public holiday)
+Feb 23: Emperor's Birthday (public holiday)
+

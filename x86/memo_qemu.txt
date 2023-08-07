@@ -13,6 +13,9 @@ $ ../../qemu/configure --target-list=aarch64-softmmu,arm-softmmu,x86_64-softmmu 
 If you want,
 --enable-xen --enable-bpf --enable-virtfs
 
+On MacchiatoBin,
+$ ../../qemu/configure --target-list=aarch64-softmmu --enable-curses --enable-fdt --enable-kvm --enable-linux-aio
+
 If you see an error around git submodules, try:
 $ configure ... --disable-git-update
 $ ../../qemu/scripts/git-submodule.sh update  ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 dtc slirp

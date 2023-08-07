@@ -1,0 +1,122 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-10-28
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* investigated eBPF case
+  I tried to re-measure eBPF(XDP) case, using a newly-built kernel
+  either with CONFIG_BPF_JIT_ALWAYS_ON or without it.
+  In both cases, however, a test failed because the network didn't work
+  (even "ping" failed).
+
+  Looking into the behavior, I found that the XDP program at egress
+  (i.e. a program attached to a tap interface for packets going out
+  of a VM) is a direct reason of failure.
+  After removing the program, the network comes back.
+  (Please note that this workaround has an impact only on packets
+  from a VM to a host. So the result of measured latency, which is for
+  a packet from a host to a VM, won't be affected at all.)
+
+  However, the result was the same; a quite long latency.
+  Looking into the code again, I think I found a root cause; I had added
+  debug messages in a XDP program (at ingress) using "bpf_printk()" helper.
+  I hadn't expected that this would affect the result as
+  it is seen one of ftrace events and as long as ftrace is disabled,
+  we won't see any visible overhead.
+  But it seems to be incorrect. After deleting all the messages,
+  the latency was drastically improved!
+
+  An average value is now comparable to the ones for other configurations.
+  (I will have to re-assure the result is reproducible.)
+
+* I further investigated the issue around the XDP program at egress.
+  I found a couple of issues:
+  1.hard-coded physical NIC interface index (which may vary from boot to boot.)
+  2.A packet from a VM has two VLAN tags in an ethernet header.
+
+Regarding (2), this is normally called double VLAN tagging or Q-in-Q, and used
+to implement a *tunneling* over VLAN. Absolutely this is not for my case.
+Strangely, when the xdp program is detached from a tap, this won't happen.
+I don't know yet who adds this extra header field.
+
+I'm now trying to set up VLAN in a different way for further analysis.
+(Actually I fixed it now, but yet need to understand what happened.)
+
+* No update on the result. See [1].
+
+  - mqprio + etf
+  - sample-app-taprio[2] with 3 instances of netperf
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host1-to-host2          39.3   46.8   49.8    1.6
+  host1-to-vm
+    VFIO                  57.0   62.7  100.4    4.0    (NOTE: no netperf)
+    macvtap               92.5  139.1  275.4   35.6
+    tap                  107.4  228.8  434.4   70.4
+    OVS                  212.6  344.0  612.8   66.3
+    eBPF (XDP)          5598.0 6586.0 7659.0  390.3
+
+
+  TODO: find out a generic configuration of bridge to fix multicast issue
+  (although this won't have any impact on measured results).
+
+  TODO: With my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* Finished the initial draft.
+  Now that I addressed all the comments I've got so far from Alex and Vincent,
+  a second revision[2] is ready for a second review if necessary.
+
+[STR-76] Break down the latency
+* No progress
+
+* TODO: I don't know yet how we can remove arch-timer interrupts.
+   NO_HZ?, but the benchmark program calls select/poll() to wait for
+   incoming packets and so we will need a timer on guest VM.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/1zxxHVKgzMAcgB6_RIJ8i0v6yzqAff6gml7XuS5Xsyk8/edit?usp=sharing
+  [2] https://docs.google.com/document/d/19ROLlPNrSEy754jI1EbCoeJj8i2rVMyICMHCociLueE/edit?usp=sharing
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Nov 3 (and 4, maybe): Culture Day (public holiday)
+
+

@@ -1,0 +1,34 @@
+topics
+* network latency measurements
+  - experimentally trying network confguration on my desktop PC:
+      1.ip-fowarding/NAT
+      2.tap+bridge
+        echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
+      3.macvtap
+        ip link add link eth0 name macvtap0 address 52:54:00:b8:9c:58 \
+		type macvtap mode bridge
+	qemu ... -netdev tap,id=net0,fd=3 ... 3<> /dev/tap12
+
+  - Next
+      4.open vSwitch (w/ XDP?)
+  - Not possible as my PC doesn't have iommu.
+      5.PCI passthrough(VFIO) and/or SR-IOV
+
+  - System configuration
+    OS (Ubuntu Desktop may have too much stuff on network?)
+    vmm (libvirt?)
+    virtio-pci or virtio-mmio is a matter?
+    VMs on sender side, receiver side or both?
+    (latency is mostly an issue on sender side.)
+
+* MACCHIATObin
+  - A wrong order of purchase
+  - early Febuary (shipped from Israel?)
+
+    => What to do until then?
+
+* automtive demo
+  - Kojima-san used to be working on evaluating TSN on DeveloperBox
+
+
+

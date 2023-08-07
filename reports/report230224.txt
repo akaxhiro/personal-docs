@@ -1,0 +1,139 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-02-24
+Reply-To: 
+
+I will be off on next Thursday and Friday.
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  In a word, I've got no new insight.
+
+  After the discussion with Alex and Vincent, I have tried to:
+  1) switch the PREEMPT_RT kernel to the latest, i.e. v6.2-rc3
+  2) modify the time-slot configuration at taprio
+  3) watch irq lines to detect interrupts may be disabled for a long time
+     in ftrace log
+  4) add timer-related events for ftrace log
+
+* (1) is currently suspended due to kvm error.
+  The kernel itself successfully booted up, but I faced an error when
+  kicking off the guest VM:
+    kvm: ../../target/arm/helper.c:1948: pmevcntr_rawwrite: Assertion
+    `counter < pmu_num_counters(env)' failed.
+
+* In (2), the following new gate list was used:
+    S 01 101000  <== for the benchmark
+    S 02 103000
+    S 04 109000
+    S 08 190000  <== for netperf
+  Then the benchmark was set to transmit a packet in the interval of
+  1006 usec, instead of just 1000 usec, to randomise the timing of
+  packet transmission against HZ cycle (currently, 4 msec).
+
+  I tried this only once and didn't see any big spike, but instead,
+  I've got another pattern of latency jitters. From my past experience,
+  this stems from the disorder of PTP synchronization. After this
+  trial, the network seemed to have got *mad* and I had to reboot
+  the board.
+
+* Regarding (3), there are a couple of places by which interrupts can be disabled
+  a) per-CPU system register
+  b) per-irq GIC distributor
+  c) per-NIC(port) NIC interrupt control register
+  d) per-RX-queue NIC mask register
+ (I'm not sure they cover all the cases in the kernel.)
+
+  I think we can exclude the possibility of (a) by carefully watching
+  the ftrace log. Note that "trace-cmd report -l" shows if interrupts
+  (and softirq's) are disabled or not at any recorded events.
+
+  For (b), I added gic_mask_irq() and gic_unmask_irq() at function fracer,
+  but I didn't see any occurrences around a big spike.
+
+  I have already added igc_irq_enable() and igc_irq_disable() at
+  function tracer for (c). In addition,  interrupt-related registers
+  (cause register, mast-set register, auto-clear register, and
+  auto mask-set registers are always dumped at NIC's interrupt handler
+  to watch irq lines for all the RX queues, i.e. (d).
+  But I didn't see anything weird.
+
+* At the same time as above, I added hrtimer_expire_entry and timer_expire_entry
+  events for (4), but I didn't see any suspicious timeout functions called,
+  *except* gc_worker().
+       NOTE: other timeout functions observed here were:
+               tick_sched_timer (by arch_timer)
+               tcp_orphan_update
+               delayed_work_timer_fn -> eventually, gc_worker
+               watchdog_timer_fn -> eventually, softlockup_fn
+             I don't believe that any of them are directly related.
+
+  As I reported last week, this function was waken up on cpu#0 a bit before a big
+  spike happened and it ran for a long time (> 6000 usec) and once it terminated,
+  ksoftirqd was scheduled in and it stared to poll the NIC for the packets
+  coming from netperf. Then after a short while, a new interrupt for the benchmark
+  packet was taken on cpu#2.
+  (I hardly believe that those two events are coincident.)
+
+  gc_worker() is a function included in nf_conntrack module which is part of
+  netfilter feature. This module is currently required by Open VSwitch module,
+  which I have installed for testing OVS case.
+
+  So I temporarily stopped OVS service daemon and removed nf_conntrack module.
+  Then, a big spike has disappeared, but there is no guarantee that this is
+  the root cause because, once restarting OVS, a big spike didn't occur anyway.
+  (I've never tried again.)
+
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No action yet about the follow-up blog post after the first one[3].
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)
+Feb 24: My birthday (private holiday :)
+Mar 21: Sprint Equinox Day (public holiday)
+(Around this week, I may take a week-long vacation.)

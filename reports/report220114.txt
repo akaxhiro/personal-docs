@@ -1,0 +1,119 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-01-14
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to learn basic network technologies, including
+  TSN, XDP and SR-IOV (for virtual network).
+
+* I tried and successfully configured other choices of network interfaces:
+  - macvtap
+    qemu-system-x86_64 ... -netdev tap,fd=3, ... 3<> /dev/tapX
+  - tap + Open VSwitch (as a bridge)
+    From user operation's viewpoint, it looks to be exactly the same
+    as with a linux bridge:
+    ovs-vsctl add-br tmpovsbr0
+    ovs-vsctl add-port tmpovsbr0 enp5s0
+    qemu -netdev tap,br=tmpovsbr0,script=...,downscript=... ...
+
+   I also tried to experiment with
+   - passthrough of NIC
+   as I found there is a kernel option that allows for a "non-iommu"
+   mode for VFIO:
+      /sys/module/vfio/parameters/enable_unsafe_noiommu_mode
+   (Note that my old PC(i7-2600K+H67) doesn't have an IOMMU.)
+
+   But qemu doesn't support this mode, still accessing /dev/vfio/X instead
+   of /dev/vfio/noiommu-X. An RFC was posted before but it was not accepted.
+
+* I'm going to try other configurations next week or later:
+  - tap + AF_XDP-enabled OVS
+    The home page says that AF_XDP support on OVS is still experimental,
+    and probably the option is not enabled by default on Ubuntu and
+    other distro's. (I need to confirm this.)
+
+    AF_XDP-based OVS has some advantage in performance since it will
+    execute most of routing works in user space. I found an interesting
+    LPC2020 presentation[1] where some comparison among kernel brdige,
+    AF_XDP-based OVS and DPDK-based OVS was made. According to this document,
+    DPDK-based OVS still out-performs over AF_XDP-base OVS.
+
+  - XDP (as a simple L2 bridge or L3 switch)
+    I just started to learn how such a bridge-like program can be
+    written in eBPF and how it should be installed and configured
+    on the system.
+    But as this technology is relatively new and yet evolving these days,
+    I haven't found a lot of information or documents.
+
+    The only (and best) article that I found on this subject was [2].
+    I hope that sample programs in [2] will be easily re-used without much
+    modification for my experiment, but I will still have to learn how
+    BPF maps, a kind of key-value database for packet routings, should be
+    configured and loaded into the kernel.
+
+    The same author has another article[3] posted, in which he compared XDP
+    with OVS (but I don't think it will be AF_XDP-based OVS) in terms of
+    CPU consumption.
+
+  - I hesitate to experiment with the configuration above on my PC
+    since it can accidentally crash the kernel and corrupt my system
+    in unrecoverable way.
+
+[1] https://www.linuxplumbersconf.org/event/7/contributions/686/attachments/553/978/lpc2020-ovs.pdf
+[2] https://legacy.netdevconf.info/0x14/pub/slides/24/netdev-0x14-XDP-and-the-cloud.pdf
+[3] https://people.kernel.org/dsahern/xdp-vs-ovs
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration, RFCv2[4]
+  No progress
+
+[TS-102]
+- mkeficapsule revamp v8[5]
+  I will still have to reply to some of Heinrich's comments.
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[6].
+  No progress
+
+* Device path creation improvement for USB device[7]
+  No progress
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-December/470053.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/cap auth v8: submitted on 12/20
+    uboot/disk_integ rfc2: submitted on 12/10
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* boards (MachiatoBin)
+  I've got the delivery at the end of December, but the order
+  was wrong; the package contained only one SingleShot board.
+  I asked Shimada-san to re-order the boards. A new delivery
+  date would be early February.
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day (public holiday)
+Feb 23: Emperor's Birthday (public holiday)
+

@@ -1,0 +1,159 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-12-09
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+  -> re-executed tests agaisnt all of the configurations.
+
+[STR-76] Break down the latency
+* In the discussion with Vincent, he gave me a couple of suggestions
+  to improve the measurements:
+  - always avoid cpu#0 for affinities so that housekeeping tasks and others
+    won't bother us
+  - run the benchmark program for a longer period in order to be able
+    to catch a *rare* case (timing) that might trigger a more bigger delay
+  - adjust an interval of test packets against other timings, e.g.
+    system clock (HZ) to expose various timing issues.
+
+  Quite interestingly, when I increased the duration time of benchmark
+  program from around 1 sec to 10 seconds, even 1 minutes, I occasionally
+  observed much bigger latency values than before **even if** no netperf
+  instances were executed in parallel!
+  (I used "tap+bridge" configuration, but it doesn't matter.)
+
+  I'm currently investigating the max latency in the following case:
+                         min    avg    max    stddev
+  host1-to-vm
+    tap                  156.4  184.8  4372.1  33.496
+                                       (!)
+
+  At the same time, I recoded a ftrace log (with a small set of functions).
+  To keep the tracing easier, irq thread & vhost-net thread as well as
+  kvm process were bound to a single processor (cpu#3) all the time.
+  Cpu#3 was completed isolated by the kernel command line
+     isolcpus=domain,managed_irq,nohz,3
+
+  The log shows
+  - hard-irq/soft-irq/vhost code were invoked at a timing similar to
+    the other occasions, but
+  - Even when kvm process was scheduled in by irqfd_wakeup/kvm_vcpu_kick,
+    it never returned to the guest context (via kvm_enter) for the next
+    few milliseconds. Only interrupts for benchmark packets were served
+    before the control was finally transferred to the guest.
+    This way, kvm process was waken up again and again, but ...
+  - A couple of threads in kvm process, in addition to vcpu thread?, seemed
+    to be involved here.
+    I'm sure, though, no other process or thread were scheduled at that stage.
+
+  I do not have any idea what's happening here at all.
+
+=== Dec.12 update ===
+* ftrace log:
+             kvm-1449  [003] 1670566189.497182: function:             do_interrupt_handler
+             kvm-1449  [003] 1670566189.497204: sched_switch:         kvm:1449 [120] R ==> irq/49-enp1s0-T:588 [49]
+ irq/49-enp1s0-T-588   [003] 1670566189.497209: function:             igc_msix_ring
+ irq/49-enp1s0-T-588   [003] 1670566189.497214: function:             igc_poll
+ irq/49-enp1s0-T-588   [003] 1670566189.497232: function:                br_handle_frame
+ irq/49-enp1s0-T-588   [003] 1670566189.497244: function:                vhost_poll_wakeup
+ irq/49-enp1s0-T-588   [003] 1670566189.497265: sched_switch:         irq/49-enp1s0-T:588 [49] S ==> vhost-802:812 [120]
+       vhost-802-812   [003] 1670566189.497269: function:             do_interrupt_handler
+       vhost-802-812   [003] 1670566189.497277: function:             handle_rx_net
+       vhost-802-812   [003] 1670566189.497292: function:             kvm_vgic_inject_irq
+       vhost-802-812   [003] 1670566189.497293: vgic_update_irq_pending: VCPU: 0, IRQ 81, level: 1
+       vhost-802-812   [003] 1670566189.497296: function:             kvm_vcpu_kick
+       vhost-802-812   [003] 1670566189.497300: sched_switch:         vhost-802:812 [120] S ==> kvm:1449 [120]
+             kvm-1449  [003] 1670566189.497309: function:             do_interrupt_handler
+             kvm-1449  [003] 1670566189.497312: ipi_entry:            (IRQ work interrupts)
+             kvm-1449  [003] 1670566189.497314: irq_handler_exit:     irq=6 ret=handled
+
+                                            (1usec gap here)
+
+             kvm-1449  [003] 1670566189.498183: function:             do_interrupt_handler
+             kvm-1449  [003] 1670566189.498185: ipi_entry:            (Rescheduling interrupts)
+             kvm-1449  [003] 1670566189.498199: sched_switch:         kvm:1449 [120] R ==> irq/49-enp1s0-T:588 [49]
+
+                                            (repeated)
+
+       vhost-802-812   [003] 1670566189.501242: function:             do_interrupt_handler
+       vhost-802-812   [003] 1670566189.501260: sched_switch:         vhost-802:812 [120] S ==> kvm:1449 [120]
+             kvm-1449  [003] 1670566189.501402: sched_switch:         kvm:1449 [120] D ==> kvm:813 [120]
+             kvm-813   [003] 1670566189.501413: kvm_timer_update_irq: VCPU: 0, IRQ 27, level 1
+             kvm-813   [003] 1670566189.501413: function:             kvm_vgic_inject_irq
+             kvm-813   [003] 1670566189.501429: kvm_entry:            PC: 0xffffb18595f88104
+
+* traced qemu process:
+    pthread_create -> worker_thread -> handle_aiocb_rw
+
+  So added "aio=native" to a rootfs block device, then
+
+Total: 60000 packets ( ~= 1min)
+  latency min/avg/max/stddev (usec): 61.443/81.581/487.319/11.859
+  latency min/avg/max/stddev (usec): 60.859/80.678/2228.336/15.811
+  latency min/avg/max/stddev (usec): 61.272/80.639/2510.381/16.362
+  latency min/avg/max/stddev (usec): 61.316/80.833/2210.803/15.623
+
+  "aio=io_uring"
+
+Total: 60000 packets
+  latency min/avg/max/stddev (usec): 61.748/77.459/2253.616/15.511
+  latency min/avg/max/stddev (usec): 61.366/77.757/2234.369/15.194
+
+  "aio=threads" (by default)
+Total: 60000 packets
+  latency min/avg/max/stddev (usec): 61.420/80.050/3721.809/47.845
+  latency min/avg/max/stddev (usec): 54.224/79.473/4302.674/55.272
+
+
+
+======
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* The article was finally published [2].
+
+* I made a small presentation about my activity at TSC meeting.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Dec 29-Jan 4: New year holidays

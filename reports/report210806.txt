@@ -1,0 +1,83 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-08-06
+Reply-To: 
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  After the discussion with Mike, I submitted a review request
+  to Stratos ML[2].
+  Mike told me that we should decide if it is worth continuing
+  my study in the next development cycle, indicating that, if no
+  Linaro member company show their interests in my approach, the task
+  must be cancelled.
+  Although it's not the way how I want to move things forward,
+  I had no choice but bringing up my doc to ML immediately.
+
+  I have a few ideas about improving the concept of virtio-proxy,
+  including
+    * device discovery (or configuration) for backend
+    * triggering an interrupt via MMIO
+    * support for statically shared memory of virt queues
+      (like ivshmem and/or fat virtqueue?)
+  But I won't update the doc until we have some sort of conclusion on ML.
+
+- I'm still trying to contact some engineers:
+  Intel: who has proposed msi-x support for virtio-mmio at linux kernel
+  a year ago, aiming to improve the performance under multiple virt queues.
+  Another Intel guy: who implemented ivshmem driver on Zephyr. I'm asking
+  about their future plan, especially virtio implementation on top of it.
+  Siemens: keep discussions with Jan
+  Qualcomm: I'm asking for any comments on my proposal
+
+  No reply from anyone this week, though.
+
+- keep investigating ivshmem specification and implementation
+  My focus' are
+  * some feature/techniques in ivshmem might be brought into my proposal
+    to shape up virtio-proxy approach
+  * how virtio backend can be implemented with ivshmem
+  * how easy/difficult it is to implement ivshmem on other hypervisors
+
+- Alex started a general discussion about hypervisor-agnostic backend[3].
+
+- I asked Alex to have 1:1 meeting with me on regular base.
+  No reply yet.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+
+(MISC)
+- U-Boot capsule update support
+* mkeficapsule v2[4]
+  I modified the patch after Heinrich's comments.
+  It's ready to submit, but there is still an outstanding discussion
+  about how/where a public key should be stored.
+  I will hold off the submission until we've reached the agreement
+  since test programs (pytest) can be affected by the result of discussion.
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-July/456293.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[5]
+  It seems to me that Jason misunderstands Ulf's intension.
+  I think that Ulf should explain more about what kind of
+  changes he expects with a good example.
+
+[5] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v2: submitted on 07/27
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Aug 11: Mountain Day (Olympic Closing Ceremony) 
+

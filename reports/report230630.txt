@@ -1,0 +1,124 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-30
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* This task has been put back into "in-progress" state as I've got
+  a new GPU card, Radeon RX7600, this weekend.
+
+* Anmar suggested Synquacer or AVA for possible test platforms,
+  but I don't believe that Synquacer is a choice for GPU reference
+  because it has a bug in 32-bit read operation on PCIe bus.
+  (A bunch of nasty hacks, which are NOT upstreamable, will be required
+  on a graphic driver.)
+  I think that Anmar (and Alex) has agreed to me, saying
+  "f you start with the x86 evaluation using your PC and the AMD GPU, that
+  will buy us enough time to find a proper Arm board. I think it will be
+  the ADLink AVA Developer Platform. I just need to figure out how to get
+  one to you."
+
+* With Radeon, I have some progress and problems.
+  To make the GPU recognised and workable on my development machine,
+  I had to use mesa's vulkan driver (RADV), not AMD's open source driver
+  (AMDVLK) as the latter has lack of support for, at least, one specific
+  vulkan API's extension feature, VK_EXT_image_drm_format_modifier.
+  (AMDVLK has never been tested with virtio-gpu, I guess.)
+  Almost three days were consumed in vain before I finally found the root
+  cause on this driver.
+
+  Then I tried to run vkmark benchmark application on a guest VM and
+  it terminated abnormally emitting error messages from qemu (host) like:
+  ---
+  vrend_create_surface: context error reported 3 "Xorg" Illegal resource 1032
+  context 3 failed to dispatch CREATE_OBJECT: 22
+  vrend_decode_ctx_submit_cmd: context error reported 3 "Xorg" Illegal command buffer 329729
+  virgl_cmd_resource_map_blob: resource map error: Invalid argument
+  virtio_gpu_virgl_process_cmd: ctrl 0x208, error 0x1203
+  virtio_gpu_virgl_resource_unmap: resource already unmapped 1135
+  ...
+  ---
+
+  I have no idea how this error came up.
+  VREND_DEBUG enables detailed logging for virglrenderer library, but
+  there is no useful information found there.
+  I probably need to deep-dive into vulkan implementation on the host side.
+
+* Collaboration with other activities in the community?
+  No progress seen
+
+* Nvidia's new graphic driver (535.54.3)
+  I have not tried it as it has not appeared as an Ubuntu package yet.
+
+* Other issues with my v3 environment
+  This was a result on my nvidia card with Collabora's v3 software.
+  Now that I have AMD, we can throw them away unless I see the same
+  errors again.
+
+  (no progress)
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+[ETC]
+* I asked Alex to think of giving me other tasks in Orko that I can help
+  as I have been idle for a while (and will be in near future).
+  No feedback yet.
+
+* pcivirtio-gpu error on crosvm with vritio-gpu enabled
+  I have not tried to reproduce the issue on Radeon yet.
+
+
+SCMI
+====
+[SCMI-46] (improve scmi suport on U-Boot)
+* No sure who will be responsible for reviewing my patches[1],[2]
+  as there is no dedicated maintainer for SCMI-related patch.
+  With no review comments, they are up in the air right now.
+
+[1] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-74) (Upstream patch of scmi base protocol support)
+* After preparation, I submitted the first patch[3].
+  - clean-up (checkpatch and correcting spells)
+  - add/revise commit messages
+  - add function/struct descriptions to *every* function/struct
+  - add a test against the command, scmi
+  - add man-page of scmi command
+    (although the command is for debug purpose.)
+
+  While I was afraid no one might want to review it as there is
+  no practical benefit, Simon gave me some comments.
+
+[3] https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+
+[SCMI-49] (Add pinctrl protocol support)
+* Not yet started.
+
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+u-boot dm bugfix: merged
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+u-boot scmi base v1: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+ 
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+July 12-13: AGL all member meeting

@@ -1,0 +1,93 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-23
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* This task has been put into "blocked" state due to hardware unavailability.
+
+* Finally Anmar asked Shimada-san to get a GPU card for me.
+  No detailed status of the purchase.
+  No confirmation yet about the platform. Anmar suggested Synquacer or
+  AVA, but I don't believe that Synquacer is a choice for GPU reference
+  because it has a bug in 32-bit read operation on PCIe bus.
+  (A bunch of nasty hacks, which are NOT upstreamable, will be required
+  on a graphic driver, yet not sure if it is successful.)
+
+* Collaboration with other activities?
+  No progress seen
+
+* Nvidia's new graphic driver (535.54.3)
+  I have not tried it as it has not appeared as an Ubuntu package yet.
+
+* Other issues with my v3 environment
+  (no progress)
+  I had no time to dig into those issues yet.
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+[ETC]
+* I asked Alex to think of giving me other tasks in Orko that I can help
+  as I have been idle for a while (and will be in near future).
+  No feedback yet.
+
+* pcivirtio-gpu error on crosvm with vritio-gpu enabled
+  No progress
+
+
+SCMI
+====
+[SCMI-47] (Add scmi base protocol support)
+* After the discussion with Vincent, I will close this card after
+  SCMI-58 and SCMI-74 which I have just created are finished.
+
+[SCMI-46] (improve scmi suport on U-Boot)
+* No sure who will be responsible for reviewing my patches[1],[2]
+  as there is no dedicated maintainer for SCMI-related patch.
+
+[1] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-58] (Add base protocol test)
+* Finished and passed all the tests (assertions).
+  I closed this card.
+
+[SCMI-74) (Upstream patch of scmi base protocol support)
+* Started to prepare for the patch submission
+  This will include
+  - clean-up (checkpatch and correcting spells)
+  - add/revise commit messages
+  - add function/struct descriptions to *every* function/struct
+  - add a test against the command, scmi
+  - add man-page of scmi command
+    (although the command is for debug purpose.)
+
+[SCMI-49] (Add pinctrl protocol support)
+* Not yet started.
+
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+u-boot dm bugfix: merged
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+June 23: AWS Dev day Tokyo
+July 12-13: AGL all member meeting

@@ -1,0 +1,156 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-03-24
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results in [1]
+  [1] itself is getting rather obsolete due to these days' changes.
+  So [2] will likely be the base for a coming blog article and my presentation
+  at Linaro Connect 2023.
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run
+  (currently 15 minutes) measurement.
+
+  While my priority in this week was to write up a draft for my blob article,
+  I did perform the measurements once again since I couldn't yet have good
+  confidence on the results.
+
+  My concerns were:
+  1) There are a few strange behaviors seen last week, for instance, "stepped"
+     latencies. I was afraid that they might be due to changes in kernel version,
+     config of taprio's gate list and/or others I made last week.
+  2) timesyncd daemon was not disabled on the guest VM so far. I disabled it on
+     both hosts, but didn't on the guest. It could interfere with clock
+     adjustment by PTP.
+  3) A few weeks ago, I modified the benchmark program so that TX hardware
+     timestamps for all the test packets can be captured. While this information
+     seems to be useful for analysis, I unintentionally forgot to save the log
+     files in the past. With these log data, I could confirmed that the sender
+     (host) surely sends out test packets regularly without any delay which
+     could make the measured latencies any longer.
+  4) The result for OVS+AF_XDP case looks unstable. In fact, I found that PTP
+     daemon was not working under the last week's configuration.
+
+* See page 90-101 in [2] for the latest results.
+
+  Regarding (1),
+  - "stepped" latencies are still seen on v6.3-rc2, and, quite strangely, they
+    seems to appear only in the cases *without* netperf.
+
+    Looking into the log as I mentioned in (3), the sender transmits packets
+    quite constantly and the RX timestamp's (recorded by the guest's virtio-net
+    driver) indicates that receiving packets took a longer time, comparing to
+    the lower-latency packets.
+    (But it's worth noting that this observation relies on the assumption
+    that PTP clocks are completely synchronized in nano-second order.)
+
+    Since the gap between lower latencies and upper latencies are as small as
+    around 25 nano seconds (strangely it's rather constant), I would *ignore*
+    this issue for now.
+
+  - Very big spikes are still seen, and quite strangely again (sigh!),
+    they occur only in non-perf cases and the recorded latencies have rather
+    constant values (around 160 *milli* seconds).
+
+    Like the other big spikes (> 6000 usec) in the past, capturing TX timestamps
+    at that timing failed for some reason as I have experienced in the past.
+    Based on the recorded RX timestamps, however, the delivery of all the packets
+    (during the time big spikes are happening) were delayed and seem to be
+    received almost at once at the same timing.
+    This explains that why the graph is declining in a *linear* manner.
+
+    I haven't done ftrace yet, but I would expect, from my past experience, that
+    no interrupts for received packets are taken during the period.
+
+  Regarding (2), I didn't see any difference.
+
+  I need to explain details regarding (4).
+  OVS with AF_XDP enabled hehaves in a quite different way than in the kernel mode.
+  It allocate a userspace thread, named Poll Mode Driver (PMD), and assign
+  given RX queues to the thread. PMD is responsible for polling the queue and
+  processing all the packets (making incoming packets forwarded to guest VM).
+  So naturally it consumes 100% of cpu time on a dedicated processor.
+
+  This leads to a totally different setup required than the other cases.
+  I initially wanted to set up either
+  - one PMD for both the benchmark and netperf, or
+  - two PMD's, one for the benchmark, the other for netperf
+  This naturally requires that the NIC should be configured with one RX queue
+  or two RX queues.
+  (This can be done by "ethtool -N enp1s0 combined 1 or 2)
+
+  I found that
+  - If "combined 3" (or combined 4), everything looks fine.
+    Either the benchmark, netperf or PTP seem to work as expected.
+  - If "combined 2", packets for the benchmark and netperf seem to be
+    transferred via OVS, but PTP messages will never reach to the other side.
+    In addition, a response time (or latency) reported by "ping" command
+    is quite slow (more than a few seconds).
+  - If "combined 1", any packets seem to be dropped within OVS.
+
+  After a couple of experiments with different configurations, I gave up for now
+  to dig into this issue.
+  The current workaround is
+  - "combined 3", i.e. three (Tx/)RX queues at hardware level
+  - filter benchmark packets to queue#0 (by NIC filter)
+  - filter PTP packets to queue#2 (by NIC filter) -- this might not be necessary
+  - redirect all the other packets (netperf) to queue#1 (under RSS)
+  - invoke two PMD's
+  - isolate cpu#1, #2 in addition to cpu#3 (for kvm)
+  - assign queue#0 to one PMD and bind the PMD to cpu#2
+  - assign queue#1 to another PMD and bind the PMD to cpu#1
+  - therefore, only cpu#0 is allowed to generally schedule the tasks on the host.
+    (Awesome!)
+
+  Only with this configuration, everything including PTP seems to work as
+  expected.
+  Don't ask me why this configuration works.
+
+  The result? 
+  Well, it looks much more stable than the last week's.
+
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[4]
+* I spent most of my time in running tests again and analysing the data, and had
+  little time in writing any text.
+  Now that I decided to go with the current results mentioned above, I hope I will
+  be able to make up a full draft (at least for initial reviews by Alex and
+  Vincent) by Monday.
+
+* So [5] is not updated at all.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] http://patchwork.ozlabs.org/project/intel-wired-lan/list/?series=345092
+  [4] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [5] https://drive.google.com/file/d/11nrviGSsxE78DfI55t9qvL3xFl8QZdB8/view?usp=share_link
+
+U-Boot support
+==============
+No update
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+(Next week, I may take a few-day vacation.)
+
+

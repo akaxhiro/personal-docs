@@ -1,0 +1,121 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-03-06
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  I tried a couple of changes in settings.
+  1) PREEMPT_RT kernel v6.2-rc3
+  2) Set up TSN (taprio) on receiver side
+  3) fully disable OVS from the startup of the system
+
+  (1) page 36,37 in [2]
+  With the patch Alex suggested applied, the kernel (RT v6.2-rc3) successfully
+  booted up. But the result looks the same, I mean, it won't resolve a big spike
+  of latency issue (> 6000us).
+
+  (2) page 38 in [2]
+  I configured TSN on the receiver side in the same way as on the sender side
+  (i.e. using the same timeslot definitions). But it won't resolve a disorder
+  of PTP.
+  As I said before, the root cause is not PTP, but must be the network itself.
+  Once the NIC (or driver?) goes into a wrong state, it won't easily be
+  recovered, which leads to network slow-down or packet loss.
+
+  (3) page 39,40 and 41 in [2]
+  OVS was stopped and disabled for the system not to automatically start
+  the service. It seems that a big spike has disappeared, but we see other
+  issues (PTP disorder or packet loss).
+
+* I also tried another timeslot definitions so that packets for PTP will be
+  transmitted at any of all the gates:
+  (before)      (after)
+  01    ->      03 101000
+  02    ->      02 103000
+  04    ->      06 109000
+  08    ->      0a 190000
+
+  I used this configuration in the experiments in 'LBO-293' below, but
+  it seems to has no effect on the results.
+  (Please note that PTP packets are already given the socket priority 5,
+  second to packets from the benchmark program (whose priority is now 7.))
+
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[3]
+* To collect the measurement data for the next blog article,
+  I attempted to once again perform tests against network types other than 'tap+bridge'
+  in the recent environment/settings.
+
+  See page 37, 43-49 in [2].
+  Overall, I could manage to set up the system/network as I did before, but
+  I still fail to obtain a stable result against OVS case.
+  In addition, I have some difficulty in properly setting up OVS + AF_XDP case.
+  (some setting must be missed out.)
+  
+  Regarding the results, there is an issue; After a long-period run (> 5 minutes,
+  mostly when 10-15 minutes has passed), PTP can easily get disordered.
+
+  Even if you think that the graph looks plat (or leveling) before a drift
+  starts, there are small spikes.
+  (I hope this issue can be resolved by assigning the vhost thread to SCHED_FIFO.)
+
+  So my question is which part of the data should we use to calculate the average
+  and determine the worst-case latency?
+
+* I submitted a proposal for my talk at Linaro Connect 2023.
+  The title is "Network latency with TSN on Virtual Machine."
+
+  The presentation will be based on a yet-coming blog article mentioned above
+  and my past slides for Continental meeting.
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Made comments on Kojima-san's patch of supporting firmware versions.
+
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Mar 21: Sprint Equinox Day (public holiday)
+(Around this week, I may take a week-long vacation.)

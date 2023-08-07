@@ -1,0 +1,98 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-09
+Reply-To: 
+
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-06-09
+Reply-To: 
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* v4 WIP environment
+ I have not received any feedback from Anmar about a possible test platform.
+ As I reported in the last week's report, the root cause seems to exist in
+ Nvidia's (vulkan) driver.
+ So without any progress on test platforms, I have no choice other than
+ holding this task.
+
+* Other issues with my v3 environment
+  (no progress)
+  I had no time to dig into those issues yet.
+  - "-display gtk" doesn't work
+    (This happens with v4.)
+  - [vertex] device-local=true: Failed with exception: Failed to perform atomic commit: Invalid argument
+  - vkmark: symbol lookup error: /lib/x86_64-linux-gnu/libnvidia-vulkan-producer.so: \
+            undefined symbol: wlEglCreateSurfaceExport
+
+
+SCMI
+====
+[SCMI-54] (Setup dev/test environment)
+* U-Boot's sandbox with SCMI dummy(stub) drivers
+  As for a failure of unit test ("ut dm scmi_sandbox_agent"),
+  I needed to modify the initialisation of SCMI at scanning a device tree
+  and simplify test scenario's by eliminating an necessary state
+  variable.
+
+  Now the test runs successfully, but I have noticed one issue.
+  After finishing the test, the device, "scmi_sandbox_agent"
+  and related scmi devices (scmi clocks, power domains and a reset domain)
+  have disappeared from U-Boot's Driver Model.
+
+  This is an existing (but not-noticed) bug in U-Boot's test framework.
+  I posted the bug fix[1].
+
+  Now that I confirmed that we can use sandbox environment for testing,
+  I will close this card.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+
+[SCMI-47] (Add scmi base protocol support)
+steps:
+  1.check my prototype code of the base protocol[2]
+* 2.refactor the code
+* 3.write a small U-Boot command ("scmi base")
+  4.write sandbox scmi drivers and ut test cases
+  5.(and try to upstream the code)
+
+  I made a couple of design changes in addition to the one I mentioned above.
+  A big one is to add a code which fetches the SCMI server's status &
+  information and keep them in a private structure by calling
+  Base protocol API's when SCMI agent is "bound" (in terms of U-Boot's DM).
+  So, for instance, "scmi base info" command will no longer call API's
+  at every time it is called.
+
+  This information will be used when a scmi device (say, clocks) is
+  "probed" (in terms of U-Boot's DM) so that we will be able to check
+  if the protocol is supported by a SCMI server
+  (as part of [SCMI-46]).
+
+  Last week I mentioned two issues to finalise API's:
+  1. API style
+  2. A variable length of return values
+
+  I managed to refine API's regarding (1) and will work on (2) next week.
+
+  [2] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+[SCMI-46]
+(no progress)
+
+U-Boot support
+==============
+* None
+
+=== Patch status ===
+
+=== Issues ===
+* Another GPU card or test platform?
+
+=== Travel&Holiday&Event ===
+July 12-13: AGL all member meeting

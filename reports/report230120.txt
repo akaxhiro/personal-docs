@@ -1,0 +1,147 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-01-20
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+* I decided to use "automotive profiles" for PTP configuration, at least,
+  for the time being.
+  I used to run PTP applications (daemon processes) with almost-default settings.
+  But I found several pre-defined profile files in linuxptp repository,
+  including those automotive profiles for the master and the slaves.
+  I'm not sure where those settings come from, but they contain almost all
+  the changes that I made in my last week's trials and so I hope it won't
+  hurt anything nor lead to any worse situations.
+
+* NIC driver's bug?
+  In my last weekly report, I reported:
+  ===
+  There exist a couple of outstanding issues though.
+  2a. Latencies still surge sparsely but periodically (at every 60 seconds this time)
+  3. The average latency increases gradually and steadily as the time goes on
+  4. The average may not always be low enough (due to the fact (3)?)
+  5. Without follow_up_info option, we see some ripples periodically
+  6. If the netperf workload is TCP (i.e. TCP_STREAM), the result looks
+     a bit different.
+  ===
+
+  After discussion with Kojima-san, however, I concluded that the primary priority
+  is to tackle the following error that I also reported the last week:
+  ===
+  Looking into the log by ptp4l app (which implements the PTP protocol to
+  synchronise PTP clocks on NICs), I found a strange behavior:
+  - Once netperf is started, the slave (i.e. the host hosting a guest VM)
+    seems to lose the remote master node and switch the master to the local
+    clock
+  - The app waits about 2^4 (=16) seconds, expecting that the network
+    link is *reset* and gets back to the normal.
+  - Then, restart selecting a new master clock.
+  ===
+  
+  Log messages indicate that the NIC driver fails to fetch TX timestamp
+  when a PTP packet (for calculating the clock delta between the master
+  and the slaves) is sent out from a socket.
+  (I confirmed that the sent packet itself was surely received by the opposite side.)
+
+  Without any confidence, I tried to switch back to the normal kernel
+  from the PREEMPT_RT kernel and then, this phenomenon (and the issue#3 and #4
+  above) has gone(!).
+  Strictly speaking, it still happens but much less frequently and it seems
+  that the slave PTP clock keeps being properly synchronised and stable.
+
+  See the page 29 in [1].
+
+  My guess is that the NIC driver may have some bug and the internal status
+  of the driver (and/or the hardware) is not properly maintained between
+  the normal context and the interrupt context.
+  (Please note that, on PREEMPT_RT kernel, all the interrupts are handled
+  in a kernel thread context and the situation can get worse.)
+
+  Now I'm trying to contact an Intel guy who is the developer of PTP/TSN
+  features for i225 driver and ask about this error.
+
+* Yet I have the issue#2 above.
+  I attempted to capture a ftrace log and looking into it, especially
+  around the periods when spikes of latency (reaching 4-5 seconds!) took place.
+
+  Quite strangely, no interrupts were taken by the host kernel, neither for
+  packets from the benchmark nor ones from netperf in all the time when
+  a big latency was recorded. (again, it lasted 4-5 seconds!)
+
+  I had no enough time to investigate the issue further due to another
+  serious problem I found in my experiment environment.
+
+* Qbv has not been proper set up on the sender side until now!
+  I have believed that I used Qbv (tc taprio) scheduler in all my experiments
+  and that the packet handling was successfully offloaded to NIC hardware,
+  but actually it wasn't.
+  As a result, the traffic control has not been changed and kept in the default
+  setting (i.e. no scheduling between different traffic load was enforced at all).
+
+  This means that we can no longer trust any of the results in my past experiments,
+  particularly ones listed in the result page 18 in [1] since the assumption
+  (i.e. TSN-enabled network environment) is utterly broken.
+
+  Now that I know what was wrong in the settings, I'm going to estimate
+  the impact which this problem has had on the existing results and figure out
+  how the result will be improved once TSN is really established.
+
+  I don't decide yet, however, whether I can and should immediately start measurements
+  once again for all the virtual network types as the issue#2.
+
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No update after the first blog post[2].
+
+  The meeting with Continental will be scheduled on Next Monday (23rd of January).
+  Considering the current confusing situation, it is not the best timing
+  for talking about the result that I have got so far :)
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)

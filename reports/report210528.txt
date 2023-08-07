@@ -1,0 +1,54 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-05-28
+Reply-To: 
+
+[STR-21] or rather [STR-7]?
+- Continued step-2 work
+  I finished the coding on vitio backend side, including basic
+  rpc interfaces. The remaining to implement is the main loop
+  on virtio proxy side.
+
+  I hope that I will be able to start some sort of debugging
+  by the end of the next week.
+
+- One of concerns is that there's no guarantee that the interfaces
+  between virtio proxy and the backend, in particular, vm services
+  called by the backend to virtio proxy are so good *generic* as
+  they can be applied to other hypervisors.
+  The interfaces are direct derivatives from Xen API's: 
+
+  struct vm_ops {
+        int (*set_irq)(void *handle, int irq, int level);
+        (void *)(*map_guest_range)(void *handle, uint64_t addr,
+                                   uint64_t size);
+        int (*unmap_guest_range)(void *handle, void *ptr,
+                                 uint64_t size);
+        int (*register_memory_space)(void *handle, uint64_t start,
+                                     uint64_t size);
+        int (*deregister_memory_space)(void *handle, uint64_t start);
+  };
+
+(MISC)
+- U-Boot capsule update support
+* Add signing feature to mkeficapsule[1]
+  no progress as I focused on virtio work this week.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+July 22: Sea Day
+July 23: Sports Day (Olympic Opening Ceremony)
+Aug 11: Mountain Day (Olympic Closing Ceremony) 

@@ -1,0 +1,181 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: 
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update. See [1].
+
+  - mqprio + etf
+  - sample-app-taprio[2] with 3 instances of netperf
+
+  PCIe NIC (i225) with kernel 5.18+
+  ---------------------------------
+                         min    avg    max    stddev
+  host1-to-host2          39.3   46.8   49.8    1.6
+  host1-to-vm
+    VFIO                  57.0   62.7  100.4    4.0    (NOTE: no netperf)
+    macvtap               92.5  139.1  275.4   35.6
+    tap                  107.4  228.8  434.4   70.4
+    OVS                  212.6  344.0  612.8   66.3
+    eBPF (XDP)          5598.0 6586.0 7659.0  390.3
+
+  <update on Oct. 20>
+  Leo suggested XDP case might be affected by the kernel configuration,
+  CONFIG_BPF_JIT_xxx. I have not confirmed it yet.
+
+  TODO: investigate eBPF case
+
+  TODO: find out a generic configuration of bridge to fix multicast issue
+  (although this won't have any impact on measured results).
+
+  TODO: With my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[STR-76] Break down the latency
+* datasheet of i225
+  I confirmed that our company (socionext) has already signed up with Intel
+  regarding CNDA (Corporate NDA), then I finally got a "premier account"
+  to access documents in Intel Support Center.
+  Now I have the datasheet in hand, while it doesn't contain any description
+  about Qbv-related features, there are a couple of TSN documents found:
+
+  a. I225/226 Time-Sensitive Networking, Software User Manual
+  b. Ethernet Time-Sensitive Networking on Linux for Intel Processors &
+     Ethernet Controller I225, Getting Started Guide
+  c. Time Sensitive Networking FAQs
+
+  (a) contains register-level descriptions to supplement the datasheet.
+  Please note that all materials are marked as "Intel Confidential" and so
+  any information that I've got from them cannot be disclosed even within
+  Linaro.
+
+  One thing, however, that I should mention here is that i225 seems to
+  support "full offload" of taprio (Qbv) since (b) demonstrates an example
+  command line of tc for "taprio" which has "flags 0x2", that is, full offload.
+
+* In the discussion with Alex, he raised a concern against "lost packets"
+  in my experiment. So I tried to identify the problem.
+     sendmsg() returned ENOBUFS.
+       packet_sendmsg() -> packet_snd() -> vlan_dev_hard_start_xmit()
+                -> dev_queue_xmit() -> __dev_xmit_skb() -> dev_qdisc_enqueue()
+                -> etf_enqueue_timesortedlist() failed
+
+  Now that I know qdisc(etf) is a problem (I didn't dig into more details),
+  I removed etf from my current configuration and attempted the measurement.
+  Then no "lost packets" were reported, and the latency was much improved:
+
+  With UDP_STREAM,
+                         min    avg    max    stddev
+  tap+bridge
+     no netperf          47.1    62.6  116.5    6.4
+     w 3 netperf's       97.1   124.3  698.1   25.6
+
+  With TCP_STREAM,
+     w 3 netperf's      100.3   145.7  270.9   30.3
+
+  I don't know what is the factor that helps shorten the latency yet.
+
+  In addition, it is a bit strange that the latency is also improved
+  in TCP_STREAM case while we still see bunch of interrupts take place at
+  the queue (TxRx-2) where packets from benchmark app are exclusively handled.
+                IRQs      cpu#0   cpu#1   cpu#2   cpu#3
+                TxRx-0:  293726       0       0       0
+                TxRx-1:  316332       0       0       0
+                TxRx-2:       0       0  374340       0 <=
+                TxRx-3:      35       0       0       0
+
+* I'm now trying to test "taprio(full offload)", but I don't observe
+  consistent improvement so far.
+  (Please note that taprio has a number of tuning parameters to try.)
+
+  <update on Oct. 20>
+  With UDP_STREAM,
+                         min    avg    max    stddev
+  tap+bridge
+     no netperf		 45.9	 53.6  126.9	5.7
+     w 3 netperf's	 96.72  124.6  390.0   17.9
+
+  Vincent had a concern about using "mqprio" configuration since
+  it is not part of TSN technology and it might confuse people.
+  (My setup with mqprio depends on NIC's default priority scheme
+  among tx queues.)
+
+* TODO: I don't know yet how we can remove arch-timer interrupts.
+   NO_HZ?, but the benchmark program calls select/poll() to wait for
+   incoming packets and so we will need a timer on guest VM.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* I carefully re-read Andrea's white paper of SDV[3], in which he mentioned
+  an issue on TSN in VM environment. I intend to start my blob article with
+  referring to his document. What it says, quoting
+  "Since the kernel has to go through a
+  number of layers to deliver a packet to a userspace
+  application, this slowly adds up to ~70µs. We adopted
+  the AF_XDP in-kernel fast path, which can deliver
+  packets to user space directly by-passing the slower
+  kernel layers. Although we didn’t meet the strict 1us
+  timing, we demonstrated we could deliver packets up to
+  the OPC-UA software layers in user space within ~4µs."
+
+  What do those numbers mean?
+  So I asked Ilias and Maxmim to clarify their experiment.
+  I will have to carefully draft the text so that they are unintentionally
+  compared with *my* numbers.
+
+  [1] https://docs.google.com/presentation/d/1zxxHVKgzMAcgB6_RIJ8i0v6yzqAff6gml7XuS5Xsyk8/edit?usp=sharing
+      (This link was updated to revision 2.)
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+  [3] https://static.linaro.org/assets/automotive_white_paper_0921.pdf
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Heinrich wants to rework EFI block device implementation for better(?)
+  DM-UEFI integration.
+  Strangely, he doesn't include me in Cc for a series of his patches.
+* I made comments on Sughosh's multibank update patch v11.
+* I made comments on Jassi's developerbox FWU support patch v2.
+* I made comments on Ilias' installMultiplePprotocol cleanup patch (RFC).
+
+  My comments seem to not be welcomed.
+
+* Review of secure boot test spec
+  TODO: Yet to review the updated test spec[5].
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://github.com/stuyod01/edk2-test/blob/secure-boot/uefi-sct/Doc/UEFI-SCT-Case-Spec/SCT_Secure_Boot.md
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Oct 10: Sports Day (public holiday)
+
+

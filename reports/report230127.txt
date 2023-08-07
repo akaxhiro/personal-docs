@@ -1,0 +1,195 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-01-27
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+* I think that now is a good time for me to revamp the test environment
+  including system configuration/software parameters and perform measurements
+  once again. The main changes that I've made are:
+
+    - switched back again to PREEMPT_RT kernel (yet using v5.19)
+    - configured the host with Guest VM (aka. ECU side) as a PTP master
+    - customised TSN configuration(*) and queue assignments to make them
+      more intuitive/understandable
+    - nullified some parameters at the benchmark app which only make sense
+      with NIC under taprio in "txtime-assist" mode.
+      (in other word, ETF-related parameters)
+    - modified the benchmark application so that it will never do disk IO
+      during the measurement
+
+  (*)
+    socket      VLAN      tc    TX queue        Qbv slot                Target
+    priority    priority                        (cycle:500usec)         use
+    6,7         <-        0     #0              0   - 100               benchmark
+    4,5         <-        1     #1              100 - 200               PTP
+    2,3         <-        2     #2              200 - 300
+    0,1         <-        3     #3              300 - 500               netperf
+
+    Note:
+    As of v5.19, any one TX queue can only be assigned to a single slot.
+    (But now I have backported a patch to lift this restriction, but will not
+    try it for now.)
+ 
+* Then I evaluated the effectiveness of each of various tunings that I have tried
+  so far.
+
+  - CPU affinity (See page 20 in [2], not [1])
+    (This test was done under the normal kernel, not RT kernel.)
+
+    Netserver processes are bound to cpu#0 and #1 (to avoid cpu#2 for vhost).
+    Interestingly, when vhost kernel thread is bound to cpu#2, I observed
+    much bigger latencies about at every 60 seconds as was the case in my
+    old trials.
+
+    I have not investigated why, but I decided to avoid using CPU affinity
+    in most cases (particularly for kernel threads) unless it has a trivial advantage.
+
+  - RX filtering (page 21)
+
+    Packets (the benchmark, PTP and netperf) are redirected to different RX queues.
+    This change has an effect on limiting a range of average latencies (or jitters).
+
+  - IRQ affinity (page 22)
+
+    In addition to RX filtering, interrupts from RX queues are bound to
+    different CPU's.
+    This has an effect on further reducing jitters.
+
+  - CPU scheduling (page 23)
+    With the combination of RX tunings above, vhost kernel thread is set to
+    a real-time scheduler (SCHED_FIFO) with priority 90 (same as irq threads).
+
+    This change reduced jitters further more.
+    At a glance, it seems that most of spikes get smaller and take place less frequently.
+
+    Moreover, as a magnified plot shows, most packets record quite constant latencies
+    around 100usec.
+
+* Digged into a big-latency case using ftrace (See page 24 and 25 in [2])
+  As recorded latencies in the new test environment look to stay fairly constant,
+  I tried ftrace once again and investigated the worst latency case (= 476.8usec).
+
+  @Time
+  1674725396.595007429: TX timestamp (on App)   <------------------+
+     …                                                             |
+  1674725396.595024 —–: RX irq thread	        (cpu#2)            |
+  1674725396.595089 —–: vhost thread		(cpu#1->#0)        |
+  1674725396.595325 —–: kvm/cpu#0		(cpu#3)            | (476.8usec)
+  1674725396.595465 —–: latest kvm_entry                           |
+                                                                   |
+  1674725396.595484220: RX timestamp (at guest/virtio) <-----------+
+
+  Apart from the reality that ftrace incurs addition overheads on kernel execution,
+  I can see two parts in trouble.
+
+  1) vhost thread
+    - vhost thread was forced to be migrated from cpu#1 to cpu#0 even though it was
+      assigned to SCHED_FIFO with priority 90.
+    - vhost on cpu#1 was somewhat disturbed by mutiple IRQ#IPI's for IRQ_work.
+    - vhost on cpu#0 was scheduled out by irq-61 thread (RX interrupt form queue#0)
+      even though they have the same priority.
+
+  2) kvm/cpu#0 thread
+    - The thread was quite often interrupted either by arch_timer interrupts,
+      IRQ_work thread or rcuc thread.
+    - why an injected interrupt for RX virtio by vhost thread was NOT delivered
+      to the kvm at the first "kvm_entry" (@6.595387).
+
+  So if vhost thread is bound to cpu#2, it may help improve a latency, but
+  see the issue that I mentioned above.
+  (have not yet tried it in the new environment.)
+
+* NIC driver's bug?
+  I've got a reply from Intel guy who is the developer of PTP/TSN features for
+  i225 driver. He suggested, as Kojima-san did, that PTP packets should be
+  separated from other (netperf) traffic and dispatched to a different queue.
+
+  It sounds correct, but I don't understand why receiving a bulk of packets may
+  have an impact on generating an interrupt for TX timestamp.
+  (Please note that TX queues and Rx queues with the same queue number use
+  the same interrupt number on i225.)
+
+  He hinted that there may be a problem in interrupt handling, saying no details.
+
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No action yet about the follow-up blog post after the first one[3].
+
+* We had a meeting with Continental, three engineers from Continental.
+  Two of them are also working on SOAFFEE ("Mixed critical ..." Tiger Team?).
+
+  They seem to be interested in a container environment and asked particularly,
+  among others, about a result of XDP case.
+
+===
+Vincent suggested:
+* change time interval (cycle)
+* invoke multiple VMs
+* use nohz_full
+
+irq work:
+* rto_push_irq_work_func		sched/rt.c, balance_rt()?
+* rcu_preempt_deferred_qs_handler	rcu_read_unlock_unlock(), reschedule?
+* nohz_full_kick_func			tick/time-sched.c event throttling, revaluate tick for task-switch
+* rb_wake_up_waiters			trace: wakeup tasks waiting fo ring buffer inputs
+
+
+
+===
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+* DM-UEFI integration
+  Replying to Simon's comment, Ilias re-stated that he were going to plan to
+  UEFI devices (other than block devices) to integrate U-Boot Driver Model
+  as I did against block devices.
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)
+Feb 24: My birthday (private holiday :)

@@ -1,0 +1,25 @@
+- my approach
+  - your concerns:
+    bootstrap of virtio-proxy channel
+    performance
+  - what can I do now for next step?
+- other approaches, like
+    (IOREQ/my approach)
+    vhost-user
+    ivshmem
+    Argo
+  - shared memory based solution
+    vulnerable due to lack of isolation?
+  - common hypervisor APIs are doable/feasible?
+  - FD interface
+    is it suitable for bare-metal/RTOS environment?
+- goal/assumption of hypervisor-agnosticism
+  - "single binary" vs. switching libraries at compile time
+  - transport dependencies:
+    virtio-mmio, virtio-pci
+    shared-memory based vs. non-shared-memory based (Argo)
+- next-cycle plan
+  - how will you collect feedbacks from members?
+  - no more PoR?
+  - demo?
+- Stratos internal review

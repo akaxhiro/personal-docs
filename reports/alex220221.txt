@@ -1,0 +1,35 @@
+Today's topics:
+* MACCHIATOBin
+   CPU FAN is quite noisy.
+
+   now 1G-ethernet is up and running, but neither 2.5G nor 10G.
+   (1G as eth2, not eth0, Sigh.)
+
+     => <UPDATE> now 10G's are up on pre-built image 4.4.52
+
+  -For instance (on v5.16),
+   ======
+   # dhclient eth0
+   cma_alloc: 30 callbacks suppressed                     
+   cma: cma_alloc: reserved: alloc failed, req-size: 8 pages, ret: -12
+   ...
+   mvpp2 f2000000.ethernet eth0: PHY [f212a600.mdio-mii:00] driver [Generic Clause 45 PHY] (irq=POL)
+   mvebu-comphy f2120000.phy: unsupported SMC call, try updating your firmware
+   mvebu-comphy f2120000.phy: Firmware could not configure PHY 4 with mode 15 (ret: -95), trying led
+   mvpp2 f2000000.ethernet eth0: configuring for phy/10gbase-r link mode 
+   cat: can't open '/etc/resolv.conf.*': No such file or directory        
+   ======
+
+  -If the two ports on two boards are connected each other with
+   a (straight, maybe) cable, the LED turns *amber*.
+
+   So I guess
+   auto-detection of cable-type (aka. MDI-X?) is not supported and
+   the phy doesn't have ability to switch signal lines autmomatically, or
+   simply because the cable is CAT6?
+
+
+  -For 10G, I found some disucssion in:
+   http://macchiatobin.net/forums/topic/10g-interfaces-not-working/
+
+   No solution found.

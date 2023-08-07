@@ -17,3 +17,8 @@ dpkg -S rustc
 
 Listing installed pacakges:
 dpkg -l
+
+Look for dependencies:
+apt-cache depends cargo
+  or
+dpkg-deb -f *.deb Depends

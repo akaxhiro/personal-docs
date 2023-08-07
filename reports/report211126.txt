@@ -1,0 +1,77 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-11-26
+Reply-To: 
+
+Stratos
+=======
+[STR-66]
+* hypervisor-less virtio implementation
+  Continued to talk with with David (RedHat) and Dan Milea (WindRiver).
+
+  I'm not yet clear about what kind of data shared memory regions can hold.
+
+* Continued to learn about Argo interfaces and virtio over Argo.
+  I'm trying to contact Christopher, asking a few questions about
+  his thoughts on how virtio-over-argo should be implemented.
+  No reply so far.
+
+  I see a couple of issues:
+  1) Argo doesn't have device discovery protocols.
+  2) How the access to configuration space be emulated.
+  3) I'm afraid that there are no appropriate interfaces with which
+     argo transport be seen transparent from higher virtio device protocols.
+     I think that the best way to implement virtio-over-argo is to
+     rewrite/replace virtqueue_add_sgs/add_outbuf().
+     If so, I doubt that this is no longer a virtio implementation
+     since we simply mimic the queue operations.
+
+* I'm also trying to compile argo modules (xen-argo.ko and
+  vsock_argo_transport.ko) for arm64 and a user library (libargo)
+  so that I will write a simple test program.
+
+  xen-argo.ko lacks arm64 support, in particular hypervisor call stub.
+  vsock_argo_transport.ko uses old kernel interfaces (maybe).
+  Looks easily fixable.
+
+(MISC)
+* I talked to Kojima-san about his efforts/experiences on implementing/
+evaluating TSN on Developer Box in LEDGE project.
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[1]
+  I'm preparing RFC v2. 
+
+[TS-102]
+- mkeficapsule revamp v7[2]
+  I asked Heinrich to review main part of my patch series. No response.
+  Ilias gave me ack's instead.
+   
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[3].
+  No progress
+
+* Heinrich reported that the logic of creating a device path for
+  usb mas-storage was wrong as different disks on different port
+  might have the same path.
+
+  I proposed a workaround patch[4].
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[2] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/cap auth v7: submitted on 11/16
+    uboot/uefi removable rfc: submitted on 11/09
+    uboot/disk_integ rfc: submitted on 10/01
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Dec 28 - Jan 5: off for New Year (maybe)

@@ -31,6 +31,12 @@ For develop on host1,
   zstd
   libzstd-dev
   libaudit-dev
+  # for buiding OVS with automake
+  libtool
+  libnuma-dev
+  libdpdk-dev -- old 20.11
+  meson
+  python3-pyelftools
 For test on host2,
   bpftool
   screen

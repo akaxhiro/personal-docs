@@ -1,0 +1,174 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-04-03
+Reply-To: 
+
+[KWG-473]
+# Split UEFI variables from U-Boot environment variables
+# Type: Epic
+# Status: To Do
+
+- Heinrich posted his own version of patch[1] for addressing runtime variable
+  access and non-volatile variable support (the latter is not implemented
+  yet though).
+  The aim is the same as what my patches[2] and [3] were trying to solve,
+  His solution is much simpler than mine because his implementation of
+  UEFI variables gave up utilizing U-Boot environment variables and he
+  implemented the feature from the scratch. So it's free from compatibility
+  issue I struggled.
+
+  I reviewed them and made comments.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-March/404441.html
+  [2] runtime variable access via cache
+      https://lists.denx.de/pipermail/u-boot/2019-June/371769.html
+  [3] non-volatile variables support
+      https://lists.denx.de/pipermail/u-boot/2019-September/382835.html
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure boot
+# Type: Epic
+# Status: To Do
+
+- No updates on Bugzilla[4].
+  No response.
+
+  [4] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+# Status: In Progress
+
+- RSA extension[5]
+- Secure boot[6]
+  Maxim(LEDGE) found a bug in my hash calculation code.
+  (just a two-line change required.)
+  I'm asking Heinrich if I should re-submit the whole patch set
+  or just a diff. No response yet.
+
+  Once I confirmed the action to take for the patch, I'm going to
+  prepare additional patches:
+    - EFI_IMAGE_EXECUTION_INFO_TABLE support
+    - dbDefault and other xxxDefault variables support
+
+- Documentation about UEFI secure boot[7].
+
+  [5] https://lists.denx.de/pipermail/u-boot/2020-February/401012.html
+  [6] https://lists.denx.de/pipermail/u-boot/2019-December/394075.html
+  [7] https://lists.denx.de/pipermail/u-boot/2020-February/399446.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+- Ilias's FILE2_PROTOCOL patch[8]
+  I haven't seen any succeeding discussion in ML so far.
+
+  [8] https://lists.denx.de/pipermail/u-boot/2020-March/402658.html
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- Submitted the patch as RFC[9]
+  Got bunch of review comments from Heinrich.
+  On the other hand, I asked him for his opinions about the issue and
+  TODO list that I mentioned in the patch's cover letter, but haven't
+  received any response yet.
+
+- I had a talk with LEDGE group and agreed:
+  - Sughosh is going to work on capsule authentication
+  - LEDGE group has no priority on any of items in the TODO list
+  and we also shared the importance of the *issue*.
+  The issue is that, under my current implementattion, capsules will be
+  applied only when any efi-related command is issued after reboot.
+  We need to move a hook for the action into U-Boot initialization
+  for secure execution.
+
+- Sughosh submitted a patch for FMP(firmware management protocol) support
+  on qemu[10]
+  I reviewed it and made some comments.
+
+- Discussions about runtime variable access support in Boot-arch ML[11]
+  The assumption in my patch is (based on Peter's proposal)
+  - to export UEFI variables data as a configuration table for HL-OS
+    to fetch their values
+  - to execute variable updates via capsule-on-disk after reboot.
+    So any capsule should be prepared and stored in a proper location
+    *by HL-OS*.
+
+  After several comments from others, Grant said, quote,
+  "GetVariable() should be required. SetVariable() I'm still undecided on,
+  but I'm less and less keen on inviting new mechanisms to replace it. I'd
+  rather flag it as unsupported and require the system operator to do their
+  variable manipulation at boot time for those specific systems."
+
+  I don't expect that we will reach any agreement anytime soon.
+  Meanwhile, I will deal with my patch without "variable
+  update" capsule support.
+
+  [9] https://lists.denx.de/pipermail/u-boot/2020-March/403038.html
+  [10] https://lists.denx.de/pipermail/u-boot/2020-March/403866.html
+  [11] https://lists.linaro.org/pipermail/boot-architecture/2020-March/001149.html
+
+[LEDGE-143]
+# Header: Implement cache for storing uefi variables
+
+- As said above, Heinrich's patch[1] addressed this issue.
+
+(misc)
+- some bug fixes on U-Boot[12],[13]
+  [12] was accepted.
+  [13] got reviewed-by from the author.
+
+  [12] https://lists.denx.de/pipermail/u-boot/2020-March/402502.html
+  [13] https://lists.denx.de/pipermail/u-boot/2020-March/402356.html
+
+
+=== the following cards are practically in "Open" or "To Do" ===
+
+[KWG-488] (mmc UHS-2 support) [14]
+
+  Go on looking into our own changes, in particular, in
+    drivers/mmc/core/uhs2.c
+    drivers/mmc/host/sdhci.c, and
+    drivers/mmc/host/sdhci-uhs2.c
+
+  [14] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(misc)
+- Integration of DM and efi[15]
+  # Should I create a JIRA card for this experimental work?
+
+  [15] https://lists.denx.de/pipermail/u-boot/2019-February/357923.html 
+
+- (u-boot/efi menu)[16]
+  Will need more discussions with Heinrich.
+
+  [16] https://lists.denx.de/pipermail/u-boot/2019-June/371582.html
+
+
+* Patch status
+    uboot/capsule RFC: submitted on 3/17
+    uboot/mem_map  v1: accepted
+    uboot/sp_check v2: got reviewed-by
+    uboot/secboot  v6: submitted on 2/26
+    uboot/rsa      v7: queued for v2020.07
+    uboot/secboot_doc v1: submitted on 2/7
+    uboot/dp-len   v1: submitted on 10/9
+    uboot/nv       v5: submitted on 9/5
+    uboot/nv_cache v1: submitted on 6/5
+    uboot/menu     v1: submitted on 6/4
+    uboot/dm-integ rfc2: submitted on 2/8
+    lkdtm/krpobes    : submitted on 2/28
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+April 29 to May 6th, "Golden week" holidays
+

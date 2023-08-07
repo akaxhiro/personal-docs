@@ -1,0 +1,106 @@
+From takahiro.akashi@linaro.org Wed Jul 22 15:28:40 2020
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p6e424d9a.tkyea130.ap.so-net.ne.jp. [110.66.77.154])
+        by smtp.gmail.com with ESMTPSA id o129sm23395226pfg.14.2020.07.21.23.28.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Jul 2020 23:28:39 -0700 (PDT)
+Date: Wed, 22 Jul 2020 15:28:36 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Subject: [Weekly] Week ending 2020-07-22
+Message-ID: <20200722062836.GA15585@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, private-pmwg@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 2292
+Lines: 83
+
+We will have a bit long weekend holidays.
+
+[KWG-473]
+# Split UEFI variables from U-Boot environment variables
+# Type: Epic
+# Status: To Do
+
+- Heinrich posted v4[1] and it was merged in 2020-10-rc1.
+  So this card can be closed.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-July/419779.html
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- No updates on Bugzilla[2].
+
+  [2] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+
+- "intermediate certificates" support
+  I submitted the patch v5[3] and related patches[4][5].
+  Most work was on test scripts.
+  While I believe that there are few issues remained, but I'm not sure
+  because Heinrich can unexpectedly make comments even after he said
+  that it (the code) looked good.
+
+  [3] https://lists.denx.de/pipermail/u-boot/2020-July/420879.html
+  [4] https://lists.denx.de/pipermail/u-boot/2020-July/420876.html
+  [5] https://lists.denx.de/pipermail/u-boot/2020-July/420965.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- I submitted the patch v4[6].
+  Most work was on test scripts.
+  While I believe that there are few issues remained, but I'm not sure
+  because Heinrich has not left any comments on the main logic.
+
+  [6] https://lists.denx.de/pipermail/u-boot/2020-July/420966.html
+
+[KWG-488] (mmc UHS-2 support)
+
+- UHS2 support v3[7]
+  Ulf left a few comments on the first two commits, kicking up
+  slow discussions.
+
+  [7] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+- I will have to think of writing a blog article about UEFI
+secure boot.
+
+=== Patch status ===
+    uboot/capsule  v4: submitted on 7/22
+    uboot/int_ca   v5: submitted on 7/21
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+July 23-24: Special Holidays (for Olympic!)
+
+
+

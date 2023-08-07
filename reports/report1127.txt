@@ -1,0 +1,97 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-11-27
+Reply-To: 
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+- Closed this Initiative card as all the child cards have been
+  closed.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- v9[2]
+  As I got additional comments, I will have to respin the code again.
+  (Those comments should have come in earlier versions as I haven't
+  changed any main logic in the last few versions.)
+
+- capsule authentication
+  Sughosh finally posted his patch[3].
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-November/432894.html
+  [3] https://lists.denx.de/pipermail/u-boot/2020-November/433553.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[4]
+  I've got comments from Adrian.
+  While I have not looked at them in details, he said, "Overall, I like
+  this approach." Good sign for v4.
+
+  [4] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+[LBI-40] / Stratos
+- Trial of Xen guest vm
+  >The next steps that I have in my mind are:
+  >* Run two Open-AMP apps on two guest vm's to talk to each other.
+  >  (First of all, I have to learn how we can set up "shared memory"
+  >  between vm's and how we can signal an interrupt from one vm to another.)
+  >* Implement a real virtio frontend driver with Open-AMP (virtio).
+  >  I started to look into linux implementation of virtio-mmio.
+  >* Study how we can directly build up a virtio device backend on zephyr.
+  >  (Alex seems to have started his study with vhost-user library on linux.)
+
+  Continued working on implementing a virtio frontend driver (block
+  device) on Zephyr using Open-AMP library. The base code for block
+  device driver comes from Linux (drivers/block/virtio_blk.c).
+
+  I think I finished the setup code for virtqueues.
+  The only remaining part would be to put/get block IO requests
+  via the queues. (Hopefully it will take another one or two days.)
+
+- Continued to discuss about GIC-related issues on Zephyr with Stefano
+  and Julien.
+  Before sending out a bug fix against spurious interrupts, I will have
+  to confirm the rules of submission in Zephyr community.
+  (All the patches seem to go through github's pull requests.)
+  I asked Kumar, but no response yet.
+
+- Zephyr on Xen
+  While I have my own prototype code of Xen support for Zephyr,
+  some guy from EPAM has posted his patch set[5].
+  (There seems be another update after that.)
+
+  I made some comments, in particular, around the device tree definition/GIC.
+  Since Zephyr uses its own bindings for device trees, they can be
+  confusing/problematic.
+
+- I attended Mike's presentation of stratos project at
+  "Linaro Autumn 2020 (for Socionext)".
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+- DEBUG_UART, or U-Boot's earlyprintk, patch[6]
+  No progress
+
+  [5] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+=== Patch status ===
+    uboot/capsule  v9: submitted on 11/17
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+None
+12/2-4: Open Source Summit Japan

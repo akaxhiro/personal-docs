@@ -1,0 +1,122 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-02-03
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+* The scheduling class of vhost kernel thread was unintentionally set to SCHED_RR
+  in my last week experiments, and it is now changed to SCHED_FIFO.
+
+  Hopefully, the thread will not be scheduled out (forcedly migrated to another
+  cpu as I observed last week) during handling incoming packets.
+
+Then, I have a good news and bad news at this moment.
+* A big latency ( > 3000usec) again
+  I tried to repeat my experiments with the exactly same conditions (same tunings)
+  this week, but the result was not the same. See page 26 in [2].
+  1) I observed big spikes of latency, which are more than 3000 usec, and they
+     repeated in a constant interval (about 60 seconds).
+  2) In another trial, relatively small (nearly 500 usec) but quite frequent 
+     spikes took place.
+
+  Strangely, I reboot the boards then (2) was gone, but (1) still occurred.
+  Further strangely, I tried the same condition in another (today), then
+  I didn't see neither (1) or (2). (See page 27 in [2])
+
+  Regarding (1), I captured a ftrace log. It shows that, during a big spike,
+  RX interrupt handlers for benchmark packets were not triggered. At same time,
+  there were no interrupts for netperf for a few milliseconds before the spike.
+
+  Since it is quite unlikely that interrupts are disabled for more than one msec
+  under PREEMPT_RT kernel, the only possibility, I guess, is that a packet was
+  stuck in tx queues and not transmitted at an expected time (slot) or an interrupt
+  for a received packet was postponed at hardware level for some reason.
+
+  Regarding (2), it is obvious that a given packet was not transmitted at the expected
+  slot and delayed until the next timing.
+  (Note that the current taprio cycle is 500 usec, but the interval of sending out
+  benchmark packets is set to 1000 usec).
+
+  Those phenomena imply that a latency may depend on a timing of the benchmark
+  application to send a packet. Not sure, though, it stems from software or hardware.
+
+* Improved jitters
+  In today's experiments, as I said above, I observed the similar results as
+  in the last week.
+  A ftrace log indicates that, during a small spike (~400usec), kvm vpu#0 thread was
+  intercepted by another kvm (main?) thread even after it was scheduled in by
+  kvm_vcpu_kick() (from vhost thread).
+
+  So I excluded all the threads (main and workers? in a kvm process, except vcpu#0 thread,
+  from cpu#3.  Then almost of all spikes have gone and latencies go under 200 usec
+  at any time. (See page 27 in [2])
+
+  If the result is stable AND always *re-producible*, we will have no strong reason
+  to pursue a further smaller latency.
+
+  ===
+  In the last-minute trial (after rebooting the guest and the host),
+  the phenomenon (1) was reproduced again. Sigh.
+  ===
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No action yet about the follow-up blog post after the first one[3].
+
+  If the today's result is re-producible, I will start thinking of a new blog post
+  based on the latest values.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+* DM-UEFI integration
+  Replying to Simon's comment, Ilias re-stated that he were going to plan to
+  UEFI devices (other than block devices) to integrate U-Boot Driver Model
+  as I did against block devices.
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)
+Feb 24: My birthday (private holiday :)

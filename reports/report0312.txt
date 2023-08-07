@@ -1,0 +1,80 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-03-12
+Reply-To: 
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3.1[1][2][3]
+
+  Since Renius asked me what I would expect from his side,
+  I told him that he should take over my and Ben's working code,
+  and lead the task as a main developer. He agreed.
+
+  [1] https://www.spinics.net/lists/linux-mmc/msg57321.html
+  [2] https://git.linaro.org/people/takahiro.akashi/linux-aarch64.git mmc/uhs2.wip
+  [3] https://www.spinics.net/lists/linux-mmc/msg63065.html
+
+[STR-21]
+- continued to work on porting/implementing 'virtio-disk'[4] (backend server) on zephyr.
+
+  >  1.implement hypercall routines (based on linux, done)
+  >  2.import 'event channel' and 'xenbus (or xenstore)' interfaces 
+  >    (drivers) from mini-os/unikraft tree. (done)
+  >  3.fix any compiling problems in Xen libraries
+  >    (this may require additional code to be developed.)
+
+  I think I finished debugging, at least, for prototyp/demo purpose,
+  and now the BE code is up and running on a guest domain (not domO)
+  as a virtio block device server.
+  I confirmed that FE on another guest domain, which is also a Zephyr app
+  that I developed, successfully reads/writes a virtual disk emulated by BE.
+
+  The last piece of code that I have to have implemented was
+  xenforeignmemory_map() API which enables a guest vm to map foreign guest's
+  (i.e. FE app) portion of memory (a ring buffer as well as data itself)
+  onto its own address space.
+  Since Zephyr has no vm (virtual memory in this context :) mapping,
+  I added a make-shift mechanism to extend the memory space for kind of
+  "device(peripheral)" memories on unused higher addresses.
+  So growing only, no reclaiming (unmapping), no re-using spaces.
+
+  (I also found a couple of bugs in my FE code.)
+
+- I've been contacted by Rob Woolley (WindRiver).
+  He pointed to his repository where his initial work has been pushed.
+  He would like to have a meeting with me and other Linaro folks for
+  future collaboration.
+
+- GIC-related issues on Zephyr
+  No progress
+
+- IOREQ on Arm[5] by EPAM
+  The patch has now been merged in the upstream.
+
+- Zephyr on Xen[6]
+  No progress
+
+- Debugging ability for guest vm (or Xendbg)
+  No progress
+
+  [4] https://github.com/xen-troops/virtio-disk.git
+  [5] https://lists.xenproject.org/archives/html/xen-devel/2021-01/msg00749.html
+  [6] https://github.com/zephyrproject-rtos/zephyr/pull/30164
+
+(Misc)
+- Reviewed a couple of U-Boot patches relating to UEFI.
+
+=== Patch status ===
+    uboot/capsule  coverity: 1/22
+    uboot/capsule  v10: now in pre-v2021.04-rc1
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+March 22 to 26: paid leave to consume spare day-off's

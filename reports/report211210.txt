@@ -1,0 +1,82 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-12-10
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to learn basic network technologies, including
+  TSN, XDP and SR-IOV (for virtual network).
+  For example, a SR-IOV setup article from Intel guy[1].
+
+* investigated MachiatoBin hardware/software specs for setup.
+  The homepages [2][3] are not very much useful.
+
+[1] https://www.intel.com/content/www/us/en/developer/articles/technical/configure-sr-iov-network-virtual-functions-in-linux-kvm.html
+[2] https://www.solid-run.com/arm-servers-networking-platforms/macchiatobin/#overview
+[3] http://macchiatobin.net/
+
+* attended "automotive demo" discussion
+  I found an interesting article[4] on "AVB(~= TSN) on Linux" for
+  audio/video application.
+
+[4] https://tsn.readthedocs.io/avb.html
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* Alex gave me more info about the specific issue.
+  I suspect that it won't take much time to fix it.
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress; Vincent told me that a main issue would be a missing support
+  for trampoline code (long-distance jump).
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  no progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration
+  I submitted RFC v2[5] as I confirmed that Heinrich agreed that
+  we wouldn't have partition-table devices for now.
+
+[TS-102]
+- mkeficapsule revamp v7[6]
+  I pinged Heinrich a week ago and have received no comments. Sigh.  
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[7].
+  No progress
+  This task somehow depends on the issue below.
+
+* Device path creation improvement for USB device[8]
+  I'm currently proposing a different notation of device path like:
+    /VenHw(e61d73b9-a384-4acc-aeab-82e828f3628b)/
+      USB(0xf3,0x0)/USB(0x0,0x0)/USB(0x2,0x0)/HD(1,MBR,0x00000000,0x0,0x99800)
+  to represent an *unambiguous/unique* combination of bus/port numbers.
+
+  Got some comments from Heinrich and Mark.
+
+[5] https://lists.denx.de/pipermail/u-boot/2021-December/469416.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[8] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ rfc2: submitted on 12/10
+    uboot/cap auth v7: submitted on 11/16
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* I need boards (MachiatoBin) for network measurements.
+  I prefer to have two for an isolated master-slave environment.
+
+=== Travel&Holiday&Event ===
+Dec 28 - Jan 5: off for New Year (maybe)
+Jan 10: Coming-of-Age Day (public holiday)
+

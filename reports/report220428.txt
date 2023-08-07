@@ -1,0 +1,121 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-04-28
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+[STR-73] (Setup for passthrough NIC)
+* no progress
+* TODO: create sub cards for SR-IOV/TSN trial
+
+[STR-76] Break down the latency
+* To measure a one-way trip time in an accurate way, I'm attempting to set up PTP
+  (Precision Time Protocol) on MACCHIATOBin as its NIC interface supports
+  IEEE-1588.
+
+  After installing linuxptp package, I was able to successfully start
+  ptp daemons both on a master and a slave with
+    # ptp4l -i enp0s0 -A -2 (-s) -m --transportSpecific=1
+
+  What is strange, however, is that I initially specified configuration files,
+  automotive-master.cfg and automotive-slave.cfg, which are included in linuxptp
+  source tree and the clock synchronization didn't work very well.
+  Actually, it did work in a poor way, I mean, the gap between the master
+  clock and slave clock was initially quite huge and was been adjusted
+  by one second per 'step clock' adjustment.
+  So synchronization will be expected to take a huge amount of time.
+  Probably, some of parameters in a configuration file are inappropricate.
+
+* I'm not able to try TSN scenario until I will get a pcie nic card.
+  So I started to learn VLAN/QoS and linux's tc (traffic control)/qdisc
+  (queuing disciplines) so that I can make *tuning* on network configuration
+  to improve the performance (latency) even without TSN support.
+
+* Here I've got one question; Do we really need TSN-capable nic on
+  a receiver side? Most technologies related to TSN are applied for
+  sender side.
+
+  My assumption for automotive application include two tasks (as I said
+  last week):
+      a. one task for streaming from a back-view camera (latency-conscious)
+      b. another task for car navigation with massive map data (bulk net traffic)
+
+  A producer of video stream for (a), I think, should have a dedicated processor
+  with an ethernet (or can?) interface. On the other hand, safety system application
+  might be run on a VM.
+  So I would cast a small question about assuming that the both side are running
+  with TSN interface.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* UEFI-DM intergration patch v5[1] was merged in v2022.07-rc1.
+
+* The follow-up patch[2],[3] was also merged in v2022.07-rc1.
+
+* But there were some reports that the patch breaks the backward compatibility.
+  So I submitted the fix patch[4],[5] to address the issue.
+  Heinrich also posted another fix patch for the other issue.
+
+(MISC)
+* a new version from Kojima-san on his bootmenu v5[6]
+  It contains (part of) my removable media patch[7].
+
+* Device path creation improvement for USB device[8]
+  No progress
+
+[1] https://lists.denx.de/pipermail/u-boot/2022-April/481753.html
+[2] https://lists.denx.de/pipermail/u-boot/2022-April/481745.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-April/482148.html
+[4] https://lists.denx.de/pipermail/u-boot/2022-April/482696.html
+[5] https://lists.denx.de/pipermail/u-boot/2022-April/482697.html
+[6] https://lists.denx.de/pipermail/u-boot/2022-April/482705.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[8] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v5: merged in v2022.07-rc1
+    uboot/uefi removable rfc: integrated into Kojima-san's patch series
+
+=== Issues ===
+* I need a PCIE card for VFIO/TSN/SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Apr 29 - May 6: Golden week (public holidays)
+
+

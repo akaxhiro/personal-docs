@@ -1,0 +1,172 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-07-29
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on result table
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+
+[STR-73] (Setup for passthrough, or VFIO)
+* closed this card.
+
+
+[STR-76] Break down the latency
+* No progress
+  As I said last week, I shifted my efforts in focusing on TSN in the first place
+  and examining how TSN be configured and the benchmark program should behave.
+
+* TODO: On my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+
+[STR-92] (Setup for TSN)
+* I continued to use Intel's example code[2] and attempted to reproduce
+  the result of experiment by StaringX project[3] somehow.
+    - Packets are sent at every 0.5 msec (10000 iterations).
+    - The app is bound to CPU#3.
+    - The tx thread is given a priority 90 in SCHED_FIFO.
+    - In terms of taprio,
+       - full offload
+       - txtime-assist with etf (this is the original setup.)
+       - software taprio
+       - no taprio
+    - On etf,
+       - delta: 200000 usec
+       - delta: 2000000 usec
+      I changed some of parameters though. Particularly, 'delta', which is the time
+      of dequeuing a packet before txtime, might have impact on the results.
+
+  The tc configuration looks like:
+    tc -d qdisc replace dev enp1s0 parent root handle 100 taprio \
+        num_tc 4 map 3 3 3 1 3 0 3 2 3 3 3 3 3 3 3 3 \
+        queues 1@0 1@1 1@2 1@3 \
+        base-time 1659323667000000000 \
+        sched-entry S 08 100000 \
+        sched-entry S 01 100000 \
+        sched-entry S 02 100000 \       <- gate for traffic class 1
+        sched-entry S 04 200000 \
+        sched-entry S 08 100000 \
+        sched-entry S 01 100000 \
+        sched-entry S 02 100000 \       <- gate for traffic class 1
+        sched-entry S 04 200000 \
+        clockid CLOCK_TAI
+    (The followings are done only for txtime-assist mode.)
+    tc qdisc replace dev enp1s0 parent 100:1 etf clockid CLOCK_TAI delta 200000 offload
+    tc qdisc replace dev enp1s0 parent 100:2 etf clockid CLOCK_TAI delta 200000 offload
+
+  latency: txtime at user level to rxtime at driver
+             (so the definition is a bit different from the one in my program.)
+  delta (intra-packet latency):
+           an interval time from the previous receive time to the current one
+
+(Results)
+                        latency                 delta
+                        min/avg/max/stddev      min/avg/max/stddev
+  host-to-host
+     none                12.4/  12.7/   41.4/  0.5  470.4/500.0/  512.7/  0.9
+   w/ 3-netperf
+     none                46.5/  53.0/   84.9/  3.4  453.1/500.0/  521.9/  4.8
+                        344.6/1086.0/ 1789.0/201.7    5.2/500.0/ 1334.0/286.4           (2)
+     soft                13.2/  16.1/  458.2/ 22.9   55.0/500.0/  944.5/ 32.6           (14)
+     assist
+      (delta: 200000)   986.7/1002.2/ 1275.6/ 10.9  225.0/674.7/ 7501.3/568.3           (12)
+      (delta:2000000)    31.2/1002.8/13901.6/142.3    0.3/502.6/13401.2/140.3           (13)
+     full               693.1/1955.6/ 2733.3/396.0    5.6/499.9/ 2003.3/595.6           (9)
+                         46.1/  52.5/   72.4/  3.2  472.7/500.0/  527.2/  4.8           (10)
+
+* Please note
+  - Standard deviation doesn't make sense here because measured data won't
+    follow *normal distribution*.
+    Graphs (histograms) illustrate the results much better. See [1].
+  - It looks that software-impl (taprio) is the best, but ...
+  - we see distinctive results even for the same condition, i.e. (9) and (10)
+  - "txtime-assist" mode showed consistent results(12) but the latencies are
+    not the best. They seems to indicate that packets are always submit
+    *one cycle (1msec)* later. Room for tuning?
+
+  We need further investigation on the results.
+
+  (recited from the last week report)
+* Intel's sample app (sample-app-taprio) behaves in a bit different way
+  than my benchmark program:
+    - The focus of Intel program seems to be deterministic behavior
+      in a periodic transmission of data rather than the latency itself. 
+    - It parameterises CPU affinity, RT scheduling class, socket priority
+      as well as tc-related options.
+    - It sends packets one-way only.
+      (My program sends back replies, and it might impose some overhead.)
+    - On sender side, it enables txtime-assisted mode + etf.
+      (My program uses full offload mode.)
+    - On sender side, it specifies txtime and even tries to send out packets
+      at the timing, using clock_nanosleep(TIMER_ABSTIME), when a gate dedicated
+      for packet's traffic class is open.
+    - On receiver side, arrived packets are distributed in different queues
+      based on VLAN's PCP (priority)?
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+  [3] https://docs.starlingx.io/developer_resources/stx_tsn_in_kata.html
+
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Review of secure boot test spec
+  I looked at EDK2 code and determined how it behaved, in particular, when to update
+  "SecureBoot" variable and how duplicated signatures be handled in appending them
+  to the signature DB.
+  (Those are not clearly described in UEFI spec and might be implementation dependant.)
+  I shared the info with other reviewers, including Stuart(Arm).
+
+  I have yet to review the updated test spec[5].
+
+* Spent some time to investigate an problem reported in U-Boot ML. My patch
+  "usb: storage: call device_probe() after scanning" makes the boot on RaspberryPi 2
+  broken around USB device probing.
+  I have proposed a fix.[6]
+
+* Device path creation improvement for USB device[7]
+  No progress
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://github.com/stuyod01/edk2-test/blob/secure-boot/uefi-sct/Doc/UEFI-SCT-Case-Spec/SCT_Secure_Boot.md
+[6] https://lists.denx.de/pipermail/u-boot/2022-July/489717.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Aug 15 - Aug 19: summer holidays
+

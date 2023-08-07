@@ -1,0 +1,115 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-03-04
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to set up MACCHIATOBin boards.
+  I managed to install Debian to eMMC and now am able to boot the system.
+
+  The upstream U-Boot seems not to be able to handle eMMC's boot partitions
+  (boot0 or boot1) properly and so I used Marvell's downstream repository
+  to build a bit newer version of U-Boot.
+
+  I still have difficulty in booting the firmware (TF-A&U-Boot) on eMMC
+  and need to start Debian on eMMC with U-Boot on SPI-ROM.
+
+  The configuration on SPI-ROM is
+  TF-A: Upstream v2.5
+  BL2: Marvell's binaries-marvell-armada-SDK10.0.1.0
+  U-Boot (BL33): Marvell's u-boot-2018.03-armada-18.12
+
+  On eMMC,
+  boot0: same as SPI (but it doesn't work)
+  data partition: Debian Bullseye (11.2.0)
+                  uname -v: SMP Debian 5.10.92-1 (2022-01-18)
+
+* installed a guest vm
+  I first booted *netinst* image with U-Boot and the installation of
+  Debian has failed at the last moment ("install grub"), probably,
+  since U-Boot EFI doesn't support variable runtime service.
+  So I had to install grub and set up grub.cfg manually :)
+
+  U-Boot: mainline v2022.04-rc2
+  system: Debian Bullseye (11.2.0)
+          uname -v: SMP Debian 5.10.92-1 (2022-01-18)
+          kvm --version: 5.2.0 (Debian 1:5.2+dfsg-11+deb11u1)
+
+  For network configurations,
+  - nat: doesn't work yet
+  - tap + bridge: OK
+  - macvtap: OK
+  - NIC passthrough: not tried yet
+  - OpenVSwitch (as a simple bridge): not tried yet
+  - eBPF-based bridge: not tried yet
+
+* made a first try to measure the network latency
+  I first tried iperf but got some weired result (negative values
+  for the latency) and so switched to netperf (and ping).
+
+  Here is the first round of result in mcvtap configuration (in ms):
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm(on host2)-to-host1  275    309    691    16.4
+
+  (ping)
+  $ ping 192.168.20.1 -c 10
+
+                         min    avg    max    stddev
+  host2-to-host1         170    184    209    11
+  vm(on host2)-to-host1  311    328    380    18
+
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration v2[2]
+  I dug into the issue (a test failure at UT) but found no clue.
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication) v11[3]
+  no progress on a follow-up patch (for enabling capsule authentication
+  test on sandbox)
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-February/474844.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/474721.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v2: submitted on 2/10
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Mar 21: Spring Equinox Day (public holiday)
+(I may have one-week vacation in March.)

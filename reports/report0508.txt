@@ -1,0 +1,128 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org, miyashita.hideaki@socionext.com
+Subject: [Weekly] Week ending 2020-05-08
+Reply-To: 
+
+[KWG-473]
+# Split UEFI variables from U-Boot environment variables
+# Type: Epic
+# Status: To Do
+
+- Heinrich's patch[1] (my patches[2] and [3])
+  I haven't seen any new comments in ML, but in a meeting with
+  Heinrich, I encouraged him to go ahead with his solution.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-March/404441.html
+  [2] runtime variable access via cache
+      https://lists.denx.de/pipermail/u-boot/2019-June/371769.html
+  [3] non-volatile variables support
+      https://lists.denx.de/pipermail/u-boot/2019-September/382835.html
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+# Status: To Do
+
+- No updates on Bugzilla[4].
+  No response.
+
+  [4] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+# Status: In Progress
+
+- Secure boot v7[5]
+  Follow-up patches[6] were accepted. 
+
+  I also dealt with other review comments that Heinrich posted
+  during my holidays.
+
+  In addition, he also reported that Coverity detected several
+  errors in my past UEFI-related commits. I posted fix patches[7].
+
+- "intermediate certificates" issue
+  No visible progress due to efforts on capsule patch
+
+  [5] https://lists.denx.de/pipermail/u-boot/2020-April/406549.html
+  [6] https://lists.denx.de/pipermail/u-boot/2020-April/407702.html
+      https://lists.denx.de/pipermail/u-boot/2020-April/407703.html
+      https://lists.denx.de/pipermail/u-boot/2020-April/407704.html
+      https://lists.denx.de/pipermail/u-boot/2020-April/407705.html
+      https://lists.denx.de/pipermail/u-boot/2020-April/407706.html
+  [7] https://lists.denx.de/pipermail/u-boot/2020-May/410993.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410994.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410995.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410996.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410997.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410998.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- Submitted v1 of capsule update patch[7]
+  Meanwhile, Sughosh sent out his v1 of qemu FMP driver[8].
+
+  I had a meeting with Heinrich and discussed issues; He showed
+  a couple of concerns, quote,
+  1.when do we initialize the UEFI sub-system and do capsule updates
+  2.how many different FMP implementation do we need and how this will
+    be coordinated with Sughosh
+  3.runtime variable support - Where should we head?
+
+  He expected that I and Sughosh should collaborate more closely
+  and find a solution for (2).
+
+- Discussions about runtime variable access support in Boot-arch ML[9]
+  No progress on ML, but in a meeting with Heinrich, we agreed
+  that we should promote discussions.
+
+  [7] https://lists.denx.de/pipermail/u-boot/2020-April/408760.html
+  [8] https://lists.denx.de/pipermail/u-boot/2020-April/409643.html
+  [9] https://lists.linaro.org/pipermail/boot-architecture/2020-March/001149.html
+
+[KWG-488] (mmc UHS-2 support) [10]
+
+- Pinged Ben (the patch author).
+  He said that he had to have postponed his patch submission as he had
+  been busy on other tasks. He will talk to his boss about the priorities.
+
+  I told him that I was willing to help him.
+
+  [10] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+
+=== the following cards are practically in "Open" or "To Do" ===
+
+
+=== Patch status ===
+    uboot/fixes     *: submitted on 5/8
+    uboot/capsule  v1: submitted on 4/27
+    uboot/fixes     *: accepted
+    uboot/secboot  v7: merged in v2020.07-rc
+    uboot/mem_map  v1: merged in v2020.07-rc
+    uboot/sp_check v2: got reviewed-by
+    uboot/rsa      v7: merged in v2020.07-rc
+    uboot/secboot_doc v1: merged in v2020.07-rc
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/nv       v5: submitted on 9/5/19
+    uboot/nv_cache v1: submitted on 6/5/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+None

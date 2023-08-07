@@ -1,0 +1,151 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-02-17
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (currently
+  5 minutes) measurement.
+
+  Basically, no progress.
+  === from the last weekly report ===
+  I still occasionally see big spikes of latency
+  (> 3000 usecs).
+  What was *commonly* observed based on a ftrace log was:
+  - At (t0 - 1000) (i.e. the previous packet), an interrupt for the benchmark was
+    triggered on cpu#2 and was serviced properly.
+  - Since then, no interrupts for the benchmark were triggered until (t0 + 3000).
+  On the other hand,
+  - Approximately at (t0 - 3000), an interrupt for netperf was triggered on cpu#0
+    and ksoftirqd was kicked (but not scheduled yet)
+  - Since then, no interrupts for netperf were triggered until when ksoftirqd
+    was scheduled in at around (t0 + 3000).
+    During this period, I saw some interrupts for arch timer and IPIs.
+  - Once ksoftirqd started (the NIC driver's poll function was called),
+    interrupts started to take place both for netperf on cpu#0 and the benchmark
+    on cpu#2.
+
+  - Coincidentally (or not), from (t0 - 3000) to (t0 + 3000) gc_worker()
+    was executed on a kworker thread on cpu#0.
+
+    ("3000 usecs" here is an approximate value and it may vary.)
+  === ===
+
+  === 2023.2.20 Note ===
+  NIC (i225) has a function to pace (or moderate) the delivery of
+  received packets, called "interrupt throttle register".
+  I closely monitored the changes of the value (a minimum inteval
+  of RX interrupts) but it was always lower than 1000usec.
+  === ===
+
+  I tried a lot of changes to determine what factor may trigger this issue,
+  but have no conclusion.
+
+  1) changed the scheduling class of ksoftirqd for cpu#0 (i.e. for netperf traffic)
+     to SCHED_FIFO with priority 41
+        -> effective (suppress this phenomenon in most cases.)
+  2) measured the tx timestamps on the benchmark's sender side.
+        -> I found that capturing tx timestamps failed during the *exact* same
+        period when a big spike happened.
+        On the other hand, a failure of capturing tx timestamps occasionally
+        happens. Even in this case, a packet was received by the benchmark.
+        So packets were surely delivered (i.e. just delayed for more than 6ms).
+        -> Anyhow, this trial suggests that a problem may exist on *sender*
+        side. But this insight can contradict the fact (1) above.
+        -> So some backward pressure (receiver to senderr) might have happened?
+        The only possibility was PTP because neither netperf nor my benchmark
+        doesn't send any message from receiver side.
+  3) Stopped PTP daemons and measured the latency.
+        -> no effect (I still see a big spike.)
+        -> So the traffic by netperf itself is a matter.
+  4) Changed the number of netperf instances from 3 to 1 or 2
+        -> no effect
+  5) Changed the (software) queue size on the sender side from 1000 (packets)
+     to 5000
+        -> no effect
+  6) Changed the interval of packets sent by the benchmark:
+     (tapio's cycle time is always 500usec.)
+     from 1000usec to 2000usec
+        -> no effect
+     500usec
+        -> many packet losses; PTP clock also got disordered
+  7) Changed taprio's gate control list, widening a slot for netperf (queue#3)
+     from 200usec to 700usec (so the cycle time is now 1000usec.)
+        -> No big spike (> 3000usec), but many small spikes (~ 1000usec)
+        -> I'm not sure this workaround can be seen meaningful because there is
+        no doubt that traffic by netperf has some impact and taprio should always
+        work a shaper to mitigate such a DoS-like traffic even under the stressed
+        network.
+
+* An easy guess from the observation above is that an excessive/overwhelming traffic
+  for a specific queue on this NIC may affect other queues as well even with
+  TSN enforced. This is due to hardware or software (driver), I don't know.
+
+  Yet I don't know why (1) above is effective (even has impact on the sender side).
+
+* What else can I do next?
+
+=== 2023.2.10 Note ===
+I'm trying to limit the bandwidth for netperf today.
+1) use cbs combined with taprio; allowed only for two high priorities
+1') use dbs with etf (emulating taprio)
+2) use yet another *qdisc* shaper (i.e. RED or BLUE)
+3) use iperf instead of netperf. Iperf has a "bandwidth" parameter
+
+-> First (3), but anyhow I can't reproduce the phenomenon today.
+
+
+Other (potentially possible) methods:
+1) insert a "packet sniffer" to TSN and monitor all the traffic
+2) use a different NIC card and try the benchmark
+=== ===
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No action yet about the follow-up blog post after the first one[3].
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://docs.google.com/presentation/d/1UFVJW1vgcy6ge75X2Aie6-KgkWR9qpB8KKIDJv73_GE/edit?usp=sharing
+  [3] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[5]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Feb 23: The Emperor's Birthday (public holiday)
+Feb 24: My birthday (private holiday :)
+

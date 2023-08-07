@@ -1,0 +1,121 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-03-18
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (no update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: under investigation
+  e.OpenVSwitch (as a simple bridge): not tried yet
+  f.eBPF-based bridge: under investigation
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+
+[STR-73] (Setup for passthrough NIC)
+* I contacted guys from semihalf.com who are the authors of the patch which enables
+  IOMMU on Linux and guys from Marvell who are the authors of the patch which adds
+  init code for IOMMU on TF-A.
+
+  Based on the information I've got from them as well as HW specification document,
+  - SoC supports IO virtualization (IOMMU) for NICs and PCIe bus
+  - SoC can host a SR-IOV PCIe endpoint
+  - NIC interfaces can be assigned to 9 VM's
+    (which means Virtual Function/VF?, but NIC's are not on PCIe bus.)
+  - To properly set up IOMMUs for NIC (and PCIe), some code for assigning stream IDs
+    to the devices must be added to TF-A platform code.
+  - Marvell engineer did basic tests against NIC and said that pass-through should work, but
+  - He no longer has any enabling code
+
+  So the issue is software, in particular, TF-A code (and linux driver as well?).
+  With little knowledge about HW and basic VFIO framework, I have a big question mark here
+  about how easy or difficult it is to implement the feature on MACCHIATOBin.
+
+  For other devices like SATA and USB's, it looks quite easy to assign stream IDs
+  but network devices seem to be more complicated due to VF support.
+
+[STR-75] (Set up for eBPF-based bridge)
+* The program is based on David's work[1].
+
+* The network doesn't work yet.
+  Now ping packets (ICMP) pass in both directions, but UDP (and hence TCP) packets
+  passes from a remote host (not a local machine which hosts a guest vm) to a guest,
+  but not from a guest to a host.
+
+  What I have found so far is that UDP packets reach to the remote NIC interface,
+  but the kernel stack drops them, *probably*, due to a bad checksum in IP.
+  I don't know yet why the checksum is broken.
+
+* FYI, I heavily use 'ftrace' (function graph tracer) to investigate/keep track of
+  packet handling in the kernel stack as I am quite familiar with ftrace as the author of
+  ftrace support for arm64. The old work helps myself now :)
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+[STR-74] Setup for Open vSwitch
+* No progress
+
+[STR-76] Break down the latency
+
+* No progress
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration v3[2]
+  Simon posted a collection of small patches[3] that will help reduce
+  the binary size for some platforms.
+  The discussion is still ongoing.
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+  Konjima-san told me that he wanted to include (part of) my patch in his patch set
+  that is an attempt to add "bootmenu" UI. So I gave him some comments.
+
+* Device path creation improvement for USB device[5]
+  No progress
+
+* reviewed Kojiima-san's bootmenu RPC[6].
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-March/477141.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-March/477550.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+[6] https://lists.denx.de/pipermail/u-boot/2022-March/477193.html
+
+=== Patch status ===
+    uboot/disk_integ v3: submitted on 3/8
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Mar 21: Spring Equinox Day (public holiday)
+Mar 28-31: days-off

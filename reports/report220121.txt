@@ -1,0 +1,92 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-01-21
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to learn basic network technologies, including
+  TSN, XDP and SR-IOV (for virtual network).
+
+* I'm going to write down some document[1] to summarise my task here.
+
+* XDP-based bridge
+  I continued to examine the code in [2].
+  The example code, l2fwd-demo.sh, gives us a good base of bridge
+  implementation for my trial. Since the network configuration that
+  the author assumed there is a bit complex, I made a small change
+  to make a bridge function simpler.
+  Added a few slides in [1]. 
+
+  But I didn't and won't try the code on my PC because, as I said,
+  I don't want to corrupt my system by accident (even if unlikely).
+  I will postpone the trial until I will get a MACCHIATOBin board.
+
+* measurement program
+  Since [2] also has example codes for measuring network latencies,
+  pktlatency and ovslatency, I will look into them, figuring out
+  how the metrics are obtained. It seems that HW timestamp feature
+  is utilised in the programs.
+
+[1] https://docs.google.com/presentation/d/1iik_AK2lUcYhuhavd4mk9EF2A84m4QfFX2906ucz1XQ/edit?usp=sharing
+[2] https://legacy.netdevconf.info/0x14/pub/slides/24/netdev-0x14-XDP-and-the-cloud.pdf
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration, RFCv2[3]
+  No progress
+
+[TS-102]
+- mkeficapsule revamp v9[4]
+  After I made some replies to Heinrich, I submitted v9
+  (because I didn't expect to see more comments from him).
+
+  One issue is how we should treat openssl library with U-Boot
+  as the license at openssl may be seen to conflict with GPL(v2).
+
+(MISC)
+* Reviewed some patches from Sughosh and Masami which are
+  for FWU Multi Bank Update (A/B update).
+
+* "removable media" support on UEFI bootmanager RFC[5].
+  No progress
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+[3] https://lists.denx.de/pipermail/u-boot/2021-December/470053.html
+[4] https://lists.denx.de/pipermail/u-boot/2022-January/472298.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/cap auth v9: submitted on 1/18
+    uboot/disk_integ rfc2: submitted on 12/10
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+* boards (MachiatoBin)
+  I've got the delivery at the end of December, but the order
+  was wrong; the package contained only one SingleShot board.
+  I asked Shimada-san to re-order the boards. A new delivery
+  date would be early February.
+
+=== Travel&Holiday&Event ===
+Feb 11: National Foundation Day (public holiday)
+Feb 23: Emperor's Birthday (public holiday)
+

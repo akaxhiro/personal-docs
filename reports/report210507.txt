@@ -1,0 +1,36 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-05-07
+Reply-To: 
+
+[STR-21] or rather [STR-7]?
+- Continued to investigate *my* backend code.
+  After the discussion with Vincent, I wrote up a draft document
+  for generic virtio backend framework.
+
+  I'm going to elaborate more details of specification in the document,
+  or work on a prototype based on my current virtio backend on Xen.
+  By doing them in parallel, I hope the one will give the other
+  good feedback.
+
+(MISC)
+- U-Boot capsule update RFC[1]
+  I have pinged a couple of times but not received any replies
+  neither from Heinrich nor Sughosh.
+
+- Also helped Masami to try capsule update on Developer Box.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-April/447918.html 
+
+=== Patch status ===
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+None

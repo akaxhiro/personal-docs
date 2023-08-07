@@ -1,0 +1,57 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: alex.bennee@linaro.org
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2021-05-14
+Reply-To: 
+
+[STR-21] or rather [STR-7]?
+- no progress
+  As the discussion about my patches on UEFI capsule update has been
+  heating up this week, I had no time to work on virtio.
+
+(MISC)
+- U-Boot capsule update support
+  I posted a number of small patches[1] that fix various minor issues
+  on the current implementation of capsule authentication.
+
+  Those are prerequisite patches for capsule signing below.
+
+- Add signing feature to mkeficapsule
+  Sughosh assumes that we should use EDK-II's python script
+  to sign a capsule file, but it seems to me that it makes
+  no sense at all while we are users of U-Boot!
+
+  The solution that I proposed[2] is to add signing feature to
+  mkeficapsule command which will now allow us to create and sign
+  a capsule file.
+
+  The patch[2] has ignited unpleasant discussions that are still
+  ongoing on ML.
+
+[1] https://lists.denx.de/pipermail/u-boot/2021-May/449347.html
+    https://lists.denx.de/pipermail/u-boot/2021-May/449348.html
+    https://lists.denx.de/pipermail/u-boot/2021-May/449349.html
+    https://lists.denx.de/pipermail/u-boot/2021-May/449350.html
+    https://lists.denx.de/pipermail/u-boot/2021-May/449351.html
+[2] https://lists.denx.de/pipermail/u-boot/2021-May/449571.html
+
+(FYI)
+- I claimed Li Gong that he should have shared his recent message,
+  "Re-Imagining Engineering at Linaro," with assignees as well as
+  employees as it will surely have substantial impacts on assignee's
+  development efforts. (As you notice, he initially posted it only
+  to employees.)
+
+=== Patch status ===
+    uboot/cap auth v1: submitted on 05/12
+    uboot/cap misc: submitted on 05/11
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+None

@@ -1,0 +1,4 @@
+For debugging a dynamic library,
+$ LD_DEBUG=symbols,bindings <command> ...
+
+$ readelf -sW -D <command>

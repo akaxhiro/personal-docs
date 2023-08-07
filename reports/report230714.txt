@@ -1,0 +1,122 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-07-14
+Reply-To: 
+
+I have little progress this week as I attended AGL all members meeting in Japan.
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* Vkmark benchmark app doesn't work with Radeon.
+  Since the last week's report, I saw little progress on the issue.
+  In addition to the error below,
+  ---
+  vrend_create_surface: context error reported 3 "Xorg" Illegal resource 1032
+  context 3 failed to dispatch CREATE_OBJECT: 22
+  ---
+
+  I observed another error, -EINVAL, in MapMemory call when I tried another
+  vulkan application, vkcube, which is much simpler than vkmark.
+
+  In the initialisation code, this program executes:
+    - vkCreateInstance()   -> fd = open(/dev/dri/renderD128)
+    - vkAllocateMemory()   -> mem = zalloc(...)
+    - vkMapMemory()        -> ioctl(fd, DRM_IOCTL_VIRTGPU_MAP, gen_handle)
+                              mmap(..., MAP_SHARED, fd,...) -> -EINVAL
+
+  To track down the issue, I will have to debug the kernel's drm module,
+  at first, on the guest.
+
+* Collaboration with other activities in the community?
+  AMD guy had a session[1] on virtio-gpu on Xen at Xen Summit.
+  It seems that his work covered almost of all that we expect to do
+  in this card and even more, except that the measurement is done on x86
+  not on Arm.
+
+  [1] https://xen2023.sched.com/event/1LKln/virtio-gpu-and-passthrough-gpu-support-for-xen-ray-huang-amd
+
+* Nvidia's new graphic driver (535.54.3)
+  I have not tried it as it has not appeared as an Ubuntu package yet.
+
+* Get a test platform (AVA)
+  No update from Anmar.
+
+[ETC]
+* I asked Alex to think of giving me other tasks in Orko that I can help
+  as I have been idle for a while (and will be in near future).
+  No feedback yet.
+
+* pcivirtio-gpu error on crosvm with vritio-gpu enabled
+  I have not tried to reproduce the issue on Radeon yet.
+
+
+SCMI
+====
+[SCMI-46] (improve scmi suport on U-Boot)
+* trivial bugfixes[2],[3]
+  I pinged against those two patches in the ML.
+
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[3] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-74) (Upstream patch of scmi base protocol support)
+* patch v1[3]
+  After some discussions with Simon, I decided not to implement
+  SCMI base protocol as an U-Boot device, instead will simply
+  implement the interfaces as a set of library functions.
+
+  Due to this change, some additional rework will be needed.
+
+[3] https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+
+[SCMI-49] (Add pinctrl protocol support)
+* Started.
+  no progress in this week.
+
+  Implemented all the protocol interfaces. No tests done.
+  As I said before, the hardest part in this task is API testing.
+  I will consider reusing the existing pinctrl/gpio test code,
+  or borrowing a portion of the code, on sandbox.
+
+  The remaining work is to implement either DT-based
+  pinctrl driver or gpio driver as U-Boot devices.
+  They belong to SCMI-52. I have not decided yet which I
+  start with, pinctrl or gpio (or both at the same time).
+
+
+U-Boot support
+==============
+Nothing
+
+ETC
+===
+* Attended AGL all members meeting.
+  I saw a quite small number of attendees (~50 people) even
+  in key notes.
+  I met Matt Spencer (ARM). He talked about the collaboration
+  between AGL and SOAFEE.
+  I met Jerry (tech lead of virtualisation-EG, now SDV-EG)
+  and other folks from Panasonic. I explained my current activities
+  and experiences on TSN as well as virtio-gpu.
+
+
+=== Patch status ===
+u-boot dm bugfix: merged to next (v2023.10?)
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: reviewed by one of maintainers
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+u-boot scmi base v1: under review
+  https://lists.denx.de/pipermail/u-boot/2023-June/521183.html
+ 
+=== Issues ===
+* Get Arm-based test platform for virtio-gpu
+
+=== Travel&Holiday&Event ===
+July 17: Sea Day (public holiday)
+July 31 - Aug 4
+

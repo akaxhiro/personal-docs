@@ -1,3 +1,16 @@
 # edit /etc/inittab
 # sudo find . | sudo cpio -o -H newc > ../rootfs.cpio
 $ gzip ../rootfs.cpio
+
+To stop the boot sequence at initrd, specify
+linux ... break=init
+
+
+man initramfs-tools
+/usr/share/initramfs-tools
+
+$ sudo /usr/sbin/update-initramfs -c -v -b /tmp -k 5.19.6-rt10+
+
+To customize, add
+/etc/initramfs-tools/hooks/foo
+$ chmod a+x /etc/initramfs-tools/hooks/foo

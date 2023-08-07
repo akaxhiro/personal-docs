@@ -1,0 +1,112 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-05-29
+Reply-To: 
+
+[KWG-473]
+# Split UEFI variables from U-Boot environment variables
+# Type: Epic
+# Status: To Do
+
+- Heinrich's patch[1] (my patches[2] and [3])
+  No progress seen in ML.
+
+  [1] https://lists.denx.de/pipermail/u-boot/2020-March/404441.html
+  [2] runtime variable access via cache
+      https://lists.denx.de/pipermail/u-boot/2019-June/371769.html
+  [3] non-volatile variables support
+      https://lists.denx.de/pipermail/u-boot/2019-September/382835.html
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+# Status: To Do
+
+- No updates on Bugzilla[4].
+  The guy from Intel told me that his assignment has been replaced with
+  another engineer. But anyhow, I haven't received any response yet.
+
+  [4] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+# Status: In Progress
+
+- Secure boot v7[5]
+  No comments to my patches against Coverity errors[6].
+
+- "intermediate certificates" issue
+  I haven't seen any comment to my patch (RFC) for sbsigntools[7].
+
+  I have continued to rework the code to enable intermediate
+  certificates in a signature and now believe that I've done.
+
+  The change was split into two parts, one as preparatory patch
+  including some bug fixes, the other for intermediate certificates
+  support. That way, I believe, the second patch set could be
+  shrunk and now got much simpler for easier understanding.
+
+  The first patch set was posted today[8], and second will be
+  posted sometime in the next week.
+
+  [5] https://lists.denx.de/pipermail/u-boot/2020-April/406549.html
+  [6] https://lists.denx.de/pipermail/u-boot/2020-May/410993.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410994.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410995.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410996.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410997.html
+      https://lists.denx.de/pipermail/u-boot/2020-May/410998.html
+  [7] https://groups.io/g/sbsigntools/message/17
+  [8] https://lists.denx.de/pipermail/u-boot/2020-May/414136.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+# No updates since last week.
+
+- v1 of capsule update patch[9]
+
+  [9] https://lists.denx.de/pipermail/u-boot/2020-April/408760.html
+
+[KWG-488] (mmc UHS-2 support) [10]
+
+- No news from Ben so far
+  I also asked him about availability of any end product in which
+  GL9755 chip, with which I think he is testing his code, is used.
+
+  [10] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+
+=== Patch status ===
+    uboot/secboot fixes: submitted on 5/29
+    uboot/secboot  v7: merged
+    uboot/fixes     *: submitted on 5/8
+    uboot/capsule  v1: submitted on 4/27
+    uboot/fixes     *: accepted
+    uboot/secboot  v7: merged
+    uboot/mem_map  v1: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/rsa      v7: merged
+    uboot/secboot_doc v1: merged
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/nv       v5: submitted on 9/5/19
+    uboot/nv_cache v1: submitted on 6/5/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+None
+

@@ -1,0 +1,25 @@
+modprobe nbd max_part=8
+
+qemu-nbd -c /dev/nbd0 <file.qcow2>
+mount /dev/nbd0pX /mnt
+
+killall qemu-nbd
+loseup -d /dev/nbd0
+
+
+
+How to expand partitions on qcow2
+(16G -> 20G)
+
+$ PATH=/usr/bin:$PATH virt-filesystems --long --parts --blkdevs -h -a /opt/disk/ubuntu_gpu.qcow2
+Name       Type       MBR  Size  Parent
+/dev/sda1  partition  -    1.0M  /dev/sda
+/dev/sda2  partition  -    513M  /dev/sda
+/dev/sda3  partition  -    15G   /dev/sda
+/dev/sda   device     -    16G   -
+
+laputa:linux$ PATH=/usr/bin:$PATH qemu-img create -f qcow2 -o preallocation=metadata /media/akashi/9c294da6-3517-431a-9c23-057662ab07b6/disk/ubuntu_gpu_new.qcow2 20G
+
+laputa:linux$ PATH=/usr/bin:$PATH virt-resize --expand /dev/sda3 /opt/disk/ubuntu_gpu.qcow2 /media/akashi/9c294da6-3517-
+431a-9c23-057662ab07b6/disk/ubuntu_gpu_new.qcow2
+

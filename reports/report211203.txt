@@ -1,0 +1,101 @@
+From takahiro.akashi@linaro.org Fri Dec  3 16:55:25 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:59ee:cdb7:e187:43ff])
+        by smtp.gmail.com with ESMTPSA id v38sm1602924pgl.38.2021.12.02.23.55.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Dec 2021 23:55:25 -0800 (PST)
+Date: Fri, 3 Dec 2021 16:55:21 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-12-03
+Message-ID: <20211203075521.GE17147@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: AF
+Content-Length: 2565
+Lines: 78
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* assigned to me now
+  Before thinking of any possible network configuration, I'm trying to
+  survey measurement tools for network latency(/throughput),
+  not only
+    - ping/iperf/netperf
+      (all of them can report some sort of 'latency'.)
+  but also
+    - socket timestamp feature[1]
+      by which, timestamp will be added as part of control messages
+      either on tx or rx to/from the media/kernel stack so that we
+      can figure out the overhead of kernel stack.
+    - Intel's AF_PACKET & AF_XDP socket-based application
+      in "IOTG TSN Reference Software for Linux"[2]
+    - Maxim's OPCUA TSN evaluation[3] 
+
+Some code in [2] and [3] depend on OPC UA library, though.
+
+[1] kernel's tools/testing/selftests/net/timestamping.c
+[2] https://github.com/intel/iotg_tsn_ref_sw
+[3] https://connect.linaro.org/resources/bkk19/bkk19-504/
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* assigned to me now
+  I don't understand what this card means yet.
+
+[STR-70] (Check the status of eBPF for ARM64)
+* sub-task of STR-68?
+  Not started yet.
+
+[STR-66]
+* hypervisor-less virtio implementation
+  no updates
+
+* Continued to learn about Argo interfaces and virtio over Argo.
+  Got a reply for Christopher.
+
+* I'm also trying to compile argo modules and run a sample vsock app.
+  Now I noticed that I had to enable CONFIG_ARGO on Xen explicitly.
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration[4]
+  I postponed the submission RFC v2 as I want to see Heinrich's
+  feedback first.
+
+[TS-102]
+- mkeficapsule revamp v7[5]
+  I postponed the submission v8 as I want to see Heinrich's
+  feedback first.
+   
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[6].
+  No progress
+  This task somehow depends on the issue below.
+
+* Device path creation improvement for USB device[7]
+  Waiting for Heinrich's comments.
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-October/462184.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/467399.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[7] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/cap auth v7: submitted on 11/16
+    uboot/uefi removable rfc: submitted on 11/09
+    uboot/disk_integ rfc: submitted on 10/01
+
+=== Issues ===
+* I need boards (MachiatoBin) for network measurements.
+  I prefer to have two for an isolated master-slave environment.
+
+=== Travel&Holiday&Event ===
+Dec 28 - Jan 5: off for New Year (maybe)
+

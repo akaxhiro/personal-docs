@@ -1,0 +1,57 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-04-21
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+
+[STR-76] Break down the latency
+* No progress
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)[1]
+* I'm trying to address the comments from Ebba[2].
+  I'm not sure, though, that the blog will be published before the Connect.
+
+* I finalised and uploaded my presentation slides to sched.com, but
+  Continued to make efforts in improving the doc[3].
+
+* Once again, I performed the tests for all the bridge types.
+  Then, one more side was added to illustrate the variation in measured latencies.
+  See the page 19 in [3].
+
+[STR-7] (Create a common virtio library for use by programs implementing a backend)
+* I have completely forgot it, but it was now closed by Alex.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* closed by Alex
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+  [2] https://docs.google.com/document/d/1lJgIb8aoTg49CqxlfQUmFzfDDb0Jlln4Er_2AW6FtAc/edit?usp=sharing
+  [3] https://docs.google.com/presentation/d/1BWuNTfzFsezwv-_zywgkEbEqWhAoRMNd1LXMhYhRLHY/edit?usp=sharing
+
+U-Boot support
+==============
+* SCMI on U-Boot[4]
+  No update on this topic
+
+  [4] https://git.linaro.org/people/takahiro.akashi/u-boot.git/log/?h=scmi/base_proto
+
+=== Patch status ===
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Apr 25-30, Linaro Connect
+May 1-5, Golden Week (public holidays)
+

@@ -1,0 +1,21 @@
+Today's topics:
+1) Any notable update/feedback? from
+   * triad: Internal Review
+     (particularly from members?)
+   * Stratos call
+2) Next development cycle
+   * When fixed?
+   * Any details of plan?
+   * additional participants?
+   * collaboration with Trusted substrate?
+   * milestone/demo?
+3) Next step (or first step of BE?)
+   * Xen bindings for rust-vmm
+     - kernel(linuz?) + userland, or baremetal (PVH?)
+     - I have ported Xen lib to Zephyr on Xen for
+       my virtio-proxy in a hacky way
+   * (memory) isolation
+   * Virtio-proxy, to go or not to go?
+     who decides and when?
+4) My status
+   * no visible progress

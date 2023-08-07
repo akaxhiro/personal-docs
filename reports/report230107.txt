@@ -1,0 +1,130 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2023-01-07
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on results [1]
+
+[STR-76] Break down the latency
+* Still continued to investigate a big latency observed  in a long-run (at most,
+  1 minute though) measurement.
+
+  --- from the last report ---
+  (A)
+  - isolcpus=nohz,domain,managed_irq,2-3
+  - bind vhost kernel thread to cpu#2
+  - bind kvm's vcpu (user) thread to cpu#3
+  - redirect all the packets destined to the guest to NIC's rxq#2,
+    with other packets to rxq#0 or #1
+  - bind interrupts of rxq#2 to cpu#2, with rxq#0 and rxq#1 to cpu#0 or #1
+    (hence irq thread (including softirq) and vhost thread are the only
+    context executed on cpu#2)
+
+   cat /proc/interrupts
+
+  Then I ran run the benchmark program on initrd without netperf workload in
+  background. The result for 10-minute run was:
+  (with ftrace enabled)
+  Total: 600000 packets
+    latency min/avg/max/stddev (usec): 102.394/124.534/280.674/15.461
+    delta min/avg/max/stdev (usec): 844.904/999.999/1164.008/21.699
+
+  And for 30-minute run,
+  (without ftrace)
+  Total: 1800000 packets
+    latency min/avg/max/stddev (usec): 71.810/86.914/210.076/11.938
+    delta min/avg/max/stdev (usec): 878.466/999.999/1131.045/13.019
+  --- ---
+
+  Then, I'm now trying to measure latencies under netperf workload (while the guest
+  is on intramfs), but can't reproduce the results that I observed before
+  (note that the configuration/ environment is different from the past, though.)
+
+  The worst-case latencies were quite big, but the most critical issue is
+  that the system clock, which is expected to be synchronized with the master/
+  remote host, seems to get disordered during a long run of the benchmark.
+  For instance, after one-minute duration, I've got:
+
+  Total: 60000 packets
+    latency min/avg/max/stddev (usec): 0.089/81.198/18446744073709551.577/55.155
+                                                    ^^^^^^^^^^^^^^^^^
+    delta min/avg/max/stdev (usec): 772.198/999.998/1203.540/11.198
+
+  Looking into the log, I found that *negative* values of latencies were
+  repeatedly recorded. This means that PTP failed to work properly throughout
+  the duration of measurement.
+
+  I tried to fix the issue, in addition to (A), with several tunings, including
+  - dispatch PTP packets to queue#2, so it will be handled only on cpu#2
+  - bind ptp4l/phc2sys (apps for PTP) to cpu#2
+  (At the end, cpu#2 hosts irq thread/softirqd/vhost/ptp apps, but I don't believe
+  that this configuration will overload cpu#2 any way.)
+
+  Yet I don't see any improvement (5-minute run):
+  Total: 185043 packets, negative values: 114957
+    latency min/avg/max/stddev (usec): 0.012/749187.644/2874148.191/972412.125
+    delta min/avg/max/stdev (usec): 0.252/1011.208/2309.110/67.845
+    (All the negative values are excluded from this statistics.)
+
+  Since we experience the disorder of PTP clock, none of latencies recorded here
+  is trustable even if they are *positive* values.
+  So fixing this problem here is quite urgent.
+
+* Other than the issue mentioned above, I'm thinking of trying some options
+  - apply a driver patch that enables us to specify multiple gates for a specific
+    traffic class at TAPRIO scheduler.
+  - try the measurement on other network configurations, especially OVS+AF_XDP
+    as it will help make the tunings much easier (since most of the kernel
+    code won't get involved in handling network packets.)
+  - run a zephyr as a guest VM (to exclude the guest kernel's interference)
+  - switch to the latest kernel version
+
+[LBO-293] (Talk about the Stratos work on characterising the impact of VMs ...)
+* No update after the first blog post[2].
+
+  The meeting with Continental will be held in the second (or third?) week
+  of January (according to Anmar).
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+  [1] https://docs.google.com/presentation/d/10iN4TU16K62c8uqcH9rqk8PS6V_8KV5EFe7tgvLFZe0/edit?usp=sharing
+  [2] https://www.linaro.org/blog/network-latency-with-tsn-on-virtual-machine/
+
+U-Boot support
+==============
+No progress
+
+[TS-219]
+* The follow-up patch[3]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Device path creation improvement for USB device[4]
+  No progress (This topic might be related to UEFI-DM integration).
+
+[3] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/SETUP_EARLY v1: submitted on 10/21
+    uboot/short_path v2: partially merged in v2022.07-rc4
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Dec 29-Jan 4: New year holidays

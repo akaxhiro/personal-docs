@@ -1,0 +1,147 @@
+From takahiro.akashi@linaro.org Fri Jul 28 11:54:41 2023
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:25dd:d673:efea:dbcc])
+        by smtp.gmail.com with ESMTPSA id h13-20020a170902f54d00b001ac5896e96esm2324893plf.207.2023.07.27.19.54.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Jul 2023 19:54:41 -0700 (PDT)
+Date: Fri, 28 Jul 2023 11:54:39 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2023-07-28
+Message-ID: <ZMMt75X-LS-meIhg@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 4881
+Lines: 124
+
+Orko
+====
+[ORKO-27] (Run performance benchmarks across testing matrix)
+* Vkmark benchmark app doesn't work with Radeon.
+  I was finally able to debug the guest kernel with gdb via qemu.
+
+  One of issues I found in running vkcube app is that vkMapMemory()
+  against allocated VRAM buffer, which was created as dma-buf on the host,
+  fails with -EINVAL.
+
+  After digging into the RADEON's drm library (libdrm_admgpu.so), which
+  was installed by AMD's official installer (admgpu-installer), I found
+  that VRAM buffer is created *without* O_RDWR flag at vkAllocateMemory()
+  and that mmap(MAP_SHARED|PROT_WRITE) fails due to the lack of write permission.
+
+  Very much strangely, this issue was fixed in the upstream repository
+  of libdrm in *2018*. I confirmed that this bug fix is not applied to
+  the library by disassembling the corresponding function.
+
+  I don't know how this comes at all.
+
+  Anyhow I replaced the library with the one I locally built from the latest
+  upstream branch and confirmed that the problem has gone.
+  (Not sure, though, that AMD's binary may or may not have its own
+  modification against the upstream.)
+
+
+  I ran vkcube again, but got another problem; vkWaitForFences() never
+  returns and the app is stranded forever.
+  vkWaitForFences() is used to synchronize between the cpu and the gpu
+  (virtio-gpu in this case) after issuing vulkan commands with vkQueueSubmit().
+
+  I haven't found any clue about a possible reason of this issue.
+
+
+* Get a test platform (AVA)
+  It seems that Anmar is trying to contact a guy who is supported to have
+  returned to office from his vacation the last week.
+  I haven't got any feedback yet.
+
+  On the other hand, Shimada-san made a contact with one of local dealers
+  for AVA in Japan, he said that there seemed to be no stock of hardware
+  in Japan.
+
+SCMI
+====
+[SCMI-46] (improve scmi suport on U-Boot)
+* trivial bugfixes[1],[2]
+  Confirmed that they appear in v2023.10-rc1.
+
+[1] https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+[2] https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+
+[SCMI-57] (Use base protocol information to verify scmi server compatibility)
+* I posted a RFC patch[3] of adding sanity checks against protocols:
+    - if the SCMI server support the protocol
+     (using SCMI_BASE_DISCOVER_LIST_PROTOCOLS) 
+    - if the version the SCMI server implement matches to the version
+      U-Boot drivers expect/assume.
+     (using SCMI_PROTOCOL_VERSION)
+
+  It is an RFC because I don't know what exact version the U-Boot drivers
+  (SCMI clock, reset, regulator) are based on.
+  At the time from SCMI specification v3.0 to v3.1, most protocols add
+  "extended name" feature and increment their version, along with other
+  minor updates.
+  Since Etienne's drivers  doesn't have any code to handle "extended name", 
+  we probably have to use a bit older version numbers.
+  I made an inquiry to Etienne, but got no response so far.
+
+[3] https://lists.denx.de/pipermail/u-boot/2023-July/525192.html
+
+[SCMI-74) (Upstream patch of scmi base protocol support)
+* patch v2[4]
+  After some rework, I posted v2.
+  So far, so good. Most commits were reviewed by Simon without any objections.
+
+  The issue is who will pick up this patch into the upstream since there is
+  no maintainer for SCMI.
+
+[4] https://lists.denx.de/pipermail/u-boot/2023-July/524811.html
+
+[SCMI-49] (Add pinctrl protocol support)
+* implemented 80 % of pinctrl driver under U-Boot Driver Model.
+  The reason of 80% is because I'm not sure:
+  - if we need additional code for parsing device trees.
+  - Some pin properties defined in SCMI specification are not defined
+    in U-Boot
+  - What values be used as default if the value of a property is not
+    described in a device tree
+  - what operations in U-Boot pinctrl classs may or may not be mandatory
+
+[SCMI-52] (Connect pinctrl protocol to uboot gpio class)
+* not yet started
+  I expect the exactly same way as in SCMI-49.
+
+
+U-Boot support
+==============
+* Trivial improvement at UEFI capsule update[5]
+
+[5] https://lists.denx.de/pipermail/u-boot/2023-July/524811.html
+
+
+=== Patch status ===
+u-boot dm bugfix: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/519703.html
+u-boot smci_clk: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/519976.html
+u-boot scmi errno: merged to next (v2023.10)
+  https://lists.denx.de/pipermail/u-boot/2023-June/520083.html
+u-boot scmi protocol checks v1: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-July/525192.html
+u-boot scmi base v2: under review
+  https://lists.denx.de/pipermail/u-boot/2023-July/524811.html
+u-boot uefi capsulel guid check RFC: submitted
+  https://lists.denx.de/pipermail/u-boot/2023-July/524811.html
+ 
+=== Issues ===
+* Get Arm-based test platform for virtio-gpu evaluation
+
+=== Travel&Holiday&Event ===
+July 31 - Aug 4 Summer vacation
+
+

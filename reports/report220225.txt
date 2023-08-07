@@ -1,0 +1,77 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: 
+Subject: [Weekly] Week ending 2022-02-25
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* continued to set up MACCHIATOBin boards.
+  I was tackling two issues:
+    - network doesn't work at U-Boot
+    - failed to boot the system (TF-A & U-Boot) neither from SD or eMMC
+    - (and FAN is too noisy :)
+
+  And I think I have finally fixed both.
+  As for networking, I had to set "ethprime" variable to "eth2" to enable
+  1Gb ethernet interface. I'm still unsure whether 10Gb interfaces are
+  up and running on Linux as the two interfaces on two boards are set to
+  be directly connected each other (i.e. cross-linking) for measurement.
+
+  As for boot failure, I made an trivial mistake in creating a boot media; 
+  the first sector in a device, which is a partition table, must be
+  skipped when copying a binary image :)
+
+  Now that I am able to boot debian image from SD, I'm going to install
+  debian file system on eMMC for regular (and measurement) use.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+[STR-66]
+* hypervisor-less virtio
+* virtio-over-argo
+  No progress
+
+[1] https://github.com/dsahern/bpf-progs.git
+
+U-Boot support
+==============
+[TS-118]
+- UEFI-DM(U-Boot's driver model) integration v2[2]
+  I did "bisect" my patch set and found that an error came out at
+  Simon's "event notification" patch, in particular at an invocation
+  of memcpy(). But I don't know yet why it results in a failure
+  in running UT (U-Boot's unit test).
+
+[TS-102]
+- mkeficapsule revamp (capsule authentication) v11[3]
+  no progress on a follow-up patch (for enabling capsule authentication
+  test on sandbox)
+
+(MISC)
+* "removable media" support on UEFI bootmanager RFC[4].
+* Device path creation improvement for USB device[5]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-February/474844.html
+[3] https://lists.denx.de/pipermail/u-boot/2022-February/474721.html
+[4] https://lists.denx.de/pipermail/u-boot/2021-November/466583.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/disk_integ v2: submitted on 2/10
+    uboot/cap auth v11: merged in v2022.04-rc2
+    uboot/uefi removable rfc: submitted on 11/09
+
+=== Issues ===
+None
+
+=== Travel&Holiday&Event ===
+Mar 21: Spring Equinox Day (public holiday)
+(I may have one-week vacation in March.)

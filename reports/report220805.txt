@@ -1,0 +1,112 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-08-05
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* No update on result table
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+[STR-73] (Setup for passthrough, or VFIO)
+* closed this card.
+
+[STR-92] (Setup for TSN)
+* I continued to evaluate different configurations of TSN with Intel's example code[2],
+  trying to use additional parameters.
+    - Packets are sent at every 0.5 msec (10000 iterations).
+    - The app is bound to CPU#3.
+    - The tx thread is given a priority 90 in SCHED_FIFO.
+    - In terms of taprio,
+       - full offload
+       - txtime-assist with etf (this is the original setup.)
+       - software taprio
+       - no taprio
+    - On etf,
+       - delta: 200/2000/5000 usec
+       - deadline mode
+    - Program's parameters
+       - wakeup_delay: 100/500/1000 usec
+       - taprio's tx_delay: 0/200 usec
+
+  I cannot attempt *all* the possible combinations of parameters in particular
+  for txtime-assist, but what seems to be the best in terms of *deterministic*
+  periodic transmission of packets was "full offload".
+  (It seems to be a trivial conclusion given that *real-time* thread is due to
+  be waken up at the *right* timing of a dedicated gate(window) for a given
+  traffic class.)
+
+  Regarding "txtime-assist + etf", I haven't yet reached the conclusion whether it is
+  second behind "full offload" or not. To be frank, full software implementation
+  of taprio scheduler performed much better.
+  I suppose further tuning efforts may be needed.
+
+  See [1] page 13 to 21.
+
+[STR-76] Break down the latency
+* Tried macvtap case, using Intel program, to look at an impact by SW overhead
+  on Receiver side.
+
+
+  I adopted "full offload" based on my insights at STR-92, but the result
+  was not what I expected; latencies are much bigger and sampled data
+  is more distributed than my anticipation.
+
+  See [1] page 23 to 25.
+
+* TODO: On my own benchmark program, I sometimes see that read/readmsg()
+  after select() fails.
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+  [2] https://github.com/intel/iotg_tsn_ref_sw/tree/apollolake-i
+  [3] https://docs.starlingx.io/developer_resources/stx_tsn_in_kata.html
+
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[4]
+  No progress. Although a patch for testing in the original patch series is yet
+  to be merged, I think we can close this card.
+
+(MISC)
+* Review of secure boot test spec
+  TODO: Yet to review the updated test spec[5].
+
+* Device path creation improvement for USB device[6]
+  No progress
+
+[4] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[5] https://github.com/stuyod01/edk2-test/blob/secure-boot/uefi-sct/Doc/UEFI-SCT-Case-Spec/SCT_Secure_Boot.md
+[6] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+
+=== Patch status ===
+    uboot/secboot bugfix: merged in v2022.07-rc
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+Aug 11: Mountain Day (public holiday)
+Aug 15 - Aug 19: summer holidays
+
+

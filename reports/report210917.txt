@@ -1,0 +1,104 @@
+From takahiro.akashi@linaro.org Mon Sep 20 09:31:44 2021
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa (p6e421539.tkyea130.ap.so-net.ne.jp. [110.66.21.57])
+        by smtp.gmail.com with ESMTPSA id n66sm1265542pfd.21.2021.09.19.17.31.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 19 Sep 2021 17:31:44 -0700 (PDT)
+Date: Mon, 20 Sep 2021 09:31:41 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2021-09-17
+Message-ID: <20210920003141.GA7902@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 3006
+Lines: 81
+
+[STR-7]
+- my proposal document on virtio-proxy[1]
+  Waiting for any comments on ML[2], the only related comment from Stefano:
+
+  "In my experience, latency, performance, and security are far more
+  important than providing a single binary.
+  (snip)
+  Instead of virtio-proxy, my suggestion is to work together on a common
+  project and common source with others interested in the same problem."
+
+- Alex's RFC about hypervisor-agnostic backend[3].
+  How should we drive the discussion further ahead?
+  Alex posted, saying "Is it time to start implementing Xen bindings
+  for rust-vmm?"
+
+- Looked into the implementation of vhost-user library, in particular,
+  how Xen's IOREQ counterpart is implemented in kvm/qemu.
+
+[1] https://docs.google.com/presentation/d/1jAOKbQpv44Rje74OI4pNKXlsCfRCQf547lHThNwTUPo/edit?usp=sharing
+[2] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000548.html
+[3] https://op-lists.linaro.org/pipermail/stratos-dev/2021-August/000546.html
+
+
+(MISC)
+- [STR-21]
+  Mike asked me for estimated remaining efforts.
+  I said that we could close the card since I had seen no major issues
+  in running Zephyr on Xen.
+
+- U-Boot support
+* mkeficapsule v3[4]
+  no progress seen on the discussion about where to save a public key
+  for capsule authentication
+
+- Bootflow/bootmethod proposal on U-Boot[5],[6]
+  No visible progress.
+
+- UEFI-DM(U-Boot's device model) integration
+  Since I don't know when the next cycle plan for Stratos will be fixed
+  and what the plan looks like, I temporarily focus on this integration
+  issue.
+  Based on my past experimental code[7], I have been working on
+  revised patch series for integrating efi_disk into DM framework.
+  So far I've done:
+  * create disk partition udevices
+  * detect partitions automatically at probing
+  * create/delete efi_disk objects automatically per block device/
+    partition
+  * re-work FAT filesystem using udevices instead of blk_descs
+
+  Those changes, however, doesn't lead to reducing the total code size
+  in UEFI subsystem.
+
+- Ilias created (TS-118), "U-Boot Driver model and EFI integration."
+
+[4] https://lists.denx.de/pipermail/u-boot/2021-August/459347.html
+[5] https://lists.denx.de/pipermail/u-boot/2021-August/458384.html
+[6] https://lists.denx.de/pipermail/u-boot/2021-August/459218.html
+[7] https://lists.denx.de/pipermail/u-boot/2019-February/357923.html
+
+- MMC UHS-II support
+* Genesys guy (Jason, yet another guy) posted v3.2[8]
+  no progress seen this week
+
+[8] https://www.spinics.net/lists/linux-mmc/msg65027.html
+
+=== Patch status ===
+    uboot/cap auth v3: submitted on 08/31
+    uboot/cap misc v2: merged
+    kernel/uhs2  v3.1: submitted on 11/06
+    uboot/sbsa    rfc: submitted on 11/04
+    uboot/xen-earlyuart v1: submitted on 10/15
+
+=== Issues ===
+
+=== Travel&Holiday&Event ===
+Sep 20: Respect-for-Senior-Citizens Day (national holiday)
+Sep 21: day-off
+Sep 23: Autumn Equinox Day (national holiday)
+Sep 24: day-off (due to second vaccination)
+Oct 10-15: (probably) my summer holidays
+

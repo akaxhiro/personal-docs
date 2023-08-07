@@ -1,0 +1,69 @@
+TOPICS:
+* My status
+  - no visible progress since I was busy on U-Boot UEFI.
+    I will focus more on Stratos this week, including estimating efforts
+    for virtio-proxy re-work.
+  - Starting reading JIRA cards you created.
+
+  - Correction:
+    In my step 2 of virtio-proxy, I have not ported "libxl" libraries.
+    I imported the following (librarie)s only:
+       hypercall stubs
+       eventchannel
+       xenbus -- require a dedicate Xen page
+       devicemodel -- for IOREQ
+       foreignmemory -- a bit tricky on Zephyr
+
+* Questions on your plan for next devel-cycle
+        >>>
+        1. Xen Rust Bindings ([STR-51])
+        .. 1. Upstream an "official" rust crate for Xen ([STR-52])
+        .. 2. Basic Hypervisor Interactions hypercalls ([STR-53])
+        .. 3. [#10] Access to XenStore service ([STR-54])
+        .. 4. VirtIO support hypercalls ([STR-55])
+
+        2. Xen Hypervisor Support for Stratos ([STR-56])
+        .. 1. Stable ABI for foreignmemory mapping to non-dom0 ([STR-57])
+        .. 2. Tweaks to tooling to launch VirtIO guests ([STR-58])
+
+        3. rust-vmm support for Xen VirtIO ([STR-59])
+        .. 1. Make vm-memory Xen aware ([STR-60])
+        .. 2. Xen IO notification and IRQ injections ([STR-61])
+
+        4. Stratos Demos
+        .. 1. Rust based stubdomain monitor ([STR-62])
+        .. 2. Xen aware vhost-user master ([STR-63])
+        <<<
+
+  - Are you going to present the plan to members (replacing PoR)?
+    any feedbacks?
+    assinging engineers?
+
+  - let me confirm assumptions:
+    'frontend should be unchanged'?
+       at which level? Linux can hide even transport layers from device drivers.
+       (It may matter if we want 'pre-allocated' memory.)
+    target transport: virtio-mmio only? agreed?
+    target OS: Rust-vmm on Linux on Xen?
+               You also mentioned unikernel as well.
+    required OS interfaces: not sure but all interfaces belong to POSIX?
+   
+  - STR-51
+    What's different btw STR-53 & 55?
+    53 just for 'stub'?
+    As far as xenstore is used, the code is not hypervisor-independent.
+    In EPAM (and my virtio-proxy), XenStore (events) is used for
+      - synchronizing (start/stop) with FE/BE being up/down
+      - fetching device-specific backend configuration info 
+  - STR-56
+    What's different btw STR-55 & 57?
+    What tool in mind in STR-58? 'xl'?
+  - STR-59
+    The hottest topic in ML seems to be "sharing memory" or "limiting
+    memory regions to be shared"
+       pre-allocated memory? (ivshmem does this.) Impacts on FE?
+       Why is iommu so useful?
+         (I don't think we need such a complicated mechanism.)
+
+OFF:
+  - I will take day-offs on Oct 18 (until the end of the week)

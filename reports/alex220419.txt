@@ -1,0 +1,132 @@
+Topics
+======
+* STR-74 (Open VSwitch)
+  - a bit slower than other configurations
+
+             (us)        min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+  - We can close this card.
+    Tuning should be in a different/next phase.
+
+* STR-73 (passthrough)
+  - We should give up using an on-chip NIC for passthrough mode test
+    given required efforts of modifying the code.
+    (vfio-platform)
+
+  - VFIO (vfio-pci) and SR-IOV are different items.
+
+	=> Should we create a new card for SR-IOV and resume this task
+	   once we got a NIC card?
+
+* Emulating system loads in automotive product (as part of STR-76)
+  - You suggested
+     a. one task for streaming from a back-view camera (latency-conscious)
+     b. another task for car navigation with massive map data (bulk net traffic)
+
+  - One example test scenario
+     A. netperf latency test (TCP_RR, VM -> host -> VM)
+     B. netperf burst-transfer test (TCP_MAERTS, host -> VM)
+
+    (A) is different from (a) as round-trip vs. uni-directional.
+    (B) is different from (b) as net traffic in (b) is more or less sporadic.
+
+    We *don't know* how many VM's are there and how much impact they have
+    on CPU load/scheduling/memory pressure/interrupts and so on.
+
+    So take a measurement for host-to-host first.
+    host-to-host (not VM) latency (us):
+
+                           min    avg      max  stddev
+                           ---    ---      ---  ------
+	A only             178    200      433      9.14
+        A+B on diff cpus   236    968   207847   9249
+        A+B on same cpu    214   1146   207362  13053
+
+  - To get more precise data for *uni-directional* latency, PTP-1588 support
+    (synchronizing a clock between hosts) is crucial in addition to
+    developping a dedicated benchmark program.
+
+  - Histgram
+    Netperf itself support the feature, but it must be configured at build time.
+    A binary in Debian package unfortunately seems to opt it out.
+
+
+* NIC cards
+  - We need a SR-IOV-capable pcie card. -> non essential
+  - We need a TSN-capable pcie card.
+
+  As far as I know, there is no product which supports SR-IOV and
+  TSN at the same time in the market.
+
+* Any feedback from member/associated companies?
+  It should be crucial.
+  (Don't expect it from me or my company.)
+
+
+
+(supplementary raw data)
+
+w/o net load
+============
+
+TCP_RR:
+-------
+Minimum      Mean         Maximum      Stddev       Transaction 
+Latency      Latency      Latency      Latency      Rate        
+Microseconds Microseconds Microseconds Microseconds Tran/s      
+                                                                
+178          200.32       433          9.14         4982.983
+
+on same CPUs
+============
+  -T 0,1 ; -T 0, 0
+
+TCP_RR:
+-------
+Minimum      Mean         Maximum      Stddev       Transaction 
+Latency      Latency      Latency      Latency      Rate        
+Microseconds Microseconds Microseconds Microseconds Tran/s      
+                                                                
+214          1146.04      207362       13053.01     872.058    		<= (A) 
+
+
+TCP_MAERTS:
+-----------
+Recv   Send    Send                          
+Socket Socket  Message  Elapsed              
+Size   Size    Size     Time     Throughput  
+bytes  bytes   bytes    secs.    10^6bits/sec  
+
+131072  16384  16384    5.00     2574.55   				<= (B1)
+
+Alignment      Offset         Bytes    Bytes       Recvs   Bytes    Sends
+Local  Remote  Local  Remote  Xfered   Per                 Per
+Recv   Send    Recv   Send             Recv (avg)          Send (avg)
+    8       8      0       0 1609265400  95875.21     16785   16384.00  98356	<= (B2)
+
+Maximum
+Segment
+Size (bytes)
+  1448
+netperf-1235 done
+
+
+
+on different CPUs
+=================
+  -T 1,1 ; -T 0, 0
+
+TCP_RR:
+-------
+236          967.62       207847       9249.30      1029.038		<= (A)
+
+TCP_MAERTS:
+-----------
+131072  16384  16384    5.00     3554.12				<= (B1)
+    8       8      0       0 2221363768  50699.86     43814   16384.00 135712	<= (B2)

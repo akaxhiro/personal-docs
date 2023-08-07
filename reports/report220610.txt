@@ -1,0 +1,150 @@
+From takahiro.akashi@linaro.org Fri Jun 10 21:19:08 2022
+Bcc: takahiro.akashi@linaro.org
+Return-Path: <takahiro.akashi@linaro.org>
+Received: from laputa ([2400:4050:c3e1:100:4c1a:2028:9111:fb22])
+        by smtp.gmail.com with ESMTPSA id c6-20020a170902c1c600b0016767ff327dsm12497862plc.129.2022.06.10.05.19.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 10 Jun 2022 05:19:08 -0700 (PDT)
+Date: Fri, 10 Jun 2022 21:19:05 +0900
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Subject: [Weekly] Week ending 2022-06-10
+Message-ID: <20220610121905.GA101247@laputa>
+Mail-Followup-To: AKASHI Takahiro <takahiro.akashi@linaro.org>,
+	private-kwg@linaro.org, alex.bennee@linaro.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Status: RO
+X-Status: F
+Content-Length: 4557
+Lines: 127
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+* TODO: Ilias raised a concern about the result of eBPF case, saying
+  that the latency should be much smaller than other cases.
+
+[STR-73] (Setup for passthrough NIC)
+* TODO: create sub cards for SR-IOV/TSN trial
+
+* i225 (TSN NIC card) setup
+  Last week I reported that the device was now recognized by the kernel
+  with a modified dtb.
+  That was correct, but actually the network fails to start as "ping"
+  still fails.
+
+  I asked for a help to the guy who wrote the commit that I mentioned
+  last week. He suggested that I should update the firmware, i.e., TF-A,
+  as the phy's are now initialized with SMC calls to SCP(?).
+
+  Unfortunately, however, updating my TF-A to v2.7 (the latest) doesn't
+  help at all. The kernel hangs up during the boot.
+  Since I have no idea about how I should fix, at least investigate,
+  this issue, I also made an inquiry to the technical support of SolidRun,
+  the board maker of MACCHIATOBin.
+  No response so far, Sigh.
+
+[STR-76] Break down the latency
+* I'm trying to extend my benchmark program by adding hardware timestamp's.
+  hw tx timestamp is taken when the data is queued to NIC, while hw rx
+  timestamp is taken at the arrival of a packet at NIC.
+  So ideally, we can estimate the software-consumed time on transmit side,
+  transmit time on the media and the software-consume time on receive side.
+
+  The result looks as follows (usec):
+  ---
+  1: up   113.949
+      tx sw: 11.881
+      wire : 8.156
+      rx sw: 93.912
+  1: down 124.467
+      tx sw: 0.000
+      wire : 15.594
+      rx sw: 108.873
+  ---
+
+  I have not added statistics generation yet as I still see a couple of issues.
+  They include:
+  1) Hw tx timestamp is not supported by MACCHIATOBin's NIC (mvpp2).
+     Russel (King) made the patch of adding PTP support to mvpp2 driver, but
+     it seems that he had no interest in expanding the feature to all
+     the packets.
+     (I don't want to talk to him :)
+
+     There is another timestamp, software tx timestamp, available, but my program
+     fails to take it for some reason. So I temporarily use yet another timestamp,
+     SOF_TIMESTAMPING_TX_SCHED which is the one taken *before* a packet be
+     handed over to network schedulers.
+
+  2) HW tx timestamp can be retrieved only from (the socket's error queue of)
+     the transmit side. So if the receiver side wants to get that value to calculate
+     a latency, *another* message must be sent for this notification.
+     (IIUC, PTP program does this!)
+     Since this makes the message protocol of my benchmark program complicated,
+     I have not added tx-timestamp support on the server.
+
+     That is why you see 0.0 at "tx sw" for down-stream latency as hw tx timestamp
+     is set to the same value of user tx timestamp to avoid bogus calculation.
+     (So "wire" time contains the software overhead and transmit time on the media.)
+
+* No update on the report[1].
+  (Actually, I added one photo of my desktop. :)
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress
+
+(MISC)
+* Device path creation improvement for USB device[3]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===
+

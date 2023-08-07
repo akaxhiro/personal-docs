@@ -1,0 +1,107 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, alex.bennee@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2022-06-03
+Reply-To: 
+
+Stratos
+=======
+[STR-68] (network latency behaviour with VMs)
+* latest result of latency measurement
+  (No update)
+
+  a.user (+ nat): failed
+  b.tap + bridge: OK
+  c.macvtap: OK
+  d.NIC passthrough: suspended/cancelled
+  e.OpenVSwitch (as a simple bridge): OK
+  f.eBPF-based bridge: OK
+
+  (netperf)
+  $ netperf -H 192.168.20.1  -l -1000 -t TCP_RR -w 10ms -b 1 -v 2 -- \
+      -O min_latency,mean_latency,max_latency,stddev_latency,transaction_rate
+
+                         min    avg    max    stddev
+  host2-to-host1         180    203    408    8.5
+  vm-to-host1
+    tap                  214    254    581    14.2
+    macvtap              217    244    567    13.0
+    ovs                  266    291    671    13.3
+    eBPF (XDP)           221    254    571    13.4
+
+* Ilias raised a concern about the result of eBPF case, saying that the latency
+  should be much smaller than other cases.
+        -> TODO
+
+[STR-73] (Setup for passthrough NIC)
+* TODO: create sub cards for SR-IOV/TSN trial
+
+* NIC card purchase
+  Now I have received two i225 cards and a SSD.
+  Gen said that x550 card is out of stock in most of official distributors
+  in Japan and it will be difficult to purchase an Intel-genuine product now.
+
+* i225 (TSN NIC card) setup
+  When I installed the card on MACCHIATOBin's pcie slot, the kernel hanged up,
+  probably, in the middle of scanning PCI buses and enumerating the devices.
+  When I put it on my own DESKTOP PC (Ubuntu 20.04), it works. How come?
+
+  I spent almost two days to fix the issue.
+  The root cause was a small change at the device tree in the mainline.
+  The commits in question added some properties for PCIe PHY's which allow for
+  initializing all the four PCIe lanes for *x4* devices.
+  Since the NIC card is a x1 device, something wrong must have happened
+  in communicating with the device in the rest three lanes.
+
+  After I reverted the commits, I confirmed that the kernel booted up
+  and detected i225 successfully.
+
+  I wonder whether no one have ever tried to insert x1 device on the slot?!
+
+  If I can create a bugfix patch, I will post it, but it may be difficult
+  for me to fix the issue to make the driver work both for x1 devices
+  and x4 devices.
+
+[STR-76] Break down the latency
+* I tested another case in which taprio (time-aware) qdisc (and etf (earliest
+  txtime first) qdisc) was set up. Taprio helped improve the worst-case
+  latency very much even withtou TSN.
+  Unfortunately, etf didn't work correctly because my benchmark program doesn't
+  yet have a function to set a txtime to each socket.
+
+* Made small updates in the report[1].
+
+  [1] https://docs.google.com/presentation/d/1jQUK2p5cUQsZAqVwZ9iz4CpJPSoPiAloR64MojQpy6Y/edit?usp=sharing
+
+[STR-41] (Implement SVC/HV passthrough for Xen on ARM64)
+* No progress
+
+[STR-66]
+  No progress
+
+[STR-70] (Check the status of eBPF for ARM64)
+* No progress
+
+U-Boot support
+==============
+[TS-219]
+* The follow-up patch[2]
+  No progress
+
+(MISC)
+* Device path creation improvement for USB device[3]
+  No progress
+
+[2] https://lists.denx.de/pipermail/u-boot/2022-May/483962.html
+[3] https://lists.denx.de/pipermail/u-boot/2021-November/468216.html
+
+=== Patch status ===
+    uboot/short_path v2: partially merged in v2022.07-rc4
+    uboot/uefi removable rfc: merged in v2022.07-rc2
+    uboot/disk_integ v5: merged in v2022.07-rc1
+
+=== Issues ===
+* I still need a PCIE (intel x550 or 82576) card for SR-IOV testing.
+
+=== Travel&Holiday&Event ===

@@ -1,0 +1,106 @@
+From: AKASHI Takahiro <takahiro.akashi@linaro.org>
+To: private-kwg@linaro.org, private-pmwg@linaro.org
+Cc: 
+Bcc: takahiro.akashi@linaro.org
+Subject: [Weekly] Week ending 2020-08-21
+Reply-To: 
+
+[KWG-471]
+# Header: Create common test suite for image authentication in UEFI secure
+boot
+# Type: Epic
+
+- No updates on Bugzilla[1].
+
+  [1] https://bugzilla.tianocore.org/show_bug.cgi?id=2230
+
+[KWG-464]
+# Header: Upstream UEFI secure boot (stage 1)
+# Type: Epic
+
+- Now I confirmed that all the outstanding patches for UEFI secure boot
+  [2],[3] and [4], have been merged in the upstream.
+
+  [2] https://lists.denx.de/pipermail/u-boot/2020-July/420879.html
+  [3] https://lists.denx.de/pipermail/u-boot/2020-August/423137.html
+  [4] https://lists.denx.de/pipermail/u-boot/2020-August/423375.html
+
+[KWG-339]
+# Header: UEFI Support implementation in U-Boot
+# Type: Initiative
+# Status: In Progress
+# No updates since last week.
+
+[LEDGE-187]
+# Header: U-Boot capsule update
+
+- patch v4[5].
+  Waiting for feedbacks from 'DFU' maintainer.
+  (Heinrich pinged him on Monday, no response though.)
+
+  [5] https://lists.denx.de/pipermail/u-boot/2020-July/420966.html
+
+[KWG-488] (mmc UHS-2 support)
+- UHS2 support v3[6]
+  I have seen no activities in ML.
+
+  [6] https://www.spinics.net/lists/linux-mmc/msg57321.html
+
+(Misc)
+- Blog write-up
+  I switched the target OS from CentOS to Red Hat Enterprise (8.2).
+
+  Contrary to CentOS, shimaa64.efi and grubaa64.efi in RHEL
+  are signed by the *official* Red Hat certificates (dubbed "CA key").
+  The exact same steps can apply, and the OS was successfully
+  installed.
+
+  Since I use file-based variable implementation (I mean it's not
+  Standalone MM-based.), there are a couple of restrictions;
+  * we must create EFI system partition on a disk prior to
+    starting the OS installation procedure.
+    (Because non-volatile variables are saved in a file on the partition.)
+  * Then we should install PK/KEK/db signature database variables
+    manually using U-Boot commands.
+  * OS installation fails at the last moment, saying
+         failed to set new efi boot target. This is most likely a kernel
+         or firmware bug.
+    But this is not a bug, but it's because the OS cannot create UEFI
+    variables to set up the boot option. The current U-Boot's runtime
+    services doesn't support updating UEFI variables after the kernel
+    starts (i.e. after exiting boottime services).
+
+    Even so, U-Boot UEFI will start the OS correctly at the next reboot
+    since it will detect 'bootaa64.efi' binary, which is actually shim.efi,
+    and start it. Meanwhile, shim.efi creates 'BootXXXX' and 'BootOrder'
+    variable automatically as it has failed to find 'BootOrder'.
+    So anyhow the installation will be completed at the end.
+
+- Posted a bugfix on virito[7]
+  I found the bug on virtio block device driver when I was trying the above.
+
+  [7] https://lists.denx.de/pipermail/u-boot/2020-August/423859.html
+
+=== Patch status ===
+    uboot/virtio   v1: submitted on 8/19, merged
+    uboot/multi-sig fix v1: submitted on 8/14, merged
+    uboot/secure-state fix v1: submitted on 8/13, merged
+    uboot/capsule  v5: submitted on 8/8
+    uboot/int_ca   v5: submitted on 7/21, merged
+    uboot/secboot fixes v3: merged
+    sbsign         v1: accepted
+    uboot/secboot  v7: merged
+    uboot/sp_check v2: got reviewed-by
+    uboot/dp-len   v1: submitted on 10/9/19
+    uboot/menu     v1: submitted on 6/4/19
+    uboot/dm-integ rfc2: submitted on 2/8/19
+    lkdtm/krpobes    : submitted on 2/28/19
+
+=== Issues ===
+None
+
+=== Travel&Holiday ===
+None
+
+
+
